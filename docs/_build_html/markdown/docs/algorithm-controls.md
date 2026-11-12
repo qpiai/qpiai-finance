@@ -194,7 +194,7 @@ QuantumRun(
 | `seed` | Strict integer in `[0,2**32-1]` or `None` (default). Local sampling, supported initialization, and SPSA randomness; rejected on the platform. |
 | `device_name` | Nonblank stripped string or `None` (default). Platform omission selects `"QpiAI-Indus-1"`; rejected locally. `"QpiAI-QSV-Local"` is not a platform device. Available platform names follow QCloud device access. |
 
-Omitted Finance `execution` uses `QuantumRun()`. Modes are exactly local/platform; automatic fallback and arbitrary solve options are rejected. QCloud authentication is required for both, and Finance additionally verifies the Opt client. A variational run can execute many circuits, plus final measurements and adaptive selection work. Shots and timeout are per circuit, not aggregate budgets. [Quantum results](quantum.md#gate-based-result-data) defines candidate, history, and execution diagnostics; [Opt's gate API](https://github.com/qpiai/qpiai-opt/blob/main/docs/api-quantum.md) covers its full dependency-level result types.
+Omitted Finance `execution` uses `QuantumRun()`. Modes are exactly local/platform; automatic fallback and arbitrary solve options are rejected. QCloud authentication is required for both, and Finance additionally verifies the Opt client. A variational run can execute many circuits, plus final measurements and adaptive selection work. Shots and timeout are per circuit, not aggregate budgets. [Quantum results](quantum.md#gate-based-quantum-result-data) defines candidate, history, and execution diagnostics; [Opt's gate API](https://github.com/qpiai/qpiai-opt/blob/main/docs/api-quantum.md) covers its full dependency-level result types.
 
 ## Recorded algorithm diagnostics
 
