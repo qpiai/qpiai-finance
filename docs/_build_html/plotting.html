@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Plotting">
+<title>Plotting | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/plotting.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="plotting">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="active" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Analysis and integration</span><span aria-hidden="true">&gt;</span><span>Plotting</span></div><article class="doc-content"><h1 id="plot-financial-results">Plot financial results</h1>
+<p>Import plotting functions from <code>qpiai_finance.plot</code>. Each returns a Matplotlib <code>Axes</code> and draws the applicable financial result data. No plot performs a new solve, recalculates a different risk model, submits work, or displays a window automatically.</p>
+<h2 id="axes-and-result-requirements">Axes and result requirements</h2>
+<p>Every function accepts keyword-only <code>ax=None</code>. Supply an existing Matplotlib Axes to compose a figure; omit it to create an Axes with a constrained-layout figure. Save or display through Matplotlib:</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">qpiai_finance</span><span class="w"> </span><span class="kn">import</span> <span class="n">plot</span>
+
+<span class="n">ax</span> <span class="o">=</span> <span class="n">plot</span><span class="o">.</span><span class="n">weights</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">figure</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="s2">"portfolio-weights.png"</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">160</span><span class="p">)</span>
+</code></pre></div>
+<p>Here <code>result</code> is a financially feasible portfolio result. Other model plots require their corresponding result tables. These functions accept result objects, not raw arrays or arbitrary DataFrames.</p>
+<p>Except the two quantum diagnostic functions and the frontier function, plots require a <code>FinanceResult</code> with <code>feasible=True</code>. They do not rerun verification of a manually constructed or restored record; use trusted result data and <a href="results.html">replay</a> when fresh checks are needed. Failed result, domain-table, or selector checks raise <code>ValueError</code>; <code>efficient_frontier</code> raises <code>TypeError</code> for a non-frontier result. The supplied record must contain the full domain schemas defined in its model reference.</p>
+<p>Identifiers such as <code>asset</code>, <code>account</code>, <code>facility</code>, <code>risk_id</code>, <code>obligation</code>, and <code>case</code> are actual string/integer identifiers from the model, not positional indices. Selectors must exist in the relevant result table. Single-result plot titles identify result status; the frontier title identifies its horizon. Axes use the relevant currency, quantity, horizon, or risk units where supplied.</p>
+<h2 id="portfolio-allocation-and-risk">Portfolio allocation and risk</h2>
+<table>
+<thead>
+<tr>
+<th>Signature</th>
+<th>Required data and plotted meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>weights(result, *, ax=None)</code></td>
+<td>Source portfolio weight Series; draws weights without renormalization or visual rounding. The denominator is the declared investment basis.</td>
+</tr>
+<tr>
+<td><code>holdings(result, *, ax=None)</code></td>
+<td>Portfolio <code>trades</code> table with <code>before</code> and <code>after</code> quantities; compares opening and post-trade shares.</td>
+</tr>
+<tr>
+<td><code>trades(result, *, ax=None)</code></td>
+<td>Single-period signed share trades; positive means purchase. Multi-period investment and execution results must use their dedicated plots below.</td>
+</tr>
+<tr>
+<td><code>risk_contributions(result, *, kind="variance", by="asset", ax=None)</code></td>
+<td>Existing asset risk contributions, or factor/specific contributions when <code>by="factor"</code>. <code>kind</code> is <code>"variance"</code> or <code>"volatility"</code>; <code>by</code> is <code>"asset"</code> or <code>"factor"</code>. Negative contributions stay signed.</td>
+</tr>
+<tr>
+<td><code>risk_budgets(result, *, ax=None)</code></td>
+<td><code>risk_budgets</code> table; compares requested budgets and realized fractions of portfolio variance.</td>
+</tr>
+<tr>
+<td><code>loss_distribution(result, *, ax=None)</code></td>
+<td>Portfolio <code>scenarios</code> table with <code>loss</code> and <code>probability</code>; probability-weighted loss histogram. Adds an ES line when <code>expected_shortfall</code> and <code>confidence</code> metrics are present.</td>
+</tr>
+</tbody>
+</table>
+<p>Factor contribution plotting requires a result constructed with <code>FactorRisk</code>. Undefined/nonfinite risk contributions are rejected, including volatility contributions at zero portfolio volatility. Loss-distribution plots use return-fraction loss and the original horizon; use domain-specific loss plots for monetary hedge or insurance scenarios.</p>
+<h3 id="efficient-frontier">Efficient frontier</h3>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">efficient_frontier</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</code></pre></div>
+<p><code>result</code> must be a <code>FrontierResult</code>. The plot selects financially feasible rows, sorts them by realized volatility, and draws realized expected return versus volatility. The legend reports feasible versus requested target counts and how many feasible points have proven optimality. An all-infeasible frontier raises <code>ValueError</code>. The title records the horizon; filtering for plotting does not remove unsuccessful records from the frontier itself.</p>
+<h2 id="acquisition-lot-analysis">Acquisition-lot analysis</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">tax_lot_sales</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">asset</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">tax_liability</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">asset</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</code></pre></div>
+<p>Both require a nonempty <code>tax_lots</code> result table. <code>tax_lot_sales</code> requires one asset and displays sold and remaining shares by acquisition lot. <code>asset=None</code> is rejected for this quantity plot.</p>
+<p><code>tax_liability</code> displays recognized tax by lot, retaining signed loss credits and account-currency units. Omit <code>asset</code> to include all lots or supply an asset to filter. The title includes the supplied tax as-of date and result status. See <a href="portfolio.html#tax-lot-decisions">portfolio tax-lot accounting</a>.</p>
+<h2 id="multi-period-investments">Multi-period investments</h2>
+<table>
+<thead>
+<tr>
+<th>Signature</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>investment_wealth(result, *, case, ax=None)</code></td>
+<td>Marked wealth and closing cash along the chosen scenario case; uses recorded stage times and currency.</td>
+</tr>
+<tr>
+<td><code>investment_trades(result, *, case, asset, ax=None)</code></td>
+<td>Signed quantities for one asset along that case's information-node path.</td>
+</tr>
+<tr>
+<td><code>investment_funding(result, *, case, ax=None)</code></td>
+<td>Principal drawn, principal repaid, outstanding term debt, and paid interest/fees along the case.</td>
+</tr>
+</tbody>
+</table>
+<p><code>case</code> must be a scenario identifier in <code>investment_information</code>; <code>asset</code> must be a column of the investment trade decision. The funding plot requires funding-ledger columns in <code>investment_accounts</code>. These plots select an actual case path rather than connecting mutually exclusive branches. See <a href="trading.html">investment planning</a>.</p>
+<h2 id="treasury-and-liabilities">Treasury and liabilities</h2>
+<table>
+<thead>
+<tr>
+<th>Signature</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cash_ladder(result, *, account, case=None, ax=None)</code></td>
+<td>Closing cash and buffer in the selected funding account's native currency.</td>
+</tr>
+<tr>
+<td><code>funding_schedule(result, *, account, case=None, ax=None)</code></td>
+<td>Principal draws and repayments in that account currency.</td>
+</tr>
+<tr>
+<td><code>facility_utilization(result, *, facility, ax=None)</code></td>
+<td>Modeled and reserved principal use versus capacity for one shared facility. Uses its capacity currency.</td>
+</tr>
+<tr>
+<td><code>liability_coverage(result, *, ax=None)</code></td>
+<td>Dated purchased-asset receipts, liability payments, and retained cash in the liability-matching currency.</td>
+</tr>
+</tbody>
+</table>
+<p>Cash/funding plots require the <code>cash_ladder</code> table. For adaptive funding, supply <code>case</code> to select its node path; omitting it raises. A deterministic dated ladder rejects a non-<code>None</code> case. Facility plots use <code>funding_facilities</code>, with dates or separate information-node bars; they do not join branches into a chronological scenario path. Liability matching uses its own <code>liability_coverage</code> table. See <a href="funding.html">funding</a> and <a href="liability-matching.html">liability matching</a>.</p>
+<h2 id="hedges-and-credit">Hedges and credit</h2>
+<table>
+<thead>
+<tr>
+<th>Signature</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>hedge_exposure(result, *, risk_id, ax=None)</code></td>
+<td>Before, after, and target for one signed risk exposure, using its supplied physical unit.</td>
+</tr>
+<tr>
+<td><code>hedge_losses(result, *, ax=None)</code></td>
+<td>Before-hedge book loss versus after-hedge loss including costs for supplied P&amp;L scenarios.</td>
+</tr>
+<tr>
+<td><code>allocations(result, *, ax=None)</code></td>
+<td>Existing versus proposed facility amounts in the credit currency.</td>
+</tr>
+<tr>
+<td><code>credit_resources(result, *, ax=None)</code></td>
+<td>Credit funding/capital use with markers for finite resource limits.</td>
+</tr>
+<tr>
+<td><code>credit_concentration(result, *, classification=0, ax=None)</code></td>
+<td>Group exposure shares versus maximum shares for one concentration classification.</td>
+</tr>
+</tbody>
+</table>
+<p>Hedge plots require <code>risk_exposures</code> or <code>hedge_scenarios</code>; <code>risk_id</code> selects a row of the former. Credit allocation/resource plots require their corresponding credit tables and decision. <code>classification</code> is the nonboolean integer index of the <code>limit_concentration</code> call, starting at zero. A missing classification or undefined shares from a zero-exposure book raise. See <a href="hedging.html">hedging</a> and <a href="credit.html">credit</a>.</p>
+<h2 id="reinsurance-and-collateral">Reinsurance and collateral</h2>
+<table>
+<thead>
+<tr>
+<th>Signature</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>reinsurance_losses(result, *, ax=None)</code></td>
+<td>Stacks retained claims and collectible recovery per scenario, with total-cost markers.</td>
+</tr>
+<tr>
+<td><code>reinsurance_surplus(result, *, ax=None)</code></td>
+<td>Before-claims surplus, surplus after the reinsurance plan, and the configured minimum when present.</td>
+</tr>
+<tr>
+<td><code>collateral_coverage(result, *, obligation, ax=None)</code></td>
+<td>Required margin and adjusted coverage over dates for one obligation.</td>
+</tr>
+<tr>
+<td><code>collateral_inventory(result, *, asset, ax=None)</code></td>
+<td>Available inventory before the plan, committed quantities, and quantities awaiting return for one asset.</td>
+</tr>
+</tbody>
+</table>
+<p>Reinsurance plots use <code>reinsurance_scenarios</code>; surplus plotting requires its configured surplus accounting. Collateral plots use <code>collateral_coverage</code> and <code>collateral_inventory</code>, respectively. Obligation and asset selectors are validated against those tables. Coverage amounts use the obligation currency; inventory uses asset quantity units. See <a href="insurance.html">reinsurance</a> and <a href="collateral.html">collateral</a>.</p>
+<h2 id="settlement-and-execution">Settlement and execution</h2>
+<table>
+<thead>
+<tr>
+<th>Signature</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>settlement_balances(result, *, account, ax=None)</code></td>
+<td>Every ordered balance checkpoint and approved credit floor for one settlement account.</td>
+</tr>
+<tr>
+<td><code>payment_queue(result, *, currency, ax=None)</code></td>
+<td>Unsettled payment amounts in a currency present in settlement accounts. A valid empty queue remains an empty plot.</td>
+</tr>
+<tr>
+<td><code>execution_schedule(result, *, asset, ax=None)</code></td>
+<td>Signed planned trades and remaining order quantities by execution slot for one asset.</td>
+</tr>
+<tr>
+<td><code>execution_costs(result, *, ax=None)</code></td>
+<td>Predicted <code>price_change</code>, <code>spread</code>, <code>fees</code>, <code>impact</code>, <code>underfill</code>, and <code>risk</code> components in currency.</td>
+</tr>
+<tr>
+<td><code>execution_balances(result, *, ax=None)</code></td>
+<td>Finite pre-trade, before-sale-proceeds, and post-trade cash checkpoints against the recorded cash floor.</td>
+</tr>
+</tbody>
+</table>
+<p>The settlement account must occur in <code>settlement_ledger</code>. Execution plots require the execution result tables; <code>asset</code> must occur in the trade columns. These figures describe modeled schedules and costs, not actual market fills or payment release. See <a href="settlement.html">settlement</a> and <a href="execution.html">execution</a>.</p>
+<h2 id="quantum-diagnostic-plots">Quantum diagnostic plots</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">quantum_samples</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">quantum_convergence</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</code></pre></div>
+<p>These accept a <code>FinanceResult</code> with the relevant diagnostics even if no financially feasible primary decision was found. This permits inspection of unsuccessful research runs without displaying them as accepted financial recommendations.</p>
+<p><code>quantum_samples</code> requires a <code>quantum_samples</code> table with <code>probability</code> and <code>feasible</code> columns and at least one measured candidate. It excludes rows with missing probability, such as unsampled residual candidates, and sorts measured candidates by descending probability. Bars distinguish financially feasible and infeasible samples. Probabilities refer to the provider's reported candidate scope; they are not necessarily the final circuit distribution. Printed bitstrings are most-significant-bit first.</p>
+<p><code>quantum_convergence</code> requires a nonempty <code>quantum_history</code> table with <code>training_objective</code>. It plots reported training values against evaluation order without converting them to source financial objectives or changing their scale. Both titles include result status. See <a href="quantum.html#gate-based-quantum-result-data">quantum result semantics</a>.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="results.html"><span>Previous</span><strong>Results and verification</strong></a><a class="pager-card next" href="interchange.html"><span>Next</span><strong>Interchange</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#axes-and-result-requirements">Axes and result requirements</a><a class="toc-level-2" href="#portfolio-allocation-and-risk">Portfolio allocation and risk</a><a class="toc-level-3" href="#efficient-frontier">Efficient frontier</a><a class="toc-level-2" href="#acquisition-lot-analysis">Acquisition-lot analysis</a><a class="toc-level-2" href="#multi-period-investments">Multi-period investments</a><a class="toc-level-2" href="#treasury-and-liabilities">Treasury and liabilities</a><a class="toc-level-2" href="#hedges-and-credit">Hedges and credit</a><a class="toc-level-2" href="#reinsurance-and-collateral">Reinsurance and collateral</a><a class="toc-level-2" href="#settlement-and-execution">Settlement and execution</a><a class="toc-level-2" href="#quantum-diagnostic-plots">Quantum diagnostic plots</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

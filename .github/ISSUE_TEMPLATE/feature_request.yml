@@ -1,0 +1,30 @@
+name: Feature request
+description: Propose a financial modeling, analysis, or optimization capability
+title: "[Feature]: "
+body:
+  - type: textarea
+    id: task
+    attributes:
+      label: Financial task and intended user
+    validations:
+      required: true
+  - type: textarea
+    id: mathematics
+    attributes:
+      label: Inputs, decision, objective, constraints, and units
+    validations:
+      required: true
+  - type: textarea
+    id: existing
+    attributes:
+      label: Why existing capabilities do not cover the task
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed workflow, references, and validation
+  - type: textarea
+    id: execution
+    attributes:
+      label: Solver classes, expected scale, and execution requirements

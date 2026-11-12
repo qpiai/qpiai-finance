@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Contributing">
+<title>Contributing | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/CONTRIBUTING.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="contributing">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="active" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Project</span><span aria-hidden="true">&gt;</span><span>Contributing</span></div><article class="doc-content"><h1 id="contributing-to-qpiai-finance">Contributing to QpiAI Finance</h1>
+<p>Development takes place in <a href="https://github.com/qpiai/qpiai-finance">qpiai/qpiai-finance</a>. Search existing issues before reporting a <a href="reporting-bugs.html">bug</a> or proposing a <a href="feature-requests.html">feature</a>. Fork the repository, create a branch from <code>main</code>, and submit a pull request describing the problem, resulting behavior, and validation.</p>
+<h2 id="development-setup">Development setup</h2>
+<p>Use a Python version supported by the package and its dependencies. Create and activate a virtual environment, then install the checkout and documentation dependencies:</p>
+<div class="code-shell"><div class="code-toolbar"><span>bash</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-bash">python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>.venv
+</code></pre></div>
+<p>On Windows PowerShell:</p>
+<div class="code-shell"><div class="code-toolbar"><span>powershell</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-powershell"><span class="p">.</span><span class="n">venv</span><span class="p">\</span><span class="n">Scripts</span><span class="p">\</span><span class="n">Activate</span><span class="p">.</span><span class="n">ps1</span>
+</code></pre></div>
+<p>On Linux or macOS:</p>
+<div class="code-shell"><div class="code-toolbar"><span>bash</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-bash"><span class="nb">source</span><span class="w"> </span>.venv/bin/activate
+</code></pre></div>
+<div class="code-shell"><div class="code-toolbar"><span>bash</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-bash">python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">".[dev]"</span>
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>docs/_build_html/_sources/requirements.txt
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>check
+</code></pre></div>
+<p>Include tests and validation needed to assess your change in the pull request.</p>
+<p>Optional Git hooks use the repository's pre-commit configuration:</p>
+<div class="code-shell"><div class="code-toolbar"><span>bash</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-bash">python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>pre-commit
+python<span class="w"> </span>-m<span class="w"> </span>pre_commit<span class="w"> </span>install
+</code></pre></div>
+<h2 id="code-changes">Code changes</h2>
+<p>Keep financial semantics, solver execution, and result verification consistent. Before implementing a formulation, state its decision variables, units, feasible set, objective, and assumptions. Reuse existing finance calculations and QpiAI Opt representations where they fit. Changes to a solver route must preserve the original financial problem and expose any required transformation.</p>
+<p>Follow PEP 8 and the repository's Ruff configuration. Use conventional financial terminology and concise public docstrings. Changes to public signatures, supported inputs, solver options, results, or failure behavior require corresponding documentation.</p>
+<p>Validate the behavior changed, including relevant numerical boundaries and failure paths. For financial formulations, compare source objectives, constraints, and accounting with an independent calculation. Performance claims require the same financial problem, hardware, tolerances, and resource budget for every method compared. Include model construction and verification when reporting end-to-end latency.</p>
+<p>Every Finance solve requires Opt authentication. Gate-based execution additionally requires QCloud authentication. Keep credentials outside source, documentation, reports, and serialized models. Paid platform work must be explicitly selected and authorized; ordinary contribution checks must not submit it automatically.</p>
+<p>Reason thoroughly as to what is naturally the responsibility of this library and what components it shall build and enforce, versus what it shall reuse.</p>
+<div class="code-shell"><div class="code-toolbar"><span>bash</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-bash">python<span class="w"> </span>-m<span class="w"> </span>ruff<span class="w"> </span>check<span class="w"> </span>qpiai_finance<span class="w"> </span>docs/_build_html/_sources
+python<span class="w"> </span>-m<span class="w"> </span>build
+</code></pre></div>
+<h2 id="documentation-changes">Documentation changes</h2>
+<p>Markdown is the editable source. Keep the financial task, mathematical contract, parameters, results, and failure behavior on the relevant reference page; link to shared conventions instead of duplicating them.</p>
+<div class="code-shell"><div class="code-toolbar"><span>bash</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-bash">python<span class="w"> </span>docs/_build_html/_sources/build.py
+</code></pre></div>
+<p>The builder checks registered Markdown pages, local links, fragments, and duplicate HTML identifiers. Review search, code copying, equations, navigation, light and dark themes, and narrow layouts. <code>docs/_build_html/_sources/pages.json</code> defines navigation order. Include new pages there. HTML build tools, templates, and source assets are kept in <code>docs/_build_html/_sources/</code>; editable Markdown chapters are directly in <code>docs/</code>. The build publishes Markdown copies and a <code>llms.txt</code> index alongside HTML.</p>
+<h2 id="pull-requests">Pull requests</h2>
+<p>Describe the concrete problem and the behavior after the change. Include relevant mathematical assumptions, compatibility effects, validation results, and any changed execution costs. Keep changes focused so reviewers can assess the formulation and implementation together.</p>
+<p>By submitting a contribution, you agree to license it under the <a href="license.html">Apache License 2.0</a>.</p>
+<h2 id="community-guidelines">Community guidelines</h2>
+<p>Discuss technical disagreements respectfully, accept constructive feedback, and protect contributors' privacy. Harassment, personal attacks, and disclosure of private information are unacceptable. Maintainers may remove inappropriate content or restrict participation to protect the community.</p>
+<p>Report suspected vulnerabilities through the private process in <a href="reporting-bugs.html">Reporting bugs and security issues</a>.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="automation.html"><span>Previous</span><strong>Automation and agent workflows</strong></a><a class="pager-card next" href="reporting-bugs.html"><span>Next</span><strong>Reporting bugs and security issues</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#development-setup">Development setup</a><a class="toc-level-2" href="#code-changes">Code changes</a><a class="toc-level-2" href="#documentation-changes">Documentation changes</a><a class="toc-level-2" href="#pull-requests">Pull requests</a><a class="toc-level-2" href="#community-guidelines">Community guidelines</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

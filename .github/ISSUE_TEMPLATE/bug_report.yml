@@ -1,0 +1,37 @@
+name: Bug report
+description: Report a reproducible QpiAI Finance defect
+title: "[Bug]: "
+body:
+  - type: markdown
+    attributes:
+      value: Remove credentials and confidential financial data. Use private security reporting for vulnerabilities.
+  - type: input
+    id: environment
+    attributes:
+      label: Package versions, Python, operating system, and architecture
+    validations:
+      required: true
+  - type: input
+    id: route
+    attributes:
+      label: Financial model, solver or algorithm, and execution mode
+    validations:
+      required: true
+  - type: textarea
+    id: reproducer
+    attributes:
+      label: Reproducer with publishable data
+      render: python
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and observed behavior
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Redacted diagnostics and independent calculation, if applicable
+      render: text

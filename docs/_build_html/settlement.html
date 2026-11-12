@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Payment settlement">
+<title>Payment settlement | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/settlement.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="settlement">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="active" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Financial models</span><span aria-hidden="true">&gt;</span><span>Payment settlement</span></div><article class="doc-content"><h1 id="payment-settlement">Payment settlement</h1>
+<p><code>SettlementModel</code> schedules whole payments over ordered processing positions, subject to payment windows, account liquidity, and explicit dependencies. It minimizes supplied delay, queue, prefunding, and peak-credit costs. Import it from <code>qpiai_finance.settlement</code>.</p>
+<p>The output is a proposed settlement plan. Account currencies remain separate; reporting currency applies to economic cost coefficients. Payment release, finality, FX conversion, and legal permission to net are outside the model.</p>
+<h2 id="constructor-and-input-tables">Constructor and input tables</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">SettlementModel</span><span class="p">(</span>
+    <span class="n">accounts</span><span class="p">,</span> <span class="n">payments</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">as_of</span><span class="p">,</span> <span class="n">slots</span><span class="p">,</span> <span class="n">reporting_currency</span><span class="p">,</span>
+    <span class="n">settlement_method</span><span class="o">=</span><span class="s2">"rtgs"</span><span class="p">,</span> <span class="n">slot_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><code>accounts</code> and <code>payments</code> are pandas DataFrames with unique string/integer row identifiers. Unknown or duplicate columns are rejected. Accounts must be nonempty; payments may be empty with the required columns retained.</p>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Type, allowed values, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>as_of</code></td>
+<td>Required timezone-aware timestamp. Naive timestamps are rejected.</td>
+</tr>
+<tr>
+<td><code>slots</code></td>
+<td>Required nonempty sequence of timezone-aware timestamps, nondecreasing and beginning at <code>as_of</code>. Duplicate timestamps represent distinct ordered processing positions.</td>
+</tr>
+<tr>
+<td><code>reporting_currency</code></td>
+<td>Required uppercase three-letter currency code for all cost coefficients and the objective.</td>
+</tr>
+<tr>
+<td><code>settlement_method</code></td>
+<td><code>"rtgs"</code> by default: one whole payment per position. <code>"atomic"</code> additionally permits explicitly registered batches; individual payments remain available. No batch is inferred.</td>
+</tr>
+<tr>
+<td><code>slot_ids</code></td>
+<td>Optional unique string/integer identifier sequence with one entry per position. Default positional integers <code>0, ..., len(slots)-1</code>. Position order is input order, independent of identifier sorting.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="accounts">Accounts</h3>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type, default, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cash</code></td>
+<td>Required finite signed opening balance in the account's native currency.</td>
+</tr>
+<tr>
+<td><code>currency</code></td>
+<td>Required uppercase three-letter account currency.</td>
+</tr>
+<tr>
+<td><code>credit_limit</code></td>
+<td>Optional finite nonnegative approved opening overdraft capacity; default zero. Opening <code>cash</code> must be at least <code>-credit_limit</code>. This capacity initially applies at every slot.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="payments">Payments</h3>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type, default, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>sender</code>, <code>receiver</code></td>
+<td>Required supplied account identifiers, distinct and in the same currency.</td>
+</tr>
+<tr>
+<td><code>amount</code></td>
+<td>Required strictly positive finite native-currency amount. Payments cannot be split.</td>
+</tr>
+<tr>
+<td><code>release</code>, <code>deadline</code></td>
+<td>Required timezone-aware timestamps with <code>release &lt;= deadline</code>. Settlement must occur at a supplied slot within this inclusive window. Window endpoints need not be slots.</td>
+</tr>
+<tr>
+<td><code>currency</code></td>
+<td>Optional uppercase three-letter code; inferred from the accounts when omitted. If supplied, must match both accounts.</td>
+</tr>
+<tr>
+<td><code>required</code></td>
+<td>Optional boolean, default <code>True</code>. Required payments must settle once; optional payments may remain queued.</td>
+</tr>
+<tr>
+<td><code>eligible</code></td>
+<td>Optional boolean, default <code>True</code>. False prevents settlement in any unit, including a batch. A required ineligible payment makes the formulation infeasible.</td>
+</tr>
+<tr>
+<td><code>delay_cost</code></td>
+<td>Optional finite nonnegative reporting-currency cost per second after release; default zero.</td>
+</tr>
+<tr>
+<td><code>unsettled_cost</code></td>
+<td>Optional finite nonnegative reporting-currency penalty for a payment still unsettled at the horizon and already released; default zero.</td>
+</tr>
+</tbody>
+</table>
+<p>Delay and queue charges affect the objective; they are not cash-debited payment fees. Each settled payment incurs delay through its settlement time. An unsettled payment incurs delay through the last slot, floored at zero, plus its queue penalty if released by that time. A future unreleased payment incurs neither charge. A required payment whose window contains no eligible position cannot be satisfied.</p>
+<h2 id="properties">Properties</h2>
+<p>All properties return detached pandas objects.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Return type and contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>account_ids</code></td>
+<td><code>pandas.Index</code> in account input order.</td>
+</tr>
+<tr>
+<td><code>payment_ids</code></td>
+<td><code>pandas.Index</code> in payment input order.</td>
+</tr>
+<tr>
+<td><code>slot_ids</code></td>
+<td><code>pandas.Index</code> in processing order.</td>
+</tr>
+<tr>
+<td><code>slot_times</code></td>
+<td>Timezone-aware timestamp Series named <code>time</code>, indexed by slot ID.</td>
+</tr>
+<tr>
+<td><code>execution_units</code></td>
+<td>DataFrame indexed by integer <code>position</code>, with <code>kind</code>, <code>id</code>, <code>payments</code>. All single payments come first, followed by registered batches. <code>payments</code> contains tuples of payment IDs. Kinds are <code>"payment"</code> and <code>"atomic_batch"</code>.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="liquidity-and-funding-controls">Liquidity and funding controls</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">set_external_flows</span><span class="p">(</span><span class="n">flows</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">set_credit_limits</span><span class="p">(</span><span class="n">limits</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">allow_prefunding</span><span class="p">(</span><span class="n">maximum</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">cost_per_unit</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">set_credit_costs</span><span class="p">(</span><span class="n">cost_per_unit</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_final_balances</span><span class="p">(</span><span class="n">lower</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+</code></pre></div>
+<p>These methods mutate the model and return <code>self</code>. Numeric inputs must be finite. Complete labelled inputs are aligned by identifier; missing, extra, or duplicate labels are rejected. <a href="data.html">Data conventions</a> describes supported array, Series, mapping, DataFrame, and sparse forms.</p>
+<table>
+<thead>
+<tr>
+<th>Method input</th>
+<th>Type, default, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>flows</code></td>
+<td>Required signed slot-by-account matrix of incremental native-currency external receipts/outflows. Applied before settlement at each position. Default model flows are zero; values are not cumulative funding balances.</td>
+</tr>
+<tr>
+<td><code>limits</code></td>
+<td>Required nonnegative slot-by-account matrix of approved native-currency overdraft capacities. Replaces capacities at processing positions; the account table still defines the opening limit.</td>
+</tr>
+<tr>
+<td>Prefunding <code>maximum</code></td>
+<td>Required nonnegative scalar or complete account vector, Series, or mapping of native-currency outside funds available before the first slot. Default capacity is zero.</td>
+</tr>
+<tr>
+<td>Prefunding <code>cost_per_unit</code></td>
+<td>Required nonnegative scalar or complete account vector of reporting-currency cost per native unit for the horizon.</td>
+</tr>
+<tr>
+<td>Credit <code>cost_per_unit</code></td>
+<td>Required nonnegative scalar or complete account vector of reporting-currency cost per native unit of actual peak overdraft. Default zero allows free approved credit and provides no incentive to minimize its use.</td>
+</tr>
+<tr>
+<td>Final <code>lower</code></td>
+<td>Finite signed scalar or complete account vector of native-currency final balance floors; default argument zero requires repayment of overdrafts. No final floor is imposed until this method is called.</td>
+</tr>
+</tbody>
+</table>
+<p>Opening balances are checked against opening credit. Prefunding is then added. Each slot applies external flows, checks the resulting balance, executes its unit, and checks the post-settlement balance. Incoming settlement cannot cure a pre-slot liquidity breach. Peak overdraft includes opening, prefunded, pre-slot, and post-settlement checkpoints. Prefunding is an explicitly available outside contribution; no funding contract, repayment, or reusable funding source is inferred.</p>
+<h2 id="batches-and-precedence">Batches and precedence</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">add_atomic_batch</span><span class="p">(</span><span class="n">batch_id</span><span class="p">,</span> <span class="n">payment_ids</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_precedence</span><span class="p">(</span><span class="n">before</span><span class="p">,</span> <span class="n">after</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">allow_same_batch</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">require_payments</span><span class="p">(</span><span class="n">payment_ids</span><span class="p">)</span>
+</code></pre></div>
+<p>Each method returns <code>self</code>.</p>
+<p><code>add_atomic_batch</code> requires <code>settlement_method="atomic"</code>. <code>batch_id</code> is a string/integer unique among batch IDs. <code>payment_ids</code> is a sequence of at least two distinct supplied payment IDs; a single string is rejected. An identical membership set cannot be registered twice. Membership is stored in payment input order. All members settle in one position within their common window, provided all are eligible. The account limits apply to the net movement of that explicitly authorised unit. Batches may overlap, but no payment can execute more than once. Authorization applies only to the exact supplied groups.</p>
+<p><code>add_precedence</code> takes two distinct supplied payment IDs. By default the predecessor must complete at an earlier position than the successor. Boolean <code>allow_same_batch=True</code> permits completion in the same authorised batch. An unsettled predecessor blocks its successor. Cyclic or contradictory dependencies are retained as constraints and may make required payments infeasible.</p>
+<p><code>require_payments</code> sets <code>required=True</code> for every ID in its supplied nonempty distinct-ID sequence; it does not clear other requirements. It rejects a single string, empty sequence, or unknown identifiers.</p>
+<p>Positions are ordered even when timestamps are equal. Separate positions never net together. One position can contain at most one single payment or one authorised batch.</p>
+<h2 id="export-and-execution">Export and execution</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">to_model</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">return_variables</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">to_cvxpy</span><span class="p">()</span>
+</code></pre></div>
+<p>The formulation is MILP when any payment/batch has an eligible position, otherwise LP. The default solve route is Opt. <a href="solving.html">Solving</a> defines authentication, execution modes, solver controls, and result acceptance. <a href="custom-models.html">Custom models</a> covers further Opt compilation and recovery.</p>
+<p><code>to_matrix()</code> returns a sparse Opt matrix-data dictionary: <code>name="settlement"</code>, <code>format="matrix"</code>, <code>sense="min"</code>, <code>problem_type</code>, <code>variable_names</code>, <code>objective</code>, <code>objective_offset=0.0</code>, CSR <code>constraint_matrix</code>, <code>row_lower</code>, <code>row_upper</code>, <code>constraint_names</code>, <code>lower_bounds</code>, <code>upper_bounds</code>, and <code>integrality</code>. Coefficient vectors are NumPy arrays. Infinite row/bound endpoints represent absent limits. Internal variables follow these positional conventions:</p>
+<table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Domain and interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>execution_u_k</code></td>
+<td>Binary selection of execution-unit position <code>u</code> at slot position <code>k</code>; only eligible pairs exist.</td>
+</tr>
+<tr>
+<td><code>prefunding_a</code></td>
+<td>Native-currency outside funding for account position <code>a</code>.</td>
+</tr>
+<tr>
+<td><code>balance_k_a</code></td>
+<td>Native-currency post-slot account cash.</td>
+</tr>
+<tr>
+<td><code>peak_credit_a</code></td>
+<td>Nonnegative native-currency peak-overdraft auxiliary, bounded below by opening use and all later observed use.</td>
+</tr>
+<tr>
+<td><code>unsettled_p</code></td>
+<td>Continuous <code>[0,1]</code> auxiliary equal to one minus execution count for payment position <code>p</code>; fixed zero for required payments.</td>
+</tr>
+<tr>
+<td><code>completion_p_k</code></td>
+<td>Cumulative completion auxiliary for payments participating in precedence constraints.</td>
+</tr>
+</tbody>
+</table>
+<p><code>to_model()</code> returns a detached algebraic Opt model. Boolean <code>return_variables=True</code> returns <code>(model, expressions)</code>. <code>to_cvxpy()</code> returns <code>(cvxpy.Problem, expressions)</code>. The expression dictionary contains pandas Series: <code>release_indicators</code> indexed by <code>(kind, unit, slot)</code> for eligible pairs, <code>cash_balances</code> indexed by <code>(slot, account)</code>, account-indexed <code>prefunding</code> and <code>peak_credit</code>, and payment-indexed <code>unsettled</code>. The financial expression keys retain source IDs and native amounts. Modifying an export does not mutate the financial model.</p>
+<h2 id="evaluate-a-proposed-schedule">Evaluate a proposed schedule</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">schedule</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">prefunding</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">)</span>
+</code></pre></div>
+<p><code>schedule</code> is a complete payment-indexed mapping or Series, or a one-dimensional sequence in payment input order. Each value is a supplied slot ID or an unsettled marker: <code>None</code>, <code>pandas.NA</code>, <code>pandas.NaT</code>, or floating NaN. Other floating-point IDs are rejected. Use object or nullable integer dtype for a Series mixing integer slot IDs and unsettled payments.</p>
+<p><code>prefunding</code> is a finite scalar or complete account vector, Series, or mapping in native currency; default zero. Values outside authorised limits produce constraint violations. <code>tolerance</code> is a finite nonnegative absolute scalar, default <code>1e-7</code>; boolean, payment-count, and position-capacity checks require exact satisfaction.</p>
+<p>Evaluation returns a dictionary with <code>objective</code>, <code>feasible</code>, <code>constraints</code>, <code>decision</code>, <code>metrics</code>, <code>tables</code>, and <code>costs</code>. It replays balances and original economic costs without authentication or solving. Payments assigned to a shared position form an atomic event only when their exact set is registered. Otherwise they remain separate events, with position-capacity and intermediate balance violations reported. Original arithmetic is checked before float64 reporting; a displayed rounded balance need not expose every retained residual.</p>
+<h2 id="results-and-reporting">Results and reporting</h2>
+<p>The objective is total cost in reporting currency. <code>result.settlement_schedule</code> is the payment-indexed Series named <code>slot</code>; <code>prefunding</code>, <code>peak_credit</code>, and <code>cash_balances</code> retain the indices described above. In the evaluation <code>decision</code> dictionary, the schedule key is <code>schedule</code>; the other keys match their result property names.</p>
+<table>
+<thead>
+<tr>
+<th>Location</th>
+<th>Fields and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>metrics</code></td>
+<td>Reporting-currency <code>delay_cost</code>, <code>unsettled_cost</code>, <code>prefunding_cost</code>, <code>credit_cost</code>, <code>total_cost</code>; integer counts <code>settled_payments</code> and <code>unsettled_payments</code>. Settled count includes payments executed exactly once.</td>
+</tr>
+<tr>
+<td><code>costs</code></td>
+<td><code>delay_cost</code>, <code>unsettled_cost</code>, <code>prefunding_cost</code>, <code>credit_cost</code>, <code>currency</code>.</td>
+</tr>
+<tr>
+<td><code>settlement_schedule</code> table</td>
+<td>Payment-indexed <code>sender</code>, <code>receiver</code>, <code>amount</code>, <code>currency</code>, <code>release</code>, <code>deadline</code>, <code>required</code>, <code>execution_count</code>, <code>slot</code>, <code>settled_at</code>, <code>status</code>, <code>delay_seconds</code>, <code>delay_cost</code>, <code>unsettled_cost</code>, <code>cost_currency</code>.</td>
+</tr>
+<tr>
+<td><code>payment_queue</code> table</td>
+<td>The same columns, restricted to payments with zero executions.</td>
+</tr>
+<tr>
+<td><code>settlement_accounts</code> table</td>
+<td>Account input columns plus native-currency <code>prefunding</code>, <code>final_cash</code>, and <code>peak_credit_used</code>.</td>
+</tr>
+<tr>
+<td><code>settlement_ledger</code> table</td>
+<td>Indexed by <code>(checkpoint, account)</code>: <code>phase</code>, <code>slot</code>, <code>time</code>, <code>movement</code>, <code>balance</code>, <code>credit_limit</code>, <code>credit_used</code>, <code>currency</code>. Phases are <code>opening</code>, <code>prefunding</code>, <code>pre_slot</code>, and <code>post_settlement</code>.</td>
+</tr>
+<tr>
+<td><code>settlement_events</code> table</td>
+<td>One row per executed unit: <code>slot</code>, <code>time</code>, <code>kind</code>, <code>id</code>, and tuple <code>payments</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Payment <code>status</code> is <code>settled</code> for one execution or <code>duplicate_execution</code> for repeated execution. Unsettled statuses are chosen in order: <code>ineligible</code>, <code>not_released</code>, <code>cutoff_expired</code> when deadline is at or before the horizon, otherwise <code>queued</code>. Status alone does not establish feasibility; inspect all constraints.</p>
+<p>Numeric amounts, balances, costs, and delays are floats; execution counts are integers and <code>required</code> is boolean. The decision's <code>schedule</code> Series has object dtype and retains exact slot identifiers with <code>None</code> for unsettled payments. Use it for replay; report-table slot columns can acquire a floating dtype when integer IDs are mixed with missing entries. <code>settled_at</code> is an aware timestamp or <code>NaT</code>.</p>
+<p>Ledger checkpoints are numbered consecutively: opening, prefunding, each pre-slot state, then each executed unit's post-settlement state. Idle slots have a pre-slot checkpoint and still appear in <code>decision["cash_balances"]</code>. Opening/prefunding ledger rows have no slot identifier. <code>settlement_events</code> uses a positional row index and includes only executed units. The numeric Series names are <code>prefunding</code>, <code>peak_credit_used</code>, and <code>cash</code> for prefunding, peak credit, and closing balances, respectively.</p>
+<p>Solver recovery checks binary reconstruction and reconciles cash balances, understated peak credit, queue indicators, and precedence completion auxiliaries with the replay. <a href="results.html">Results</a> explains these checks and retained solver evidence. <a href="plotting.html">Plotting</a> documents queue and liquidity figures.</p>
+<p>Invalid tables, timestamps, identifiers, dimensions, flags, or numerical domains raise <code>TypeError</code> or <code>ValueError</code>. Unrepresentable coefficient or reporting calculations raise <code>ValueError</code>. Contradictory valid requirements produce an infeasible optimization result; evaluation reports violated financial rules without repairing the proposal.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="collateral.html"><span>Previous</span><strong>Collateral allocation</strong></a><a class="pager-card next" href="quantum.html"><span>Next</span><strong>Quantum-inspired and gate-based optimization</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#constructor-and-input-tables">Constructor and input tables</a><a class="toc-level-3" href="#accounts">Accounts</a><a class="toc-level-3" href="#payments">Payments</a><a class="toc-level-2" href="#properties">Properties</a><a class="toc-level-2" href="#liquidity-and-funding-controls">Liquidity and funding controls</a><a class="toc-level-2" href="#batches-and-precedence">Batches and precedence</a><a class="toc-level-2" href="#export-and-execution">Export and execution</a><a class="toc-level-2" href="#evaluate-a-proposed-schedule">Evaluate a proposed schedule</a><a class="toc-level-2" href="#results-and-reporting">Results and reporting</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

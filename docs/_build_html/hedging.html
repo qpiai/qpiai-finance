@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Hedging">
+<title>Hedging | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/hedging.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="hedging">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="active" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Financial models</span><span aria-hidden="true">&gt;</span><span>Hedging</span></div><article class="doc-content"><h1 id="hedging">Hedging</h1>
+<p><code>HedgeModel</code> chooses signed hedge trades from supplied sensitivities or repriced profit-and-loss scenarios. Instruments retain their own quantity units, while each risk row declares its physical unit. Import the class from <code>qpiai_finance.hedging</code>.</p>
+<p>A sensitivity matrix describes a local risk approximation. Scenario inputs describe supplied changes in value over a horizon. The model does not price instruments, infer sensitivities, or convert a terminal payoff into P&amp;L. Choose the representation appropriate to the risk question and retain hard exposure limits when changing objectives.</p>
+<h2 id="constructor">Constructor</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">HedgeModel</span><span class="p">(</span>
+    <span class="n">current_exposures</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">sensitivities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">risk_units</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">currency</span><span class="p">,</span> <span class="n">as_of</span><span class="p">,</span> <span class="n">instrument_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">risk_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">current_positions</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">current_pnl</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">pnl_scenarios</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">cost_factors</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Supply both sensitivity arguments, P&amp;L scenarios, or both input families. With sensitivities the initial objective matches zero risk exposure exactly at minimum transaction cost. Without sensitivities it minimizes worst-case scenario loss. Supplying additional scenario data does not itself change a sensitivity model's objective.</p>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Type, default, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>current_exposures</code></td>
+<td>Optional finite signed risk vector, Series, or mapping. Required with <code>sensitivities</code>; already includes existing hedge positions. No scalar broadcasting.</td>
+</tr>
+<tr>
+<td><code>sensitivities</code></td>
+<td>Optional finite risk-by-instrument matrix: labelled DataFrame, supported column mapping, dense array, or sparse matrix. Entry <code>(r,i)</code> is exposure change in risk row <code>r</code> per signed traded unit of instrument <code>i</code>. Required with <code>current_exposures</code>.</td>
+</tr>
+<tr>
+<td><code>risk_units</code></td>
+<td>Required with sensitivities: nonblank string broadcast to all risk rows, or complete sequence, Series, or mapping of nonblank labels, one per row. Rejected without sensitivities.</td>
+</tr>
+<tr>
+<td><code>currency</code></td>
+<td>Required uppercase three-letter code for costs, capital, prices, and scenario P&amp;L.</td>
+</tr>
+<tr>
+<td><code>as_of</code></td>
+<td>Required calendar date.</td>
+</tr>
+<tr>
+<td><code>instrument_ids</code></td>
+<td>Optional unique nonblank string/integer IDs. Inferred from sensitivity DataFrame columns, otherwise positional integers; in scenario-only mode defaults to scenario asset IDs. Must match scenario IDs when scenarios are supplied.</td>
+</tr>
+<tr>
+<td><code>risk_ids</code></td>
+<td>Optional unique string/integer risk IDs. Defaults to sensitivity DataFrame rows, otherwise the index inferred from <code>current_exposures</code>. Rejected without sensitivities.</td>
+</tr>
+<tr>
+<td><code>current_positions</code></td>
+<td>Finite signed scalar or complete instrument vector, Series, or mapping; default zero. Used for post-trade positions and capital. Existing hedges must already be included in <code>current_exposures</code> and <code>current_pnl</code>; they are not added again to those baselines.</td>
+</tr>
+<tr>
+<td><code>current_pnl</code></td>
+<td>Optional finite signed scalar or complete scenario vector, Series, or mapping in currency. Required with <code>pnl_scenarios</code>; rejected otherwise. Existing-book P&amp;L, including existing hedges.</td>
+</tr>
+<tr>
+<td><code>pnl_scenarios</code></td>
+<td>Optional exact <code>Scenarios</code> instance with <code>unit="pnl_per_unit"</code>. Columns are instruments; values are signed P&amp;L changes per traded unit, over the declared scenario horizon.</td>
+</tr>
+<tr>
+<td><code>cost_factors</code></td>
+<td>Optional strictly positive finite scalar or complete scenario vector, Series, or mapping. Requires scenarios. Default <code>None</code> becomes one: no carrying of upfront costs to the scenario horizon.</td>
+</tr>
+</tbody>
+</table>
+<p>Labelled inputs must cover exactly the relevant identifier set and are aligned by labels. Other vectors/matrices follow model order. <a href="data.html">Data conventions</a> gives supported forms and validation rules.</p>
+<p>The detached properties are <code>instrument_ids: pandas.Index</code>, <code>risk_ids: pandas.Index</code>, <code>pnl_scenarios: Scenarios | None</code>, <code>current_pnl: pandas.Series | None</code> named <code>current_pnl</code>, and <code>currency: str</code>. Scenario-only models have an empty risk index.</p>
+<h2 id="sensitivity-objectives-and-limits">Sensitivity objectives and limits</h2>
+<p>For signed trade quantities <code>q</code>, post-hedge exposure is</p>
+<div class="arithmatex">\[
+e=e_0+Sq,
+\]</div>
+<p>where <code>e0</code> includes the existing hedge book. These methods require sensitivity inputs and return <code>self</code>:</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">match_exposures</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">minimize_mismatch</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">cost_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_exposures</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">)</span>
+</code></pre></div>
+<p><code>target</code> is a finite signed scalar or complete risk vector, Series, or mapping, default zero, in each risk row's declared units. <code>match_exposures</code> imposes <code>e == target</code> and minimizes transaction costs.</p>
+<p><code>minimize_mismatch</code> instead minimizes</p>
+<div class="arithmatex">\[
+(e-t)^\mathsf{T}W(e-t)+\lambda C(q).
+\]</div>
+<p><code>weights</code> is a required finite symmetric positive-semidefinite risk-by-risk matrix with matching labels when labelled. Entry <code>(i,j)</code> has units currency divided by <code>risk_unit_i * risk_unit_j</code>; scale mixed risk units intentionally. No identity matrix is inferred. <code>cost_weight</code> is finite nonnegative dimensionless <code>lambda</code>, default one. Exact matching is replaced by this soft penalty. The zero matrix leaves a linear objective.</p>
+<p><code>limit_exposures</code> replaces hard signed risk bounds. Both <code>lower</code> and <code>upper</code> are required finite scalars or complete risk vectors, with <code>lower &lt;= upper</code>. Equal bounds impose a mandatory target under any objective. Initially both sides are unbounded. Changing objectives preserves these bounds.</p>
+<h2 id="quantities-cash-and-capital">Quantities, cash, and capital</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">limit_trades</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_positions</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">set_transaction_costs</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">buy</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">sell</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">set_cash_account</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">cash</span><span class="p">,</span> <span class="n">prices</span><span class="p">,</span> <span class="n">bid_prices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ask_prices</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_capital</span><span class="p">(</span><span class="n">capital_per_unit</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">maximum</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">trade_in_lots</span><span class="p">(</span><span class="n">lot_sizes</span><span class="p">)</span>
+</code></pre></div>
+<p>Each setter returns <code>self</code> and replaces its previous setting.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type, default, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Trade <code>lower</code>, <code>upper</code></td>
+<td>Optional finite signed scalar or complete instrument vector, Series, or mapping bounding changes <code>q</code>. <code>None</code> resets that side to unbounded. Require lower no greater than upper.</td>
+</tr>
+<tr>
+<td>Position <code>lower</code>, <code>upper</code></td>
+<td>Same input forms, bounding <code>current_positions + q</code>. <code>None</code> resets that side to unbounded. Initial trade and position bounds are unbounded.</td>
+</tr>
+<tr>
+<td><code>buy</code>, <code>sell</code></td>
+<td>Finite nonnegative scalar or complete instrument vector of fees in currency per unit bought/sold; both default zero. Excludes execution spread.</td>
+</tr>
+<tr>
+<td><code>cash</code></td>
+<td>Required finite nonnegative scalar of available upfront cash in currency. Configuring the account requires nonnegative post-trade cash; no borrowing is inferred.</td>
+</tr>
+<tr>
+<td><code>prices</code></td>
+<td>Required finite signed scalar or complete instrument vector of upfront valuation cash amounts per unit. These are not inferred face values or margins.</td>
+</tr>
+<tr>
+<td><code>bid_prices</code>, <code>ask_prices</code></td>
+<td>Optional finite signed scalars or complete instrument vectors. Default to <code>prices</code>; require <code>bid &lt;= prices &lt;= ask</code>. Negative and zero prices are permitted.</td>
+</tr>
+<tr>
+<td><code>capital_per_unit</code></td>
+<td>Required finite nonnegative scalar or complete instrument vector in currency per absolute unit of final position.</td>
+</tr>
+<tr>
+<td>Capital <code>maximum</code></td>
+<td>Required finite nonnegative currency scalar; bounds <code>capital_per_unit @ abs(current_positions + q)</code>.</td>
+</tr>
+<tr>
+<td><code>lot_sizes</code></td>
+<td>Required finite strictly positive scalar or complete instrument vector of quantity steps. Signed trades must be integer multiples; final positions need not be lot multiples when opening positions are not.</td>
+</tr>
+</tbody>
+</table>
+<p>For <code>q &gt;= 0</code>, fees are <code>buy*q</code> and spread cost is <code>(ask-prices)*q</code>; for <code>q &lt; 0</code>, fees are <code>sell*abs(q)</code> and spread is <code>(bid-prices)*q</code>. Total transaction cost <code>C(q)</code> includes both. Cash after trading is opening cash minus executed quote times signed quantity minus fees. The model charges spread once. Without a configured account it uses zero prices/spreads and does not constrain upfront cash.</p>
+<h2 id="scenario-pl-and-tail-risk">Scenario P&amp;L and tail risk</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">set_pnl_scenarios</span><span class="p">(</span><span class="n">scenarios</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">current_pnl</span><span class="p">,</span> <span class="n">cost_factors</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_scenario_loss</span><span class="p">(</span><span class="n">maximum</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_expected_shortfall</span><span class="p">(</span><span class="n">maximum</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">minimize_expected_shortfall</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">minimize_worst_case_loss</span><span class="p">()</span>
+</code></pre></div>
+<p>All return <code>self</code>. The first method takes the same <code>Scenarios</code>, current-book P&amp;L, and cost-factor contracts as the constructor. Values describe mark-to-horizon P&amp;L changes including supplied distributions and financing, excluding upfront transaction costs. For case <code>s</code>, net loss is</p>
+<div class="arithmatex">\[
+L_s=-\bigl(P_s+S_s q-f_s C(q)\bigr).
+\]</div>
+<p>Upfront principal remains separate cash accounting and is not subtracted again from P&amp;L. Strictly positive <code>f_s</code> carries transaction costs to the scenario horizon; one explicitly means no carrying. Scenarios are copied and aligned. Replacing them preserves configured per-case limits by ID and rejects a changed case set while those limits exist. It does not change the objective.</p>
+<p><code>limit_scenario_loss(maximum)</code> requires configured scenarios. <code>maximum</code> is a finite signed scalar or complete case vector, Series, or mapping in currency; a negative cap requires a minimum gain. Every case is constrained, including cases with probability zero. Probabilities are unnecessary for these stress limits and for worst-case minimization.</p>
+<p>Both ES methods require explicit scenario probabilities and <code>confidence</code> strictly in <code>(0,1)</code>, default <code>0.95</code>. ES uses the finite weighted loss distribution with fractional mass at the tail boundary. <code>limit_expected_shortfall</code> takes a finite signed currency <code>maximum</code>, replaces the previous ES cap, and retains its own confidence. It does not impose an individual case cap.</p>
+<p>The two minimization methods replace exact sensitivity matching or the mismatch objective. Hard exposure, trade, position, cash, capital, and configured scenario limits remain. Expected-shortfall objective confidence is independent of a hard ES cap's confidence. Replacing scenarios with unweighted stress cases is rejected while ES is active. No equal probabilities are inferred.</p>
+<h2 id="exports-solving-and-evaluation">Exports, solving, and evaluation</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">to_model</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">return_variables</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">to_cvxpy</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">hedges</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">)</span>
+</code></pre></div>
+<p>The problem is LP or MILP for exact matching and scenario objectives, and QP or MIQP for a nonzero mismatch matrix. Lots introduce integer variables. Integer quadratic models require <code>solver="scip"</code> and cannot be exported to Opt with <code>to_model</code>; other classes use Opt by default. <a href="solving.html">Solving</a> documents the full execution and authentication contract.</p>
+<p><code>to_model()</code> returns a detached Opt model; boolean <code>return_variables=True</code> returns <code>(model, expressions)</code>. <code>to_cvxpy()</code> returns <code>(cvxpy.Problem, expressions)</code>. Both expression mappings contain instrument-indexed Series <code>hedges</code> named <code>hedge_quantity</code> and <code>positions</code> named <code>position</code>. Values are signed physical quantities, including when the underlying variables count lots. Export mutations do not change the source specification. See <a href="custom-models.html">custom models</a> for additional compilation and recovery controls.</p>
+<p><code>evaluate</code> takes a complete finite signed instrument vector, Series, or mapping of trades. It does not broadcast a scalar. <code>tolerance</code> is a finite nonnegative absolute scalar, default <code>1e-7</code>. The returned dictionary contains <code>objective</code>, <code>feasible</code>, <code>constraints</code>, <code>decision</code>, <code>metrics</code>, <code>tables</code>, and <code>costs</code>. Evaluation checks the original economics and configured rules without solving, authenticating, or repairing the proposal. Fractional lots and trades outside bounds are retained as violations.</p>
+<h2 id="result-fields">Result fields</h2>
+<p><code>result.hedges</code> and <code>result.positions</code> are instrument-indexed Series. With sensitivities, <code>result.risk_exposures</code> is a risk-indexed Series named <code>exposure</code>; otherwise that decision and table are absent. Objective units are currency.</p>
+<table>
+<thead>
+<tr>
+<th>Location</th>
+<th>Fields and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>metrics</code></td>
+<td><code>transaction_cost</code>, <code>spread_cost</code>, <code>fees</code>; optional <code>cash_after</code>, <code>capital_used</code>, <code>mismatch_cost</code>. Scenario inputs add <code>worst_case_loss</code>, <code>expected_pnl</code> (<code>None</code> without probabilities), and <code>scenario_horizon</code>. ES objective adds <code>expected_shortfall</code>, <code>expected_shortfall_confidence</code>; hard ES adds <code>constrained_expected_shortfall</code>, <code>constrained_expected_shortfall_confidence</code>.</td>
+</tr>
+<tr>
+<td><code>costs</code></td>
+<td><code>currency</code>, <code>spread</code>, <code>fees</code>.</td>
+</tr>
+<tr>
+<td><code>hedges</code> table</td>
+<td>Instrument-indexed <code>before</code>, signed <code>trade</code>, <code>after</code>, currency <code>spread</code>, <code>fees</code>.</td>
+</tr>
+<tr>
+<td><code>risk_exposures</code> table</td>
+<td>Risk-indexed <code>before</code>, signed <code>change</code>, <code>after</code>, <code>target</code>, signed target <code>residual</code>, <code>unit</code>. Available only with sensitivities. A retained target is a hard equality only under exact matching.</td>
+</tr>
+<tr>
+<td><code>hedge_scenarios</code> table</td>
+<td>Case-indexed <code>before_pnl</code>, <code>hedge_pnl</code>, <code>trading_cost_at_horizon</code>, <code>net_pnl</code>, <code>loss</code>; optional <code>probability</code>, <code>maximum_loss</code>. DataFrame attributes record <code>currency</code> and <code>horizon</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Original sums/products are retained through risk targets, bounds, carried costs, and tail calculations before binary64 reporting. Small residuals may remain meaningful even when displayed totals round to the same value. Solver recovery also checks lot reconstruction and any residual auxiliaries against financial replay. <a href="results.html">Results</a> explains feasibility and solver evidence; <a href="plotting.html">plotting</a> covers hedge, risk, and scenario figures.</p>
+<p>Invalid input modes, dimensions, labels, units, rate domains, or unsupported exports raise <code>TypeError</code> or <code>ValueError</code>; unrepresentable numerical calculations raise <code>ValueError</code>. Valid but incompatible hard limits can yield an infeasible result. Prices, repricing, risk scaling, capital coefficients, and permitted instrument trades remain supplied financial inputs.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="execution.html"><span>Previous</span><strong>Execution scheduling</strong></a><a class="pager-card next" href="credit.html"><span>Next</span><strong>Credit allocation</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#constructor">Constructor</a><a class="toc-level-2" href="#sensitivity-objectives-and-limits">Sensitivity objectives and limits</a><a class="toc-level-2" href="#quantities-cash-and-capital">Quantities, cash, and capital</a><a class="toc-level-2" href="#scenario-pl-and-tail-risk">Scenario P&amp;L and tail risk</a><a class="toc-level-2" href="#exports-solving-and-evaluation">Exports, solving, and evaluation</a><a class="toc-level-2" href="#result-fields">Result fields</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

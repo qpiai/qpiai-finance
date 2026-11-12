@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Automation and agent workflows">
+<title>Automation and agent workflows | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/automation.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="automation">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="active" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Reference</span><span aria-hidden="true">&gt;</span><span>Automation and agent workflows</span></div><article class="doc-content"><h1 id="automation-and-agent-workflows">Automation and agent workflows</h1>
+<p>Use this guide to choose a financial operation, construct the correct model, select execution, and verify its result. The linked manual defines financial assumptions, signatures, parameters, and outputs.</p>
+<h2 id="establish-the-task">Establish the task</h2>
+<ol>
+<li>Identify the financial decision: weights, trades, funding, hedge quantities, facility allocations, contracts, collateral assignments, or payment schedules.</li>
+<li>Obtain the authoritative inputs, identifiers, units, currency, dates, return horizon, objective, and hard constraints. Keep forecasts separate from observations that become available later.</li>
+<li>Establish the required guarantee, verification tolerance, compute budget, and permitted execution routes. Select paid execution only when the caller has authorized it.</li>
+<li>Select the applicable model or reusable calculation below. Read its complete input and method contract before calling it. Do not infer parameters from a similarly named API in another library.</li>
+</ol>
+<p>For quantum-inspired or gate-based work, start from the financial decision and retain its interpretation through compilation, execution, and recovery.</p>
+<h2 id="discover-the-installed-api">Discover the installed API</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">importlib.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">version</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">qpiai_finance.automation</span><span class="w"> </span><span class="kn">import</span> <span class="n">capabilities</span><span class="p">,</span> <span class="n">guide</span>
+
+<span class="n">installed_version</span> <span class="o">=</span> <span class="n">version</span><span class="p">(</span><span class="s2">"qpiai-finance"</span><span class="p">)</span>
+<span class="n">entry_point</span> <span class="o">=</span> <span class="n">guide</span><span class="p">()</span>
+<span class="n">catalog</span> <span class="o">=</span> <span class="n">capabilities</span><span class="p">()</span>
+</code></pre></div>
+<p><code>guide(document="automation.md")</code> returns the installed entry point as a string. Its other accepted document is <code>"README.md"</code>; another name raises <code>ValueError</code>. In a source checkout it reads the current file. In an installed distribution it reads packaged documentation. A missing document raises <code>FileNotFoundError</code>.</p>
+<p><code>capabilities()</code> returns a dictionary with <code>schema_version</code>, distribution and version, task records, public operation signatures and docstrings, and execution capabilities. Each task contains <code>purpose</code>, <code>reference</code>, and <code>api</code>. Class API records contain callable public methods; properties and detailed data contracts are defined in the manual. The execution record includes Opt provider capabilities, installed Clarabel/SCIP availability, allowed modes, and authentication requirements. This operation does not authenticate, optimize, or submit work. Availability alone does not prove that a particular model is feasible.</p>
+<p>The returned dictionary is JSON-compatible and has this schema:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type and value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>schema_version</code></td>
+<td>Integer <code>1</code>.</td>
+</tr>
+<tr>
+<td><code>distribution</code></td>
+<td>String <code>"qpiai-finance"</code>.</td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td>Installed distribution version as a string.</td>
+</tr>
+<tr>
+<td><code>automation_guide</code></td>
+<td>String <code>"qpiai_finance.automation.guide()"</code>.</td>
+</tr>
+<tr>
+<td><code>tasks</code></td>
+<td>Dictionary keyed by task identifier. Each value contains <code>purpose: str</code>, <code>reference: str</code> (a relative README link), and <code>api: list[dict]</code>.</td>
+</tr>
+<tr>
+<td><code>operations</code></td>
+<td>Dictionary with keys <code>"inspect"</code>, <code>"validate"</code>, and <code>"solve"</code>. Each value is an API record with the additional boolean <code>authentication_required</code>, true only for <code>solve</code>.</td>
+</tr>
+<tr>
+<td><code>execution</code></td>
+<td>Dictionary described below.</td>
+</tr>
+</tbody>
+</table>
+<p>An API record contains <code>import: str</code> (the qualified import name), <code>kind: "class" | "function"</code>, <code>signature: str</code>, and <code>documentation: str</code>. An unavailable docstring produces an empty string. A class record also contains <code>methods</code>, a dictionary keyed by public callable name. Each method record contains <code>signature: str</code> and <code>documentation: str</code>. Signatures reflect the installed Python objects; an unbound method signature can include <code>self</code>.</p>
+<table>
+<thead>
+<tr>
+<th><code>execution</code> field</th>
+<th>Type and value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>default_mode</code></td>
+<td>String <code>"local"</code>.</td>
+</tr>
+<tr>
+<td><code>modes</code></td>
+<td>List <code>['local', 'auto', 'platform']</code>; individual routes impose further restrictions.</td>
+</tr>
+<tr>
+<td><code>automatic_paid_fallback_by_default</code></td>
+<td>Boolean <code>False</code>.</td>
+</tr>
+<tr>
+<td><code>auto_platform_permission</code></td>
+<td>String <code>"allow_platform=True"</code>.</td>
+</tr>
+<tr>
+<td><code>external_solver_modes</code></td>
+<td>List <code>['local']</code>.</td>
+</tr>
+<tr>
+<td><code>gate_algorithm_modes</code></td>
+<td>List <code>['local', 'platform']</code>.</td>
+</tr>
+<tr>
+<td><code>opt_providers</code></td>
+<td>List of Opt provider capability dictionaries. Each contains <code>name: str</code>, <code>mode: str</code>, <code>problem_classes: list[str]</code>, <code>exact: bool</code>, <code>heuristic: bool</code>, <code>requires_authentication: bool</code>, <code>diagnostics: list[str]</code>, and <code>problem_capabilities: dict[str, dict]</code>. Each problem-class record has boolean <code>exact</code> and <code>heuristic</code> fields; use these class-specific flags when selecting a route.</td>
+</tr>
+<tr>
+<td><code>external_solvers</code></td>
+<td>Dictionary with boolean <code>clarabel</code> and <code>scip</code> values indicating availability through the installed CVXPY solver interfaces.</td>
+</tr>
+<tr>
+<td><code>all_solves_require_opt_authentication</code></td>
+<td>Boolean <code>True</code>.</td>
+</tr>
+<tr>
+<td><code>finance_gate_based_execution</code></td>
+<td>Boolean <code>True</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>tasks</code> dictionary uses these identifiers. Each entry follows the task/API record schema above.</p>
+<table>
+<thead>
+<tr>
+<th>Task identifier</th>
+<th>API records</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>multi_period_investment</code></td>
+<td><code>TradingModel</code>.</td>
+</tr>
+<tr>
+<td><code>execution_scheduling</code></td>
+<td><code>ExecutionModel</code>.</td>
+</tr>
+<tr>
+<td><code>result_interchange</code></td>
+<td><code>FinanceResult</code>, <code>FrontierResult</code>, and the six public <code>io</code> functions.</td>
+</tr>
+<tr>
+<td><code>settlement</code></td>
+<td><code>SettlementModel</code>.</td>
+</tr>
+<tr>
+<td><code>reinsurance</code></td>
+<td><code>ReinsuranceModel</code>, <code>excess_of_loss</code>, and <code>quota_share</code>.</td>
+</tr>
+<tr>
+<td><code>collateral_allocation</code></td>
+<td><code>CollateralAllocationModel</code> and <code>haircut_adjusted_value</code>.</td>
+</tr>
+<tr>
+<td><code>credit_allocation</code></td>
+<td><code>CreditAllocationModel</code>.</td>
+</tr>
+<tr>
+<td><code>portfolio</code></td>
+<td><code>PortfolioModel</code>.</td>
+</tr>
+<tr>
+<td><code>funding</code></td>
+<td><code>FundingModel</code>.</td>
+</tr>
+<tr>
+<td><code>liability_matching</code></td>
+<td><code>LiabilityMatchingModel</code>.</td>
+</tr>
+<tr>
+<td><code>hedging</code></td>
+<td><code>HedgeModel</code>.</td>
+</tr>
+<tr>
+<td><code>discount_cash_flows</code></td>
+<td><code>bullet_loan_cash_flows</code>, <code>discount_cash_flows</code>, and <code>present_value</code>.</td>
+</tr>
+<tr>
+<td><code>scenarios</code></td>
+<td><code>Scenarios</code>, <code>ScenarioPaths</code>, and <code>ScenarioTree</code>.</td>
+</tr>
+<tr>
+<td><code>model_interchange</code></td>
+<td>The six public <code>io</code> functions.</td>
+</tr>
+<tr>
+<td><code>trading_costs</code></td>
+<td>Public functions in <code>trading.costs</code>.</td>
+</tr>
+<tr>
+<td><code>risk</code></td>
+<td>Public functions and classes in <code>risk</code>.</td>
+</tr>
+<tr>
+<td><code>data</code></td>
+<td>Public functions in <code>data</code>.</td>
+</tr>
+<tr>
+<td><code>binary_portfolio</code></td>
+<td><code>compile_portfolio</code> and <code>PortfolioEncoding</code>.</td>
+</tr>
+<tr>
+<td><code>plotting</code></td>
+<td>Public functions in <code>plot</code>.</td>
+</tr>
+<tr>
+<td><code>opt_result_recovery</code></td>
+<td><code>results.from_opt</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Use the installed version and signatures when detecting a mismatch with external documentation. Do not use a package from another environment to infer the current API. The published HTML manual provides Markdown links and <code>llms.txt</code>. Locate the reference body in the current environment as follows. Distribution metadata supplies its usual installed location; the additional paths support source checkouts and <code>pip --target</code> installations:</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">importlib.metadata</span><span class="w"> </span><span class="kn">import</span> <span class="n">distribution</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">qpiai_finance</span>
+
+<span class="n">package</span> <span class="o">=</span> <span class="n">distribution</span><span class="p">(</span><span class="s2">"qpiai-finance"</span><span class="p">)</span>
+<span class="n">project</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="n">qpiai_finance</span><span class="o">.</span><span class="vm">__file__</span><span class="p">)</span><span class="o">.</span><span class="n">resolve</span><span class="p">()</span><span class="o">.</span><span class="n">parent</span><span class="o">.</span><span class="n">parent</span>
+<span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="n">Path</span><span class="p">(</span><span class="n">package</span><span class="o">.</span><span class="n">locate_file</span><span class="p">(</span><span class="n">entry</span><span class="p">))</span> <span class="k">for</span> <span class="n">entry</span> <span class="ow">in</span> <span class="n">package</span><span class="o">.</span><span class="n">files</span> <span class="ow">or</span> <span class="p">[]</span>
+    <span class="k">if</span> <span class="n">entry</span><span class="o">.</span><span class="n">as_posix</span><span class="p">()</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">"/doc/qpiai-finance/docs/index.md"</span><span class="p">)</span>
+<span class="p">]</span>
+<span class="k">if</span> <span class="p">(</span><span class="n">project</span> <span class="o">/</span> <span class="s2">"pyproject.toml"</span><span class="p">)</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+    <span class="n">candidates</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">project</span> <span class="o">/</span> <span class="s2">"docs"</span> <span class="o">/</span> <span class="s2">"index.md"</span><span class="p">)</span>
+<span class="n">candidates</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+    <span class="n">project</span> <span class="o">/</span> <span class="s2">"share"</span> <span class="o">/</span> <span class="s2">"doc"</span> <span class="o">/</span> <span class="s2">"qpiai-finance"</span> <span class="o">/</span> <span class="s2">"docs"</span> <span class="o">/</span> <span class="s2">"index.md"</span>
+<span class="p">)</span>
+<span class="n">manual_path</span> <span class="o">=</span> <span class="nb">next</span><span class="p">((</span><span class="n">path</span> <span class="k">for</span> <span class="n">path</span> <span class="ow">in</span> <span class="n">candidates</span> <span class="k">if</span> <span class="n">path</span><span class="o">.</span><span class="n">is_file</span><span class="p">()),</span> <span class="kc">None</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">manual_path</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">FileNotFoundError</span><span class="p">(</span><span class="s2">"The Finance manual is not installed"</span><span class="p">)</span>
+</code></pre></div>
+<p>Read <code>manual_path</code> and resolve its relative chapter links from that directory. The public <a href="manual.html">manual</a> is the same reference body.</p>
+<h2 id="select-a-capability">Select a capability</h2>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Public API</th>
+<th>Required reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Construct or rebalance a portfolio; risk budgets or frontier</td>
+<td><code>portfolio.PortfolioModel</code></td>
+<td><a href="portfolio.html">Portfolios</a></td>
+</tr>
+<tr>
+<td>Encode equal-weight selection; sample or gate-based research</td>
+<td><code>quantum.compile_portfolio</code>, <code>quantum.PortfolioEncoding</code></td>
+<td><a href="quantum.html">Quantum-inspired and gate-based optimization</a></td>
+</tr>
+<tr>
+<td>Build a custom financial formulation or extend a detached model</td>
+<td>Shared finance calculations; model <code>to_model</code>/other supported exports</td>
+<td><a href="custom-models.html">Custom models and compilation</a></td>
+</tr>
+<tr>
+<td>Plan adaptive trades, cash, funding, and terminal wealth</td>
+<td><code>trading.TradingModel</code></td>
+<td><a href="trading.html">Investment planning</a></td>
+</tr>
+<tr>
+<td>Schedule signed orders across intervals and venues</td>
+<td><code>trading.ExecutionModel</code></td>
+<td><a href="execution.html">Execution scheduling</a></td>
+</tr>
+<tr>
+<td>Match exposures or hedge supplied scenario P&amp;L</td>
+<td><code>hedging.HedgeModel</code></td>
+<td><a href="hedging.html">Hedging</a></td>
+</tr>
+<tr>
+<td>Allocate credit within funding, capital, and risk limits</td>
+<td><code>credit.CreditAllocationModel</code></td>
+<td><a href="credit.html">Credit</a></td>
+</tr>
+<tr>
+<td>Plan cash, debt, investments, facilities, and transfers</td>
+<td><code>treasury.FundingModel</code></td>
+<td><a href="funding.html">Funding</a></td>
+</tr>
+<tr>
+<td>Purchase assets to meet dated liabilities</td>
+<td><code>treasury.LiabilityMatchingModel</code></td>
+<td><a href="liability-matching.html">Liability matching</a></td>
+</tr>
+<tr>
+<td>Select reinsurance contracts or programs</td>
+<td><code>insurance.ReinsuranceModel</code></td>
+<td><a href="insurance.html">Insurance</a></td>
+</tr>
+<tr>
+<td>Calculate stated layer or quota-share payouts</td>
+<td><code>insurance.excess_of_loss</code>, <code>insurance.quota_share</code></td>
+<td><a href="insurance.html">Insurance</a></td>
+</tr>
+<tr>
+<td>Assign dated collateral inventory</td>
+<td><code>collateral.CollateralAllocationModel</code></td>
+<td><a href="collateral.html">Collateral</a></td>
+</tr>
+<tr>
+<td>Calculate haircut-adjusted collateral value</td>
+<td><code>collateral.haircut_adjusted_value</code></td>
+<td><a href="collateral.html">Collateral</a></td>
+</tr>
+<tr>
+<td>Schedule payments and permitted atomic batches</td>
+<td><code>settlement.SettlementModel</code></td>
+<td><a href="settlement.html">Settlement</a></td>
+</tr>
+<tr>
+<td>Prepare returns or filter observations as of a decision</td>
+<td><code>data</code></td>
+<td><a href="data.html">Data</a></td>
+</tr>
+<tr>
+<td>Estimate risk or construct financial risk terms</td>
+<td><code>risk</code></td>
+<td><a href="risk.html">Risk</a></td>
+</tr>
+<tr>
+<td>Construct scenarios, paths, or information trees</td>
+<td><code>scenarios</code></td>
+<td><a href="scenarios.html">Scenarios</a></td>
+</tr>
+<tr>
+<td>Calculate loan cash flows or discount supplied flows</td>
+<td><code>cashflows</code></td>
+<td><a href="cashflows.html">Cash flows</a></td>
+</tr>
+<tr>
+<td>Calculate fees or supplied impact terms</td>
+<td><code>trading.costs</code></td>
+<td><a href="trading-costs.html">Trading costs</a></td>
+</tr>
+<tr>
+<td>Save or restore supported models, scenarios, and results</td>
+<td><code>io</code></td>
+<td><a href="interchange.html">Interchange</a></td>
+</tr>
+<tr>
+<td>Recover a recorded Opt result or replay a financial decision</td>
+<td><code>results.from_opt</code>, <code>FinanceResult.evaluate</code></td>
+<td><a href="results.html">Results</a></td>
+</tr>
+<tr>
+<td>Plot supported financial result records</td>
+<td><code>plot</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+</tbody>
+</table>
+<p>Namespaces in the table are relative to <code>qpiai_finance</code>. Use the <a href="public-api.html">API index</a> for imports and the <a href="manual.html">manual</a> for the full reference body.</p>
+<h2 id="prepare-and-inspect">Prepare and inspect</h2>
+<ol>
+<li>Align inputs by their financial identifiers. Use <a href="data.html">data conventions</a> for labeled inputs, numeric values, dates, covariance, and horizon semantics.</li>
+<li>Construct the selected model. Apply its public objective and constraint methods. Complete all required financial settings before compiling.</li>
+<li>Call <code>validate(model)</code> to validate the representation and obtain its mathematical class. Validation does not prove feasibility.</li>
+<li>Call <code>inspect(model)</code> to read the financial specification, representation, and applicable size or route information. An inspection report may contain complete source data; do not log it to an unapproved destination.</li>
+<li>Choose the representation and execution route from the inspected model and the caller's policy. Retain the source model and any compiled representation and recovery metadata.</li>
+</ol>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">qpiai_finance</span><span class="w"> </span><span class="kn">import</span> <span class="n">inspect</span><span class="p">,</span> <span class="n">validate</span>
+
+<span class="n">problem_class</span> <span class="o">=</span> <span class="n">validate</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+<span class="n">report</span> <span class="o">=</span> <span class="n">inspect</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+</code></pre></div>
+<p>These operations require no credentials and do not solve or submit jobs. Read <a href="solving.html">solving</a> for the report fields and route restrictions.</p>
+<h2 id="choose-a-computational-route">Choose a computational route</h2>
+<p>Use the simplest supported representation that preserves the financial objective and hard constraints. Do not replace holdings with arbitrary selection bits or discard constraints to fit a preferred algorithm.</p>
+<table>
+<thead>
+<tr>
+<th>Required route</th>
+<th>Procedure</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Finance's supported direct binary portfolio formulation</td>
+<td>Configure equal-weight <code>select_assets</code>; call <code>compile_portfolio</code> with the desired <code>representation</code>; inspect the returned encoding.</td>
+</tr>
+<tr>
+<td>Native higher-order polynomial solving</td>
+<td>Retain <code>representation="hubo"</code>; execute through Opt.</td>
+</tr>
+<tr>
+<td>Gate-based portfolio optimization</td>
+<td>Compile to <code>"qubo"</code> or <code>"ising"</code>; construct an authoritative Opt algorithm; call <code>inspect(encoding, algorithm=algorithm)</code>; select <code>QuantumRun</code> and an explicit local/platform mode.</td>
+</tr>
+<tr>
+<td>Explicit Opt compilation of another supported financial formulation</td>
+<td>Export its detached Opt model; compile with supported Opt options; retain the exact Opt model with its decoding metadata; recover the result against the original financial model.</td>
+</tr>
+<tr>
+<td>Standard financial optimization or construction</td>
+<td>Call Finance <code>solve(model, ...)</code> with the appropriate default or an explicitly supported solver.</td>
+</tr>
+<tr>
+<td>Custom financial constraints on an exported model</td>
+<td>Solve the exported representation through its supported API and verify the added rules separately; the original Finance model does not acquire those mutations.</td>
+</tr>
+</tbody>
+</table>
+<p>See <a href="quantum.html">quantum</a> for the direct compiler's supported objectives and constraints, penalty guarantees, higher-order terms, variable order, auxiliaries, sample evaluation, and gate controls. See <a href="custom-models.html">custom models</a> for detached export semantics and general Opt compilation.</p>
+<h2 id="execute-a-blocking-solve">Execute a blocking solve</h2>
+<p>Create an Opt client using a credential supplied by the application's secret store. Never place credentials in financial inputs, interchange documents, results, or logs.</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">qpiai_opt.opt_solvers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Client</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qpiai_finance</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">Client</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"QPIAI_OPT_API_KEY"</span><span class="p">])</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">solve</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
+</code></pre></div>
+<p>Every Finance solve requires Opt authentication. Key verification requires connectivity. Modeling, inspection, evaluation, recovery, and interchange do not require authentication. Obtain an Opt key at <a href="https://opt.qpiai.tech/">QpiAI Opt</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Selection</th>
+<th>Call or setting</th>
+<th>Execution boundary</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Default local route</td>
+<td><code>solve(model, client=client)</code></td>
+<td>Authenticated local execution using the model's supported default solver.</td>
+</tr>
+<tr>
+<td>Explicit external solver</td>
+<td><code>solve(model, client=client, solver="clarabel")</code> or <code>solver="scip"</code></td>
+<td>Requires a compatible financial formulation and installed solver.</td>
+</tr>
+<tr>
+<td>Local-first Opt route</td>
+<td><code>solve(model, client=client, solver="qpiai", mode="auto")</code></td>
+<td>Paid fallback remains disabled.</td>
+</tr>
+<tr>
+<td>Authorized Opt fallback</td>
+<td>Add <code>allow_platform=True</code> to the local-first route</td>
+<td>Can create paid platform work after Opt's supported local-limit failure.</td>
+</tr>
+<tr>
+<td>Explicit Opt Platform</td>
+<td><code>solve(model, client=client, solver="qpiai", mode="platform")</code></td>
+<td>Creates platform work for supported classes and can consume credits.</td>
+</tr>
+<tr>
+<td>Local gate-based route</td>
+<td><code>solve(encoding, client=client, algorithm=algorithm, execution=execution)</code></td>
+<td>Requires additional QCloud authentication.</td>
+</tr>
+<tr>
+<td>QpiAI gate-based route</td>
+<td>Add <code>mode="platform"</code> to the gate-based call</td>
+<td>Can consume QCloud credits.</td>
+</tr>
+</tbody>
+</table>
+<p>For gates, import algorithms, <code>QuantumRun</code>, and <code>QpiAIQuantumAuth</code> from <code>qpiai_opt.quantum</code>; authenticate with <code>QpiAIQuantumAuth.login(api_key=...)</code>. Obtain the QCloud key at <a href="https://qcloud.qpiai.tech/">QpiAI QCloud</a>. Finance's <code>quantum</code> namespace contains its financial compiler and encoding, not duplicate algorithm classes. Gate algorithms reject <code>mode="auto"</code>, <code>allow_platform=True</code>, and arbitrary solve options. Configure them through their algorithm and execution objects.</p>
+<p>The <code>tolerance</code> argument is Finance's absolute source-check tolerance, in each row's source units. It is not a universal backend tolerance or a relaxation of the financial constraints. Use the <a href="solver-options.html">solver option contracts</a> to set backend controls and the <a href="algorithm-controls.html">algorithm control reference</a> for gate configurations.</p>
+<h2 id="accept-or-reject-the-result">Accept or reject the result</h2>
+<ol>
+<li>Read <code>result.status</code>, <code>result.feasible</code>, <code>result.optimality_proven</code>, and <code>result.solver_info</code>.</li>
+<li>If no primary decision exists, report the termination and skip financial decision processing. Do not fabricate holdings, quantities, or a zero objective.</li>
+<li>If <code>feasible</code> is false, inspect <code>result.constraints</code> and relevant reconciliation tables. Do not use the candidate as a valid financial decision.</li>
+<li>If the caller requires a proven optimum, also require <code>optimality_proven</code>. A feasible incumbent or best sampled bitstring does not satisfy this requirement.</li>
+<li>Consume the domain decisions, metrics, costs, and tables only within their documented units and guarantee scope. A fixed-selection optimum is conditional on that selection.</li>
+<li>Preserve the source model, result, versions, effective settings, transformations, and job identifiers needed by the application. Apply the application's retention and confidentiality policies to these financial records.</li>
+</ol>
+<p>Finance recomputes financial objectives and constraints from the recovered decision. Do not substitute the solver-reported cost or encoded energy for that objective. For encoded samples, retain auxiliary validation and source feasibility. See <a href="results.html">results</a> for fields, statuses, and recovery guarantees.</p>
+<h2 id="preserve-and-replay">Preserve and replay</h2>
+<p>Use <code>io.to_dict</code>, <code>io.from_dict</code>, <code>io.dumps</code>, <code>io.loads</code>, <code>io.dump</code>, and <code>io.load</code> for reversible supported interchange. Use <code>FinanceResult.to_dict</code> or <code>.to_json</code> only when a numeric report is sufficient. These are different formats.</p>
+<p>Loading a result preserves recorded claims without repeating financial verification. For a trusted source model, call <code>restored_result.evaluate(model)</code> to recompute the primary financial decision. This does not authenticate the historical solver evidence or establish a new optimum.</p>
+<p>To recover an existing native or transformed Opt result, use <code>results.from_opt</code> with the original Finance model or encoding. For general transformed results, retain and supply the actual compiled Opt model. For conditioned raw LP/MILP job results, supply the saved objective-scaling metadata. Keep the typed Opt result when restoring Opt JSON. See <a href="interchange.html">interchange</a> and <a href="results.html">result recovery</a>.</p>
+<h2 id="nonblocking-opt-work">Nonblocking Opt work</h2>
+<p>Finance does not expose its own <code>submit</code>, <code>status</code>, <code>result</code>, or <code>cancel</code> functions. For a compatible explicit platform workflow, export the Opt formulation and use the <a href="https://github.com/qpiai/qpiai-opt/blob/main/automation.md#nonblocking-platform-lifecycle">Opt job API</a>.</p>
+<p>Submit once and preserve identifiers, the financial model, and the exact submitted representation. Poll or retrieve that job by its existing identifier. After an ambiguous timeout, inspect existing jobs before considering another submission. A polling timeout is not evidence that the job failed or vanished. Recover the completed typed result through Finance's documented recovery operation. Do not infer a Finance proof from matching a recorded objective and coordinates.</p>
+<h2 id="failure-handling">Failure handling</h2>
+<table>
+<thead>
+<tr>
+<th>Failure</th>
+<th>Required action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Invalid type, label, dimensions, units, covariance, or options</td>
+<td>Correct the source input using the relevant reference. Do not silently fill, normalize holdings, or remove constraints.</td>
+</tr>
+<tr>
+<td>Missing capability or incompatible explicit solver</td>
+<td>Inspect the formulation and choose a supported route within the caller's policy.</td>
+</tr>
+<tr>
+<td>Authentication or connectivity failure</td>
+<td>Correct authentication or connectivity. Do not authorize another route.</td>
+</tr>
+<tr>
+<td>Local capacity exceeded</td>
+<td>Read Opt's actual limit report. Reduce the workload or select an authorized supported route.</td>
+</tr>
+<tr>
+<td>Infeasible model</td>
+<td>Report infeasibility and relevant diagnostics. Change financial requirements only under the caller's instruction.</td>
+</tr>
+<tr>
+<td>Resource limit with candidate</td>
+<td>Apply the source-feasibility and guarantee checks above. Report the remaining gap or unproven status.</td>
+</tr>
+<tr>
+<td>Verification failure or objective mismatch</td>
+<td>Retain diagnostics and reject the claimed financial guarantee. Do not repair a decision by silent rounding or normalization.</td>
+</tr>
+<tr>
+<td>Unknown or corrupt interchange format</td>
+<td>Reject it. Do not guess a schema version, execute serialized Python, or infer missing financial inputs.</td>
+</tr>
+<tr>
+<td>Ambiguous submission</td>
+<td>Reconcile existing jobs before retrying to avoid duplicate work.</td>
+</tr>
+</tbody>
+</table>
+<p>The library returns proposed financial decisions. It does not place orders, release payments, book loans, or update an accounting ledger.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="public-api.html"><span>Previous</span><strong>Public Python API</strong></a><a class="pager-card next" href="contributing.html"><span>Next</span><strong>Contributing</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#establish-the-task">Establish the task</a><a class="toc-level-2" href="#discover-the-installed-api">Discover the installed API</a><a class="toc-level-2" href="#select-a-capability">Select a capability</a><a class="toc-level-2" href="#prepare-and-inspect">Prepare and inspect</a><a class="toc-level-2" href="#choose-a-computational-route">Choose a computational route</a><a class="toc-level-2" href="#execute-a-blocking-solve">Execute a blocking solve</a><a class="toc-level-2" href="#accept-or-reject-the-result">Accept or reject the result</a><a class="toc-level-2" href="#preserve-and-replay">Preserve and replay</a><a class="toc-level-2" href="#nonblocking-opt-work">Nonblocking Opt work</a><a class="toc-level-2" href="#failure-handling">Failure handling</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

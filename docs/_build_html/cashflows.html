@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Cash-flow calculations">
+<title>Cash-flow calculations | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/cashflows.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="cashflows">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="active" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Foundations</span><span aria-hidden="true">&gt;</span><span>Cash-flow calculations</span></div><article class="doc-content"><h1 id="cash-flow-calculations">Cash-flow calculations</h1>
+<p>Import <code>bullet_loan_cash_flows</code>, <code>discount_cash_flows</code>, and <code>present_value</code> from <code>qpiai_finance.cashflows</code>. These functions evaluate supplied contracts and valuation inputs. They do not choose funding, calibrate curves, or execute transactions.</p>
+<p>Calendar dates accept ISO <code>YYYY-MM-DD</code> strings, <code>datetime.date</code>, or midnight <code>datetime.datetime</code>, <code>pandas.Timestamp</code>, and <code>numpy.datetime64</code> values without a timezone. Currency codes are uppercase ASCII three-letter strings. Amounts and rates are finite real numbers under the <a href="data.html">numeric conventions</a>.</p>
+<h2 id="bullet-loan-cash-flows">Bullet-loan cash flows</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">bullet_loan_cash_flows</span><span class="p">(</span>
+    <span class="n">principal</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">draw_date</span><span class="p">,</span> <span class="n">repayment_date</span><span class="p">,</span> <span class="n">currency</span><span class="p">,</span>
+    <span class="n">interest</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">fee</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">fixed_fee</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>principal</code></td>
+<td>Finite nonnegative real amount in <code>currency</code>.</td>
+</tr>
+<tr>
+<td><code>draw_date</code></td>
+<td>Calendar draw date.</td>
+</tr>
+<tr>
+<td><code>repayment_date</code></td>
+<td>Calendar date strictly after the draw.</td>
+</tr>
+<tr>
+<td><code>currency</code></td>
+<td>Three-letter currency code for all amounts.</td>
+</tr>
+<tr>
+<td><code>interest</code></td>
+<td>Full-term principal fraction paid at repayment; at least <code>-1</code>. It is not an annual rate.</td>
+</tr>
+<tr>
+<td><code>fee</code></td>
+<td>Nonnegative principal fraction charged at draw.</td>
+</tr>
+<tr>
+<td><code>fixed_fee</code></td>
+<td>Nonnegative amount charged once if principal is nonzero.</td>
+</tr>
+</tbody>
+</table>
+<p>Returns a DataFrame indexed by <code>draw</code> and <code>repayment</code>, with <code>date</code>, <code>currency</code>, and signed <code>amount</code>. Borrower receipts are positive. Net draw proceeds are <code>(1-fee)*principal-fixed_fee</code> for a nonzero draw; repayment is <code>-(1+interest)*principal</code>. A zero principal incurs no fixed fee. Negative full-term interest down to <code>-1</code> is supported. The function makes no calendar adjustment, day-count accrual, refinancing, or FX assumption.</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">qpiai_finance.cashflows</span><span class="w"> </span><span class="kn">import</span> <span class="n">bullet_loan_cash_flows</span>
+
+<span class="n">flows</span> <span class="o">=</span> <span class="n">bullet_loan_cash_flows</span><span class="p">(</span>
+    <span class="mi">1_000_000</span><span class="p">,</span>
+    <span class="n">draw_date</span><span class="o">=</span><span class="s2">"2027-01-04"</span><span class="p">,</span>
+    <span class="n">repayment_date</span><span class="o">=</span><span class="s2">"2027-07-05"</span><span class="p">,</span>
+    <span class="n">currency</span><span class="o">=</span><span class="s2">"USD"</span><span class="p">,</span>
+    <span class="n">interest</span><span class="o">=</span><span class="mf">0.03</span><span class="p">,</span>
+    <span class="n">fee</span><span class="o">=</span><span class="mf">0.002</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>The two amounts are <code>998000</code> and <code>-1030000</code> USD. Use explicit discount factors for valuation.</p>
+<h2 id="discount-supplied-cash-flows">Discount supplied cash flows</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">discount_cash_flows</span><span class="p">(</span>
+    <span class="n">cash_flows</span><span class="p">,</span> <span class="n">discount_factors</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">as_of</span><span class="p">,</span>
+    <span class="n">reporting_currency</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fx_rates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><code>cash_flows</code> is a nonempty DataFrame indexed by unique string/integer cash-flow identifiers. It must have exactly <code>date</code>, <code>currency</code>, and <code>amount</code> columns. Amounts are signed, finite native-currency values; dates must be on or after the calendar <code>as_of</code> date.</p>
+<p><code>discount_factors</code> is one of:</p>
+<ul>
+<li>A strictly positive finite scalar applying to every date/currency combination.</li>
+<li>A date × currency DataFrame with exactly the distinct flow dates and currencies. Labels align explicitly.</li>
+<li>A finite positive two-dimensional array in sorted distinct flow-date order and first-occurrence currency order.</li>
+</ul>
+<p>Factors on <code>as_of</code> must equal exactly one. No curve fitting, interpolation, market calendar, interest-rate conversion, or annualization is inferred.</p>
+<p><code>reporting_currency</code> optionally requests valuation in a specified currency. <code>fx_rates</code> then supplies a complete vector, Series, or mapping over the distinct native currencies: reporting-currency units per native-currency unit at <code>as_of</code>. Unlabeled vectors follow first-occurrence currency order in <code>cash_flows</code>; labeled inputs align by currency. Rates must be strictly positive; the reporting currency's own rate, when present, must equal one. Omit FX rates only if every flow is already in reporting currency. Supplying FX rates without a reporting currency raises.</p>
+<p>Returns a detached DataFrame retaining flow identifiers and the source fields, plus <code>discount_factor</code> and native-currency <code>present_value</code>. With reporting conversion it additionally contains <code>fx_rate</code>, <code>reporting_present_value</code>, and <code>reporting_currency</code>.</p>
+<p>FX conversion here values cash flows. It does not make one currency available to pay obligations in another currency; model actual transfers explicitly in <code>FundingModel</code> when required.</p>
+<h2 id="aggregate-present-value">Aggregate present value</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">present_value</span><span class="p">(</span>
+    <span class="n">cash_flows</span><span class="p">,</span> <span class="n">discount_factors</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">as_of</span><span class="p">,</span>
+    <span class="n">reporting_currency</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fx_rates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Inputs and validation follow <code>discount_cash_flows</code>. Without a reporting currency, returns a Series named <code>present_value</code>, indexed by <code>currency</code> in first-occurrence order. With a reporting currency, returns one float in that currency. Original discounted products are accumulated before rounding each reported total.</p>
+<p>Invalid columns, identifiers, dates, currencies, factors, rates, and unrepresentable values raise <code>TypeError</code> or <code>ValueError</code>. Calculations require no credentials or network access.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="scenarios.html"><span>Previous</span><strong>Scenarios and information trees</strong></a><a class="pager-card next" href="trading-costs.html"><span>Next</span><strong>Trading cost functions</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#bullet-loan-cash-flows">Bullet-loan cash flows</a><a class="toc-level-2" href="#discount-supplied-cash-flows">Discount supplied cash flows</a><a class="toc-level-2" href="#aggregate-present-value">Aggregate present value</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

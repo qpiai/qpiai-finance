@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+message: "If you use QpiAI Finance in published work, cite this software."
+type: software
+title: "QpiAI Finance"
+version: 1.0.3
+authors:
+  - name: "QpiAI"
+license: Apache-2.0
+repository-code: "https://github.com/qpiai/qpiai-finance"
+url: "https://github.com/qpiai/qpiai-finance"
+abstract: >-
+  Financial modeling, optimization, risk analysis, and decision intelligence
+  with quantum-inspired and gate-based optimization through QpiAI Opt.
+keywords:
+  - financial optimization
+  - risk analysis
+  - quantum-inspired optimization
+  - gate-based quantum optimization

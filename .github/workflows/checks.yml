@@ -1,0 +1,27 @@
+name: Documentation and distributions
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install build tools
+        run: python -m pip install build twine ruff -r docs/_build_html/_sources/requirements.txt
+      - name: Check Python style
+        run: python -m ruff check qpiai_finance docs/_build_html/_sources
+      - name: Build and check documentation
+        run: python docs/_build_html/_sources/build.py
+      - name: Build source distribution and wheel
+        run: python -m build
+      - name: Validate package metadata
+        run: python -m twine check dist/*

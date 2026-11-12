@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Funding and liquidity">
+<title>Funding and liquidity | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/funding.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="funding">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="active" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Financial models</span><span aria-hidden="true">&gt;</span><span>Funding and liquidity</span></div><article class="doc-content"><h1 id="funding-and-liquidity">Funding and liquidity</h1>
+<p><code>FundingModel</code> plans account cash, explicit borrowing, currency transfers, and bounded investments against contractual cash obligations. It minimizes discounted funding expense, with expected, worst-case, and expected-shortfall measures for adaptive plans. Import it from <code>qpiai_finance.treasury</code>.</p>
+<p>Native account currencies govern cash conservation. Reporting FX values expense; explicit transfer quotes exchange cash; facility FX values commitment usage. These three inputs have different purposes. Cash flows within a planning bucket net simultaneously. For ordered intraday payment processing, use <a href="settlement.html">payment settlement</a>.</p>
+<h2 id="constructor-and-planning-grid">Constructor and planning grid</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">FundingModel</span><span class="p">(</span>
+    <span class="n">cash_flows</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">balances</span><span class="p">,</span> <span class="n">as_of</span><span class="p">,</span> <span class="n">dates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tree</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">reporting_currency</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fx_rates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">deposit_returns</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">discount_factors</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Supply exactly one of <code>dates</code> or <code>tree</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Type, default, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cash_flows</code></td>
+<td>Required pandas DataFrame with exactly <code>account</code>, <code>date</code>, <code>amount</code> for a dated plan, or <code>account</code>, <code>node</code>, <code>amount</code> for an adaptive plan. Rows have unique string/integer IDs when nonempty. Empty tables retaining these columns are allowed. Amounts are finite signed native-account currency: positive receipts, negative obligations. Repeated account/period pairs are summed.</td>
+</tr>
+<tr>
+<td><code>balances</code></td>
+<td>Required nonempty account-indexed DataFrame with exactly <code>currency</code>, <code>cash</code>. IDs are unique nonblank strings/integers; currencies are uppercase three-letter codes. Opening <code>cash</code> is finite nonnegative native currency, available immediately before <code>as_of</code> events. Represent opening debt separately.</td>
+</tr>
+<tr>
+<td><code>as_of</code></td>
+<td>Required calendar date for a dated plan or date-clock tree; timezone-aware instant for an aware tree. Must equal the first planning time exactly.</td>
+</tr>
+<tr>
+<td><code>dates</code></td>
+<td>Optional nonempty unique strictly increasing calendar-date sequence beginning at <code>as_of</code>. All contractual dates must belong to this grid.</td>
+</tr>
+<tr>
+<td><code>tree</code></td>
+<td>Optional <code>ScenarioTree</code>, copied on input. Rows of account grids use its node IDs. Tree time begins at <code>as_of</code>. See <a href="scenarios.html">information trees</a>.</td>
+</tr>
+<tr>
+<td><code>reporting_currency</code></td>
+<td>Optional uppercase three-letter code. Inferred only when every account has the same currency; required otherwise.</td>
+</tr>
+<tr>
+<td><code>fx_rates</code></td>
+<td>Optional finite strictly positive complete currency vector, Series, or mapping of reporting-currency units per native-currency unit at <code>as_of</code>. Required for any non-reporting currency. A reporting-currency entry must equal one. Default <code>None</code> uses one only when all accounts use reporting currency.</td>
+</tr>
+<tr>
+<td><code>deposit_returns</code></td>
+<td>Finite period-by-account grid; scalar, aligned DataFrame, or ordered two-dimensional array. Default zero. Parent-to-period simple returns must be at least <code>-1</code>; the root/first row must be zero. Scalar input is broadcast with its first row reset to zero.</td>
+</tr>
+<tr>
+<td><code>discount_factors</code></td>
+<td>Strictly positive finite period-by-account grid in the same forms; default one. First/root factors must equal one. These discount expense in native currency before fixed reporting FX conversion.</td>
+</tr>
+</tbody>
+</table>
+<p>Here and below, <strong>period</strong> means date for dated plans and node for adaptive plans. Account grids have exactly all period rows and account columns. A scalar broadcasts across the whole grid; per-account one-dimensional vectors do not. Labelled grids align both axes, rejecting missing/extra/duplicate labels. Full period vectors accept scalars, complete Series/mappings, or ordered one-dimensional arrays unless explicitly stated otherwise.</p>
+<p>In a tree, a decision at one observed node is shared by all cases passing through it. Child cash starts from that child's actual parent; alternative branches never share cash. A conditional loan repays at every descendant node at its maturity stage, once on each realized history. Hard limits apply to every node, including zero-probability and probability-free stress cases.</p>
+<h2 id="properties">Properties</h2>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type and contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>account_ids</code></td>
+<td>Detached pandas Index in account input order.</td>
+</tr>
+<tr>
+<td><code>investment_ids</code></td>
+<td>Index named <code>investment_id</code>, in purchase-opportunity insertion order.</td>
+</tr>
+<tr>
+<td><code>funding_ids</code></td>
+<td>Index named <code>funding_id</code>: new funding IDs in insertion order, then opening-debt IDs in insertion order. Defines unlabelled funding-exposure coefficient order.</td>
+</tr>
+<tr>
+<td><code>dates</code></td>
+<td>Detached ordered stage-time index, including aware timestamps for an aware tree. For a tree this is the stage clock, not one row per node.</td>
+</tr>
+<tr>
+<td><code>tree</code></td>
+<td>Detached <code>ScenarioTree</code>, or <code>None</code>.</td>
+</tr>
+<tr>
+<td><code>node_ids</code></td>
+<td>Detached node index for an adaptive plan; raises <code>ValueError</code> for a dated plan.</td>
+</tr>
+<tr>
+<td><code>reporting_currency</code></td>
+<td><code>str</code> currency of the expense objective.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="new-funding-contracts">New funding contracts</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">add_funding</span><span class="p">(</span>
+    <span class="n">funding_id</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">account</span><span class="p">,</span> <span class="n">draw_date</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">repayment_date</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">draw_node</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">repayment_stage</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">maximum</span><span class="p">,</span>
+    <span class="n">interest</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">fee</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">fixed_fee</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">minimum</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">lot_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>All configuration methods return <code>self</code>. IDs are nonblank strings/integers. New funding and opening-debt IDs must be unique across those two contract collections. <code>account</code> must be supplied in <code>balances</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type, default, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>draw_date</code>, <code>repayment_date</code></td>
+<td>Calendar dates on the dated grid, with repayment strictly after draw. Both are required in a dated plan despite their signature defaults.</td>
+</tr>
+<tr>
+<td><code>draw_node</code>, <code>repayment_stage</code></td>
+<td>Supplied node ID and later stage ID for an adaptive plan. Required in that mode. Stage timestamps use the tree's date/aware clock when timestamp-labelled. Date arguments must remain <code>None</code>.</td>
+</tr>
+<tr>
+<td><code>maximum</code></td>
+<td>Required finite nonnegative principal cap in account currency.</td>
+</tr>
+<tr>
+<td><code>interest</code></td>
+<td>Finite total-term interest fraction, at least <code>-1</code>, paid at repayment; default zero. It is not an annual rate.</td>
+</tr>
+<tr>
+<td><code>fee</code></td>
+<td>Finite nonnegative principal fraction, paid at draw; default zero. No upper bound is imposed; fees above principal can make net draw proceeds negative.</td>
+</tr>
+<tr>
+<td><code>fixed_fee</code></td>
+<td>Finite nonnegative origination charge in account currency; default zero. Positive charges require a positive <code>minimum</code> or configured <code>lot_size</code>.</td>
+</tr>
+<tr>
+<td><code>minimum</code></td>
+<td>Finite amount in <code>[0, maximum]</code>; default zero. Permits zero borrowing or at least this amount.</td>
+</tr>
+<tr>
+<td><code>lot_size</code></td>
+<td>Optional strictly positive finite principal step; default <code>None</code> allows continuous principal. With lots, activation requires at least one lot.</td>
+</tr>
+</tbody>
+</table>
+<p>For principal <code>p</code>, draw proceeds are <code>(1-fee)*p - fixed_fee</code> when active, and repayment is <code>(1+interest)*p</code>. Origination fees and full-term interest are expense; principal repayment is cash movement. Fixed charges apply only to positive draws. Available borrowing is exactly the set of supplied contracts, each with repayment within the planning horizon.</p>
+<h2 id="opening-debt-and-cash-transfers">Opening debt and cash transfers</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">add_existing_debt</span><span class="p">(</span>
+    <span class="n">debt_id</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">account</span><span class="p">,</span> <span class="n">principal</span><span class="p">,</span> <span class="n">repayment_date</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">repayment_stage</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">interest</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_transfer</span><span class="p">(</span>
+    <span class="n">transfer_id</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">from_account</span><span class="p">,</span> <span class="n">to_account</span><span class="p">,</span> <span class="n">date</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">node</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">maximum</span><span class="p">,</span> <span class="n">exchange_rate</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fee</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Opening debt takes a strictly positive finite <code>principal</code> in the account's currency. <code>interest</code> is its remaining full-term interest fraction, at least <code>-1</code>, default zero. Supply a repayment grid date for a dated plan or a supplied maturity stage for a tree; the other argument must remain <code>None</code>. Maturity may be the initial stage. It repays principal and remaining interest without adding a historical draw to opening cash.</p>
+<p>Transfer IDs are unique within transfers. <code>from_account</code> and <code>to_account</code> are distinct supplied accounts. Supply a grid <code>date</code> for a dated plan or supplied <code>node</code> for an adaptive plan. Required finite nonnegative <code>maximum</code> caps the sent amount in source currency. Finite nonnegative <code>fee</code> defaults to zero and is an additional source-currency fraction. Strictly positive finite <code>exchange_rate</code> gives destination units per source unit; it is required across currencies, defaults to one for same-currency transfers, and must equal one for those transfers. Sending <code>x</code> debits <code>(1+fee)*x</code> from the source and credits <code>exchange_rate*x</code> to the destination in that bucket.</p>
+<h2 id="investment-purchases">Investment purchases</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">add_investment</span><span class="p">(</span>
+    <span class="n">investment_id</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">account</span><span class="p">,</span> <span class="n">price</span><span class="p">,</span> <span class="n">cash_flows</span><span class="p">,</span> <span class="n">upper</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">lot_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">purchase_date</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">purchase_node</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>An investment ID identifies one purchase opportunity and must be unique within investments. Use separate IDs for conditional purchases of the same instrument at different nodes.</p>
+<p><code>price</code> is strictly positive finite all-in account-currency cash per purchased unit. Required finite <code>upper</code> and default-zero <code>lower</code> bound actual nonnegative units, with <code>lower &lt;= upper</code>. Lower is a mandatory quantity, not a conditional activation minimum. Optional strictly positive finite <code>lot_size</code> restricts purchased units to whole lots.</p>
+<p>Supply the dated-grid <code>purchase_date</code> or adaptive <code>purchase_node</code>, with the other argument <code>None</code>. Required <code>cash_flows</code> is a complete finite signed period vector, Series, or mapping of native-currency flows per purchased unit; scalar broadcasting is disabled. It must be zero at/before purchase and on every other information history. Later negative amounts represent capital calls. Purchase outlay and subsequent flows enter native cash conservation. They are not added to the funding-expense objective as investment performance.</p>
+<h2 id="cash-debt-and-shared-facilities">Cash, debt, and shared facilities</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">limit_cash</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">minimum</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">maximum</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_debt</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">maximum</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_facility</span><span class="p">(</span>
+    <span class="n">facility_id</span><span class="p">,</span> <span class="n">funding_ids</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">maximum</span><span class="p">,</span> <span class="n">currency</span><span class="p">,</span>
+    <span class="n">fx_rates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reserved</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><code>limit_cash</code> sets period-by-account native-currency closing-cash bounds. <code>minimum</code> defaults to zero; <code>maximum=None</code> removes upper limits. Configured inputs must be finite and satisfy <code>0 &lt;= minimum &lt;= maximum</code>. <code>limit_debt</code> takes a required finite nonnegative account grid bounding outstanding principal after the period's draws and repayments. Initially debt has no upper limit. Cash must always remain nonnegative; there is no implicit overdraft.</p>
+<p><code>limit_facility</code> sets one shared commitment cap in a declared uppercase three-letter <code>currency</code>. <code>funding_ids</code> is a required nonempty sequence of distinct already-added new funding/opening-debt IDs. Membership may overlap across facilities to represent aggregate limits and sublimits. Reusing <code>facility_id</code> replaces that limit after validation; other facilities remain.</p>
+<p>Required <code>maximum</code> and default-zero <code>reserved</code> are finite nonnegative period vectors in facility currency. Reserved usage represents outside-model commitments and moves no cash. Reserved usage above capacity makes the constraints infeasible. Principal counts on <code>[draw, repayment)</code> on its actual history; same-period repayments release capacity before closing utilization is measured. This is not lifetime cumulative borrowing or intraday rollover certification.</p>
+<p>Facility <code>fx_rates</code> value native principal in facility-currency units per native unit. Supply fixed currency-indexed vectors/Series/mappings or full period-by-currency DataFrames/arrays. Currency columns follow first occurrence among facility members. A scalar quote is allowed only for one native currency. Rates must be finite strictly positive; facility-currency rates equal one. Default <code>None</code> is valid only when all member principals use facility currency. These rates neither use reporting FX implicitly nor create cash transfers.</p>
+<h2 id="balance-sheet-exposures">Balance-sheet exposures</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">limit_exposure</span><span class="p">(</span>
+    <span class="n">exposure_id</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">investment_coefficients</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">funding_coefficients</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cash_coefficients</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">external_exposure</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>This method bounds one supplied additive exposure at each period. Required <code>unit</code> is a nonblank string. Signed coefficients can express sensitivity matching or net-value floors; nonnegative capital coefficients can express capital budgets. Pricing, FX, regulatory classification, and risk weights are supplied inputs.</p>
+<p>Each optional coefficient block accepts a finite scalar or complete ordered member vector/array, a Series/mapping selecting known member IDs with fixed coefficients, or a DataFrame with complete period rows and selected member columns. Two-dimensional arrays/sparse matrices use every current member in public order. Omitted blocks contribute zero. Coefficients are in declared exposure units per purchased investment unit, outstanding native-currency principal, or native-currency closing cash. At least one bound is required, but an exposure may consist entirely of outside-book amounts.</p>
+<p><code>external_exposure</code> is a finite signed period vector, default zero. <code>lower</code> and <code>upper</code> are optional finite signed period vectors; <code>None</code> leaves that side unbounded. Require lower no greater than upper. Equal bounds impose matching. Outside liability values must exclude amounts already represented in model balances.</p>
+<p>Investment exposure counts on the post-purchase realized history through the final stage. Cash-flow receipt does not determine derecognition: supply zero coefficients after the asset ceases to belong in the exposure. Funding principal counts until, excluding, repayment. Cash uses each closing balance. Reusing an exposure ID replaces that mandate; adding contracts afterward does not expand existing membership. Configure it again to include new positions.</p>
+<h2 id="expense-measures">Expense measures</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">minimize_expected_cost</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">minimize_worst_case_cost</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">minimize_expected_shortfall</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_expected_shortfall</span><span class="p">(</span><span class="n">maximum</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)</span>
+</code></pre></div>
+<p>Expense is discounted new/opening-debt interest, new-funding origination fees, and transfer fees in reporting currency. It excludes principal, investment outlays/proceeds, and deposit interest earned on cash. Negative full-term loan interest can produce signed expense.</p>
+<p>The default <code>minimize_expected_cost</code> uses supplied tree case probabilities; no probabilities are inferred. A probability-free tree can be constructed, but must select worst-case cost before export, evaluation, validation, or solve. For a dated plan the complete-path expense is the objective under either expected or worst-case selection.</p>
+<p>Worst-case selection considers every complete path, including zero-probability cases. Both ES methods require a scenario tree with explicit probabilities. <code>confidence</code> is finite and strictly in <code>(0,1)</code>, default <code>0.95</code>. ES is the weighted upper-tail mean expense with fractional boundary mass. <code>maximum</code> is a required finite signed reporting-currency scalar; a negative cap requires sufficiently negative tail expense. The hard cap has its own confidence, remains under any objective, and is replaced on repeated calls. Zero-probability cases do not enter ES but retain all hard node limits.</p>
+<h2 id="export-execution-and-evaluation">Export, execution, and evaluation</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">to_model</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">return_variables</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">to_cvxpy</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span>
+    <span class="n">draws</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">transfers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">investments</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>The model is LP unless funding lots, conditional minimum draws, fixed origination fees, or investment lots introduce integer decisions, giving MILP. Opt is the default execution route. Every Finance solve requires Opt authentication; <a href="solving.html">solving</a> defines options and modes. Eligible algebraic exports also support the explicit representation controls described in <a href="custom-models.html">custom models</a>.</p>
+<p><code>to_model()</code> returns a detached Opt model; boolean <code>return_variables=True</code> returns <code>(model, expressions)</code>. <code>to_cvxpy()</code> returns <code>(cvxpy.Problem, expressions)</code>. The financial expression mapping contains:</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>pandas expression structure and units</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>draws</code></td>
+<td>New funding-ID Series named <code>principal</code>, in actual native principal, including with lots.</td>
+</tr>
+<tr>
+<td><code>transfers</code></td>
+<td>Transfer-ID Series named <code>sent</code>, in sending currency.</td>
+</tr>
+<tr>
+<td><code>cash_balances</code></td>
+<td><code>(date, account)</code> or <code>(node, account)</code> Series named <code>cash</code>, in native account currency.</td>
+</tr>
+<tr>
+<td><code>investments</code></td>
+<td>When configured, investment-ID Series named <code>quantity</code>, in actual purchased units.</td>
+</tr>
+<tr>
+<td><code>scenario_costs</code></td>
+<td>For adaptive plans, case-ID Series named <code>discounted_funding_cost</code>, in reporting currency. Supports direct composition with <code>risk.expected_shortfall_epigraph</code>.</td>
+</tr>
+<tr>
+<td><code>facility_utilization</code></td>
+<td>When configured, <code>(date/node, facility)</code> Series named <code>utilization</code>, including reserved usage in each facility's currency.</td>
+</tr>
+<tr>
+<td><code>exposures</code></td>
+<td>When configured, <code>(date/node, exposure)</code> Series named <code>exposure</code>, including outside-book amounts in the declared unit.</td>
+</tr>
+</tbody>
+</table>
+<p>Exports do not mutate the source financial specification. For evaluation, each configured decision collection requires a complete finite vector, Series, or mapping in insertion order, without scalar broadcasting. <code>None</code> is valid only for an unconfigured collection, where an empty decision is also allowed. Draws contain only new loans; opening-debt principal is fixed. <code>tolerance</code> is a finite nonnegative absolute scalar, default <code>1e-7</code>.</p>
+<p><code>evaluate</code> returns <code>objective</code>, <code>feasible</code>, <code>constraints</code>, <code>decision</code>, <code>metrics</code>, <code>tables</code>, and <code>costs</code> without authentication or solving. It reconstructs cash, debt, facility usage, exposures, expenses, and configured risk measures from original contracts. Original arithmetic determines monetary residuals before binary64 reporting. A rounded displayed total may conceal a retained small violation; decisions are checked rather than repaired.</p>
+<h2 id="result-fields">Result fields</h2>
+<p><code>result.draws</code>, <code>transfers</code>, <code>cash_balances</code>, and configured <code>investments</code> expose the same numeric Series structures as above. Scenario costs, facility usage, and exposure reports are in tables rather than additional decision properties. Objective units are reporting currency.</p>
+<table>
+<thead>
+<tr>
+<th>Location</th>
+<th>Fields</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>metrics</code>, dated plan</td>
+<td><code>discounted_funding_cost</code>, <code>interest_reporting</code>, <code>funding_fees_reporting</code>, <code>transfer_fees_reporting</code>. The last three are undiscounted reporting-FX totals.</td>
+</tr>
+<tr>
+<td><code>metrics</code>, adaptive plan</td>
+<td><code>discounted_funding_cost</code> for the selected measure, <code>worst_case_funding_cost</code>, optional <code>expected_funding_cost</code>; ES objective adds <code>funding_cost_expected_shortfall</code>, <code>expected_shortfall_confidence</code>; hard ES adds <code>hard_funding_cost_expected_shortfall</code>, <code>hard_expected_shortfall_confidence</code>.</td>
+</tr>
+<tr>
+<td><code>costs</code></td>
+<td><code>discounted_funding_cost</code>, <code>currency</code>, <code>measure</code> (<code>expected</code>, <code>worst_case</code>, <code>expected_shortfall</code>).</td>
+</tr>
+<tr>
+<td><code>cash_ladder</code> table</td>
+<td>Indexed by <code>(date/node, account)</code>: <code>currency</code>, <code>opening_cash</code>, <code>deposit_interest</code>, <code>contractual_inflows</code>, <code>contractual_outflows</code>, <code>draws</code>, <code>principal_repayments</code>, <code>interest</code>, <code>funding_fees</code>, <code>transfer_in</code>, <code>transfer_out</code>, <code>transfer_fees</code>, <code>outstanding_debt</code>, <code>net_funding_cash_flow</code>, <code>closing_cash</code>, <code>cash_buffer</code>, <code>cash_upper</code>, <code>debt_limit</code>; configured investments add <code>investment_purchases</code>, <code>investment_cash_flows</code>. Native-currency inflow/outflow columns show nonnegative magnitudes for valid decisions; <code>interest</code>, <code>deposit_interest</code>, <code>net_funding_cash_flow</code>, and <code>investment_cash_flows</code> can be signed.</td>
+</tr>
+<tr>
+<td><code>funding</code> table</td>
+<td>Dated: funding-ID index, <code>kind</code>, <code>account</code>, <code>currency</code>, <code>draw_date</code>, <code>repayment_date</code>, <code>principal</code>, <code>interest</code>, <code>origination_fee</code>, <code>total_repayment</code>, <code>discounted_cost_reporting</code>. Adaptive: <code>(funding_id, node, event)</code> index instead of date columns; events <code>draw</code>/<code>repayment</code>. Kinds are <code>new_funding</code>/<code>existing_debt</code>.</td>
+</tr>
+<tr>
+<td><code>transfers</code> table</td>
+<td>Transfer-ID index, <code>date</code> or <code>node</code>, <code>from_account</code>, <code>to_account</code>, <code>source_currency</code>, <code>destination_currency</code>, <code>sent</code>, <code>fee</code>, <code>received</code>, <code>exchange_rate</code>, <code>discounted_cost_reporting</code>.</td>
+</tr>
+<tr>
+<td><code>funding_facilities</code> table</td>
+<td>Configured <code>(date/node, facility)</code> index: <code>modelled_utilization</code>, <code>reserved_utilization</code>, <code>total_utilization</code>, <code>maximum</code>, <code>remaining_capacity</code>, <code>currency</code>.</td>
+</tr>
+<tr>
+<td><code>funding_facility_components</code> table</td>
+<td><code>date</code> or <code>node</code>, <code>facility</code>, <code>funding_id</code>, <code>outstanding_principal</code>, <code>principal_currency</code>, <code>fx_rate</code>, <code>utilization</code>, <code>currency</code>.</td>
+</tr>
+<tr>
+<td><code>investments</code> table</td>
+<td>Configured investment-ID index: <code>account</code>, <code>currency</code>, <code>purchase_date</code> or <code>purchase_node</code>, <code>quantity</code>, <code>price</code>, <code>purchase_outlay</code>, <code>lower</code>, <code>upper</code>, <code>lot_size</code>.</td>
+</tr>
+<tr>
+<td><code>investment_schedule</code> table</td>
+<td>Configured <code>(investment_id, date/node, event)</code> index: <code>account</code>, <code>currency</code>, <code>quantity</code>, <code>unit_cash_flow</code>, <code>cash_flow</code>. Event is <code>purchase</code> or <code>cash_flow</code>.</td>
+</tr>
+<tr>
+<td><code>exposures</code> table</td>
+<td>Configured <code>(date/node, exposure)</code> index: <code>investment_exposure</code>, <code>funding_exposure</code>, <code>cash_exposure</code>, <code>external_exposure</code>, <code>total_exposure</code>, <code>lower</code>, <code>upper</code>, <code>unit</code>.</td>
+</tr>
+<tr>
+<td><code>exposure_components</code> table</td>
+<td>Configured <code>(date/node, exposure, kind, position)</code> index: <code>quantity</code>, <code>coefficient</code>, <code>contribution</code>, <code>unit</code>. Kind is <code>investments</code>, <code>funding</code>, or <code>cash</code>.</td>
+</tr>
+<tr>
+<td><code>funding_information</code>, <code>funding_nodes</code> tables</td>
+<td>Adaptive tree information and node metadata, with the schemas in <a href="scenarios.html">scenarios</a>.</td>
+</tr>
+<tr>
+<td><code>funding_scenarios</code> table</td>
+<td>Adaptive case-indexed <code>discounted_funding_cost</code>, <code>interest_reporting</code>, <code>funding_fees_reporting</code>, <code>transfer_fees_reporting</code>, optional <code>probability</code>. Currency is a DataFrame attribute.</td>
+</tr>
+</tbody>
+</table>
+<p>Numeric decisions, monetary metrics, and reported amounts are floats. <code>net_funding_cash_flow</code> equals <code>draws - funding_fees - principal_repayments - interest</code>; contractual flows, transfers, and investments enter closing cash separately. <code>opening_cash</code> is the supplied opening balance at the root/first date and the parent's closing balance thereafter. <code>cash_buffer</code> is the configured minimum closing balance. A dated opening-debt row has <code>draw_date=None</code>.</p>
+<p>Investment schedules use negative purchase outlay for the <code>purchase</code> event and signed supplied receipts/calls for <code>cash_flow</code> events. Facility-component rows cover each live member, including zero drawn principal; their index is positional. Exposure-component rows contain retained nonzero coefficients on the applicable history. Monetary constraints use the account, reporting, or facility currency; investment quantities use <code>instrument_units</code>, lot residuals use <code>lots</code>, activation checks use <code>binary</code>, and exposure mandates use their declared unit.</p>
+<p>Solver recovery checks lot/activation reconstruction and reconciles cash and configured risk auxiliaries against financial replay. <a href="results.html">Results</a> defines acceptance and retained solver evidence. <a href="plotting.html">Plotting</a> documents cash ladders, funding, transfers, investments, and exposure figures.</p>
+<p>Invalid schemas, IDs, dates/stages, domains, incomplete decisions, or missing required probabilities raise <code>TypeError</code> or <code>ValueError</code>; unrepresentable calculations raise <code>ValueError</code>. Valid but contradictory liquidity, commitment, or exposure limits can produce an infeasible optimization result. Contract availability, legal borrowing/transfer permissions, curves, and financial coefficients are supplied inputs.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="credit.html"><span>Previous</span><strong>Credit allocation</strong></a><a class="pager-card next" href="liability-matching.html"><span>Next</span><strong>Liability matching</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#constructor-and-planning-grid">Constructor and planning grid</a><a class="toc-level-2" href="#properties">Properties</a><a class="toc-level-2" href="#new-funding-contracts">New funding contracts</a><a class="toc-level-2" href="#opening-debt-and-cash-transfers">Opening debt and cash transfers</a><a class="toc-level-2" href="#investment-purchases">Investment purchases</a><a class="toc-level-2" href="#cash-debt-and-shared-facilities">Cash, debt, and shared facilities</a><a class="toc-level-2" href="#balance-sheet-exposures">Balance-sheet exposures</a><a class="toc-level-2" href="#expense-measures">Expense measures</a><a class="toc-level-2" href="#export-execution-and-evaluation">Export, execution, and evaluation</a><a class="toc-level-2" href="#result-fields">Result fields</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Gate-based algorithm controls">
+<title>Gate-based algorithm controls | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/algorithm-controls.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="algorithm-controls">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="active" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Reference</span><span aria-hidden="true">&gt;</span><span>Gate-based algorithm controls</span></div><article class="doc-content"><h1 id="gate-based-algorithm-controls">Gate-based algorithm controls</h1>
+<p>Financial practitioners can use the <a href="quantum.html">portfolio compiler</a> to express investment selection in portfolio terms. Researchers can then select the algorithm, parameterization, initial state, mixer, optimizer, and circuit execution settings on that same retained financial problem.</p>
+<p>Import the controls on this page from <code>qpiai_opt.quantum</code>. Finance 1.0.3 uses Opt 0.0.9. These are dependency objects accepted by Finance's <code>algorithm</code> and <code>execution</code> arguments, rather than a separate Finance algorithm hierarchy. All Finance gate solves require an explicit pairwise QUBO/Ising <code>PortfolioEncoding</code>, an Opt client, and QCloud authentication. Native HUBO execution uses <a href="solver-options.html">solver options</a> instead.</p>
+<p>Algorithm configurations are frozen dataclasses. Initial parameter vectors, basis-bit sequences, and custom pools are copied to tuples. Auxiliary/execution configurations are frozen keyword-only Pydantic models; unknown fields are rejected. Circuit objects and callbacks remain caller-owned and must remain stable during inspection/execution. Invalid types and incompatible settings raise <code>TypeError</code>, <code>ValueError</code>, or Pydantic validation errors, before execution where the incompatibility can be checked.</p>
+<h2 id="qaoa">QAOA</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">QAOA</span><span class="p">(</span>
+    <span class="n">reps</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">parameterization</span><span class="o">=</span><span class="s2">"standard"</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="s2">"cobyla"</span><span class="p">,</span>
+    <span class="n">max_iterations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">initial_point</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">aggregation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">warm_start</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mixer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">initial_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type, allowed values, and default behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>reps</code></td>
+<td>Positive Python integer, default <code>1</code>; number of cost/mixer layers. Booleans rejected.</td>
+</tr>
+<tr>
+<td><code>parameterization</code></td>
+<td><code>"standard"</code> (default) or <code>"multi_angle"</code>; case-insensitive and hyphens become underscores.</td>
+</tr>
+<tr>
+<td><code>optimizer</code></td>
+<td>Named optimizer or supported callable, default <code>"cobyla"</code>; contracts below.</td>
+</tr>
+<tr>
+<td><code>max_iterations</code></td>
+<td>Positive Python integer, default <code>100</code>; optimizer budget. Meaning depends on the chosen optimizer. Booleans rejected.</td>
+</tr>
+<tr>
+<td><code>initial_point</code></td>
+<td>Finite real parameter sequence of exact parameter count, or <code>None</code> (default) for zero initial parameters.</td>
+</tr>
+<tr>
+<td><code>aggregation</code></td>
+<td><code>CVaR</code> or <code>None</code> (default) for sampled expectation.</td>
+</tr>
+<tr>
+<td><code>warm_start</code></td>
+<td><code>WarmStart</code> or <code>None</code> (default). Supplies both preparation and a tilted mixer; cannot combine with <code>mixer</code> or <code>initial_state</code>.</td>
+</tr>
+<tr>
+<td><code>mixer</code></td>
+<td><code>XYMixer</code>, custom callable, or <code>None</code> (default) for X mixing. Custom mixers require standard parameterization; XY requires an explicit initial state.</td>
+</tr>
+<tr>
+<td><code>initial_state</code></td>
+<td>Basis-bit sequence in increasing qubit order, same-width unmeasured <code>Circuit</code>, or <code>None</code> (default) for uniform superposition. Finance requires a bit sequence when using XY mixing.</td>
+</tr>
+</tbody>
+</table>
+<p>Standard parameters are ordered <code>gamma[0:reps]</code>, then <code>beta[0:reps]</code>; count is <code>2*reps</code>. Multi-angle order is per layer: sorted nonzero Z fields, sorted nonzero ZZ couplings, then mixer generators. Count is <code>reps*(fields + couplings + mixer_generators)</code>. The identity constant has no parameter. X/warm mixing has one generator per qubit; XY has one per configured edge.</p>
+<p><code>algorithm.parameter_count(problem) -&gt; int</code> computes this count for the explicit Opt QUBO/Ising representation, including encoded auxiliary bits. Use the encoding's exported problem, not the <code>PortfolioEncoding</code> wrapper, for dependency-level methods. <code>inspect(encoding, algorithm=algorithm)</code> performs the complete Finance/Opt compatibility check and reports register/circuit resources offline.</p>
+<p>A custom mixer has signature <code>mixer(circuit, beta, layer)</code>. It mutates that supplied QpiAI <code>Circuit</code>, returning <code>None</code> or the same circuit, without adding measurements. <code>beta</code> is the layer angle and <code>layer</code> is its zero-based index. A custom mixer does not supply an inferred multi-angle generator layout.</p>
+<h2 id="vqe-and-samplingvqe">VQE and SamplingVQE</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">VQE</span><span class="p">(</span>
+    <span class="n">ansatz</span><span class="o">=</span><span class="s2">"standard"</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="s2">"cobyla"</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">initial_point</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">SamplingVQE</span><span class="p">(</span>
+    <span class="n">ansatz</span><span class="o">=</span><span class="s2">"standard"</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="s2">"cobyla"</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">initial_point</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">aggregation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type, allowed values, and default behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ansatz</code></td>
+<td><code>"standard"</code> (default), <code>"hardware_efficient"</code>, <code>"two_local"</code>, QpiAI <code>Circuit</code>, or <code>Callable[[int], Circuit]</code> receiving register width. Built-in names normalize case and hyphens.</td>
+</tr>
+<tr>
+<td><code>optimizer</code></td>
+<td>Named optimizer only, default <code>"cobyla"</code>. Custom optimizer callbacks are rejected.</td>
+</tr>
+<tr>
+<td><code>max_iterations</code></td>
+<td>Positive Python integer, default <code>100</code>, excluding booleans.</td>
+</tr>
+<tr>
+<td><code>initial_point</code></td>
+<td>Finite real sequence of exact bindable-angle count, or <code>None</code> (default). VQE uses Quantum SDK initialization; SamplingVQE draws uniformly on <code>[0, 2*pi)</code>. Local <code>QuantumRun.seed</code> controls supported random initialization.</td>
+</tr>
+<tr>
+<td><code>aggregation</code></td>
+<td>SamplingVQE only: <code>CVaR</code> or default <code>None</code> for sampled expectation.</td>
+</tr>
+</tbody>
+</table>
+<p>Custom circuits must have exactly the compiled problem width, no measurements, and at least one bindable parameter. Each parametric gate must have one bindable angle; binding follows circuit operation order. Inspection reports the parameter count. VQE minimizes a Hamiltonian expectation; SamplingVQE minimizes an aggregate of sampled computational-basis energies. For Finance both return observed financial candidates, with the original constraints re-evaluated separately. The optimized variational aggregate need not equal the selected candidate's financial objective.</p>
+<h2 id="recursive-qaoa">Recursive QAOA</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">RecursiveQAOA</span><span class="p">(</span><span class="n">qaoa</span><span class="o">=</span><span class="n">QAOA</span><span class="p">(),</span> <span class="n">min_variables</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">eliminations_per_step</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</code></pre></div>
+<p>Each omitted <code>qaoa</code> creates a separate default QAOA configuration.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type, allowed values, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>qaoa</code></td>
+<td><code>QAOA</code>, default configuration above. Its <code>initial_point</code>, <code>initial_state</code>, <code>warm_start</code>, and <code>mixer</code> must remain <code>None</code> because register size changes during reduction. Both parameterizations and CVaR are supported.</td>
+</tr>
+<tr>
+<td><code>min_variables</code></td>
+<td>Python integer in <code>[1,20]</code>, default <code>10</code>; desired residual width. Excludes booleans. Reduction can continue further to satisfy exact residual-work limits.</td>
+</tr>
+<tr>
+<td><code>eliminations_per_step</code></td>
+<td>Positive Python integer, default <code>1</code>; maximum disjoint pair relations committed in each reduction stage. Excludes booleans.</td>
+</tr>
+</tbody>
+</table>
+<p>The algorithm estimates correlations from optimized-stage samples, fixes selected spin relations, reduces the problem, solves the residual through Opt's exact local Ising route, and reconstructs full-register candidates. An exact residual does not prove the original optimum because correlation-based elimination is heuristic. It requires the compiled local runtime and QCloud authentication in both execution modes.</p>
+<p>A problem already within the residual threshold can execute locally with no circuit stage; diagnostics identify that exact residual route. Platform zero-stage requests are rejected because they would execute no platform circuit. Lower <code>min_variables</code> when a reduction stage is intended. There is no static <code>build_circuit</code> method for this changing-register algorithm.</p>
+<h2 id="adapt-qaoa">ADAPT-QAOA</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">ADAPTQAOA</span><span class="p">(</span>
+    <span class="n">operator_pool</span><span class="o">=</span><span class="s2">"single"</span><span class="p">,</span> <span class="n">optimizer</span><span class="o">=</span><span class="s2">"nelder_mead"</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span>
+    <span class="n">max_layers</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">gradient_tolerance</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">selection_gamma</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type, allowed values, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>operator_pool</code></td>
+<td>Case-insensitive <code>"single"</code> (default), <code>"multi"</code>, or nonempty distinct custom Pauli-string sequence.</td>
+</tr>
+<tr>
+<td><code>optimizer</code></td>
+<td>Named optimizer or supported callable; default <code>"nelder_mead"</code>.</td>
+</tr>
+<tr>
+<td><code>max_iterations</code></td>
+<td>Positive Python integer, default <code>100</code>; optimizer budget for each layer's joint parameter search.</td>
+</tr>
+<tr>
+<td><code>max_layers</code></td>
+<td>Positive Python integer, default <code>10</code>; maximum committed mixer selections.</td>
+</tr>
+<tr>
+<td><code>gradient_tolerance</code></td>
+<td>Positive finite non-Boolean real, default <code>1e-3</code>; Euclidean pool-gradient stopping threshold.</td>
+</tr>
+<tr>
+<td><code>selection_gamma</code></td>
+<td>Positive finite non-Boolean real, default <code>0.01</code>; trial cost-evolution angle for operator selection.</td>
+</tr>
+</tbody>
+</table>
+<p>The single pool includes each X and Y operator plus their register-wide sums. Multi adds every two-qubit Pauli product over X/Y/Z on distinct pairs. A custom pool is a sequence of operators such as <code>[[(0, "X"), (1, "Y")], [(2, "Z")]]</code>. Each operator is a nonempty sequence of <code>(qubit_index, pauli)</code> pairs with distinct nonnegative non-Boolean integer indices in register range and Pauli labels X, Y, or Z. Duplicate operators are rejected.</p>
+<p>The algorithm selects the largest-gradient pool operator, then jointly optimizes accumulated cost and mixer angles, stopping at the gradient threshold or layer cap. Local selection uses statevector expectations; platform selection estimates grouped Pauli measurements. It has no static circuit builder. CVaR, warm starts, custom initial states, and XY mixing are not accepted fields.</p>
+<h2 id="named-and-custom-optimizers">Named and custom optimizers</h2>
+<p>Allowed names are <code>"cobyla"</code>, <code>"spsa"</code>, <code>"nelder_mead"</code>, and <code>"powell"</code>, case-insensitive with hyphens normalized to underscores. There is no separate optimizer-options dictionary in these constructors. <code>max_iterations</code> is passed to the selected implementation; it is not a universal circuit-execution count.</p>
+<p>QAOA and ADAPT-QAOA also accept:</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">optimizer</span><span class="p">(</span><span class="n">objective</span><span class="p">,</span> <span class="n">initial_parameters</span><span class="p">,</span> <span class="n">max_iterations</span><span class="p">)</span>
+<span class="c1"># -&gt; (parameters, value) or (parameters, value, info)</span>
+</code></pre></div>
+<p><code>objective</code> takes a finite one-dimensional NumPy parameter vector and returns a finite float; calling it may execute circuits. <code>initial_parameters</code> is a detached NumPy vector. Return a finite parameter vector of the same length and a finite real <code>value</code>. Optional <code>info</code> is a mapping: recognized <code>nfev</code>, <code>nit</code> are nonnegative integral counts or <code>None</code>; <code>history</code> is a finite objective-value sequence; <code>param_history</code> contains finite vectors of the same parameter length. Missing histories default to empty lists and counts to <code>None</code>. Invalid diagnostics fail before final circuit execution. The callback owns stopping behavior and must respect the chosen computation budget.</p>
+<h2 id="sample-aggregation">Sample aggregation</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">CVaR</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">aggregation</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="n">distribution</span><span class="p">)</span>  <span class="c1"># -&gt; float</span>
+</code></pre></div>
+<p><code>alpha</code> is a finite non-Boolean real in <code>(0,1]</code>, default <code>1.0</code>. This algorithmic CVaR averages the <strong>lowest-energy</strong> probability mass and is separate from financial upper-loss-tail expected shortfall. <code>distribution</code> is a nonempty energy-to-probability mapping with finite non-Boolean real entries, nonnegative probabilities, and total mass close to one (<code>rel_tol=1e-10</code>, <code>abs_tol=1e-12</code>). Accepted mass is normalized; zero mass is ignored; fractional boundary mass is included. <code>alpha=1</code> is sampled expectation. Unrepresentable nonzero aggregates raise rather than silently underflowing.</p>
+<h2 id="warm-start-preparation">Warm-start preparation</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">WarmStart</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">0.25</span><span class="p">,</span> <span class="n">relaxed_solution</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</code></pre></div>
+<p><code>epsilon</code> is a finite non-Boolean real in <code>[0,0.5]</code>, default <code>0.25</code>. <code>relaxed_solution</code> accepts <code>None</code>, a complete per-variable probability sequence, complete variable-name mapping, or consecutive index mapping <code>0..n-1</code>. All entries are finite non-Boolean reals in <code>[0,1]</code>. Names/length must cover the entire compiled register, including auxiliary variables. The configuration copies the numeric data and clips probabilities to <code>[epsilon, 1-epsilon]</code> for preparation and tilted mixing.</p>
+<p>Default <code>None</code> requests a bounded local continuous relaxation using L-BFGS-B, starting at zero spins with bounds <code>[-1,1]</code> and <code>maxiter=200</code>. Its local optimization is not a proof of a global relaxation optimum or financial feasibility. WarmStart defines its own initial state/mixer and cannot combine with QAOA's other preparation/mixing controls.</p>
+<h2 id="xy-mixer">XY mixer</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">XYMixer</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">groups</span><span class="p">,</span> <span class="n">topology</span><span class="o">=</span><span class="s2">"ring"</span><span class="p">)</span>
+<span class="n">mixer</span><span class="o">.</span><span class="n">edges</span><span class="p">()</span>  <span class="c1"># -&gt; tuple[tuple[int, int], ...]</span>
+</code></pre></div>
+<p>Required <code>groups</code> is a nonempty sequence of disjoint groups, each with at least two distinct nonnegative Python integer qubit indices, excluding booleans. <code>topology</code> is case-insensitive <code>"ring"</code> (default) or <code>"full"</code>. <code>edges()</code> returns stable unique sorted endpoint pairs. Register indices are checked with the problem. Groups need not cover the whole register; only configured edges mix.</p>
+<p>Paired XX/YY rotations preserve group Hamming weight. Finance additionally requires an explicit initial bit sequence with the requested number of original asset selections; groups cannot mix original selection bits and product auxiliaries. Group conservation does not establish arbitrary financial constraints or auxiliary consistency.</p>
+<h2 id="inspection-report">Inspection report</h2>
+<p><code>inspect(encoding, algorithm=algorithm)["optimization"]["quantum"]</code> is a dictionary describing the compiled register and configured algorithm. Integer counts refer to the logical circuit before device routing; they are not estimates of total algorithm executions or physical-device cost.</p>
+<table>
+<thead>
+<tr>
+<th>Common field</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>algorithm</code></td>
+<td>String algorithm class name.</td>
+</tr>
+<tr>
+<td><code>compatible</code></td>
+<td>Boolean <code>True</code> after successful compatibility checks; incompatible configurations raise.</td>
+</tr>
+<tr>
+<td><code>qubits</code></td>
+<td>Integer compiled register width, including auxiliary bits.</td>
+</tr>
+<tr>
+<td><code>hamiltonian_terms</code></td>
+<td>Integer number of retained Pauli terms, including a nonzero identity offset.</td>
+</tr>
+<tr>
+<td><code>linear_terms</code>, <code>quadratic_terms</code></td>
+<td>Integer field/coupling counts.</td>
+</tr>
+<tr>
+<td><code>max_locality</code></td>
+<td>Integer largest number of qubits in a retained term; zero for a constant problem.</td>
+</tr>
+<tr>
+<td><code>diagonal</code></td>
+<td>Boolean; true for Finance's eligible QUBO/Ising encodings.</td>
+</tr>
+<tr>
+<td><code>logical_circuit</code></td>
+<td><code>None</code> or dictionary with <code>depth: int</code>, <code>size: int</code>, and <code>gate_counts: dict[str, int]</code>. Custom QAOA mixers, ADAPT-QAOA, and RecursiveQAOA report <code>None</code> because inspection does not build their final circuit.</td>
+</tr>
+</tbody>
+</table>
+<p>The following fields depend on the algorithm:</p>
+<table>
+<thead>
+<tr>
+<th>Algorithm</th>
+<th>Additional fields</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>QAOA</td>
+<td><code>parameter_count: int</code>; <code>reps: int</code>; normalized <code>parameterization: str</code>; <code>mixer: str</code> (<code>"x"</code>, <code>"xy"</code>, <code>"warm_start"</code>, or <code>"custom"</code>); <code>aggregation</code> (float alpha or <code>"expectation"</code>); <code>warm_start</code> (float epsilon or <code>None</code>); <code>initial_state: bool</code>, true for explicit or warm-start preparation.</td>
+</tr>
+<tr>
+<td>VQE, SamplingVQE</td>
+<td><code>parameter_count: int</code>; <code>ansatz: str</code> (configured built-in name or <code>"custom"</code>); normalized <code>optimizer: str</code>. SamplingVQE also includes <code>aggregation</code> (float alpha or <code>"expectation"</code>).</td>
+</tr>
+<tr>
+<td>RecursiveQAOA</td>
+<td><code>min_variables: int</code>, <code>eliminations_per_step: int</code>, and <code>inner_qaoa: dict</code>, the QAOA report on the full input register.</td>
+</tr>
+<tr>
+<td>ADAPT-QAOA</td>
+<td><code>operator_pool: str</code> (<code>"single"</code>, <code>"multi"</code>, or <code>"custom"</code>); <code>operator_pool_size: int</code>; <code>max_layers: int</code>; <code>gradient_tolerance: float</code>; <code>selection_gamma: float</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>QAOA/VQE inspection constructs circuits at zero parameters to report structure. Warm-start inspection substitutes probabilities of <code>0.5</code> for circuit structure; it does not run the default relaxation. Recursive/adaptive reports describe configuration rather than predicting the number of stages, selected operators, or eventual circuit.</p>
+<h2 id="circuit-construction-and-execution">Circuit construction and execution</h2>
+<p>QAOA, VQE, and SamplingVQE expose dependency-level methods:</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">algorithm</span><span class="o">.</span><span class="n">build_circuit</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">measurements</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>  <span class="c1"># -&gt; Circuit</span>
+<span class="n">algorithm</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">execution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"local"</span><span class="p">)</span>          <span class="c1"># -&gt; QuantumResult</span>
+</code></pre></div>
+<p>Here <code>problem</code> is the explicit exported Opt QUBO/Ising problem. <code>parameters</code> is a finite real sequence of exact parameter count; <code>measurements</code> is a Boolean. Construction is offline. The module function <code>build_circuit(problem, *, algorithm, parameters=None, measurements=False) -&gt; Circuit</code> has the same contract; when parameters are omitted the algorithm must supply <code>initial_point</code>.</p>
+<p>Direct <code>.run</code> returns an Opt <code>QuantumResult</code>; it does not perform Finance's source-model recovery. For a financial result, call <code>solve(encoding, client=client, algorithm=algorithm, execution=execution, mode=...)</code>, or recover a retained record with <code>encoding.decode_result(...)</code>. Finance returns <code>FinanceResult</code>, rechecks original financial constraints, and selects among financially feasible candidates.</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">QuantumRun</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span> <span class="n">shots</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span> <span class="n">experiment_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">device_name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type, allowed values, and default behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>shots</code></td>
+<td>Strict positive integer, default <code>1024</code>; shots per circuit execution.</td>
+</tr>
+<tr>
+<td><code>experiment_name</code></td>
+<td>Nonblank stripped string or <code>None</code> (default). Platform omission selects <code>"Default Experiment"</code>; an explicit name must identify an existing experiment.</td>
+</tr>
+<tr>
+<td><code>timeout</code></td>
+<td>Positive finite non-Boolean real or <code>None</code> (default). Platform per-circuit timeout in seconds; rejected locally. It is not a whole-algorithm deadline.</td>
+</tr>
+<tr>
+<td><code>seed</code></td>
+<td>Strict integer in <code>[0,2**32-1]</code> or <code>None</code> (default). Local sampling, supported initialization, and SPSA randomness; rejected on the platform.</td>
+</tr>
+<tr>
+<td><code>device_name</code></td>
+<td>Nonblank stripped string or <code>None</code> (default). Platform omission selects <code>"QpiAI-Indus-1"</code>; rejected locally. <code>"QpiAI-QSV-Local"</code> is not a platform device. Available platform names follow QCloud device access.</td>
+</tr>
+</tbody>
+</table>
+<p>Omitted Finance <code>execution</code> uses <code>QuantumRun()</code>. Modes are exactly local/platform; automatic fallback and arbitrary solve options are rejected. QCloud authentication is required for both, and Finance additionally verifies the Opt client. A variational run can execute many circuits, plus final measurements and adaptive selection work. Shots and timeout are per circuit, not aggregate budgets. <a href="quantum.html#gate-based-quantum-result-data">Quantum results</a> defines candidate, history, and execution diagnostics; <a href="https://github.com/qpiai/qpiai-opt/blob/main/docs/api-quantum.md">Opt's gate API</a> covers its full dependency-level result types.</p>
+<h2 id="recorded-algorithm-diagnostics">Recorded algorithm diagnostics</h2>
+<p>Finance stores Opt's JSON-form diagnostics in <code>result.solver_info["quantum"]</code>. The fields describe the recorded computation; Finance's recovered candidate tables provide the separate financial checks.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>algorithm</code>, <code>backend</code></td>
+<td>Strings identifying the algorithm and actual execution backend. A zero-stage RecursiveQAOA result identifies the local exact Ising route.</td>
+</tr>
+<tr>
+<td><code>shots</code></td>
+<td>Positive integer requested per circuit.</td>
+</tr>
+<tr>
+<td><code>optimizer</code></td>
+<td>Optimizer name string or <code>None</code> when none ran.</td>
+</tr>
+<tr>
+<td><code>evaluations</code>, <code>iterations</code></td>
+<td>Nonnegative integer counts or <code>None</code> when unavailable. The provider's optimizer defines what it counts.</td>
+</tr>
+<tr>
+<td><code>optimized_parameters</code></td>
+<td>List of finite floats for the final variational parameters; empty if none. RecursiveQAOA retains its last stage's parameters.</td>
+</tr>
+<tr>
+<td><code>objective_history</code></td>
+<td>List of finite objective floats in optimizer evaluation order. Variational aggregate values may differ from an individual candidate's objective.</td>
+</tr>
+<tr>
+<td><code>parameter_history</code></td>
+<td>List of finite-float parameter lists retained by the optimizer; empty if unavailable. Adaptive layers can have different vector lengths.</td>
+</tr>
+<tr>
+<td><code>counts</code></td>
+<td>Dictionary from MSB-first bitstrings to positive integer counts. QAOA, VQE, SamplingVQE, and ADAPT-QAOA report final measurements here; RecursiveQAOA reports reconstructed observations across stages.</td>
+</tr>
+<tr>
+<td><code>candidates</code></td>
+<td>List of sample dictionaries described below; the observation scope can include more circuits than <code>counts</code>.</td>
+</tr>
+<tr>
+<td><code>job_ids</code></td>
+<td>List of platform job-ID strings, empty when none.</td>
+</tr>
+<tr>
+<td><code>logical_circuit</code></td>
+<td><code>None</code> or the <code>depth</code>, <code>size</code>, and <code>gate_counts</code> dictionary defined in the inspection report. This describes the final circuit, or last QAOA stage for RecursiveQAOA.</td>
+</tr>
+<tr>
+<td><code>qpu_metadata</code></td>
+<td>List of JSON-compatible backend metadata dictionaries. Keys depend on the backend response; local execution may supply simulator metadata.</td>
+</tr>
+<tr>
+<td><code>transformations</code></td>
+<td>List of JSON-compatible transformation dictionaries retaining representation and spin-to-Pauli conversions.</td>
+</tr>
+<tr>
+<td><code>algorithm_metadata</code></td>
+<td>JSON-compatible algorithm-specific dictionary described below.</td>
+</tr>
+</tbody>
+</table>
+<p>Each <code>candidates</code> entry contains <code>bitstring: str</code>, <code>count: int</code>, <code>probability: float</code>, <code>internal_energy: float</code>, <code>objective: float | None</code>, <code>feasible: bool | None</code>, <code>solution: list[int | float] | None</code>, and <code>variable_assignment: dict[str, int | float] | None</code>. These are provider values for the encoded optimization problem. <code>internal_energy</code> uses its minimization convention; <code>objective</code> restores the encoded problem's declared sense. <code>solution</code> follows the encoded variable order and <code>variable_assignment</code> uses its names. Finance independently verifies these against the retained encoding and original financial model. A recursive residual-only candidate is recorded separately in <code>algorithm_metadata</code>, without invented measurement observations.</p>
+<h3 id="algorithm-metadata">Algorithm metadata</h3>
+<table>
+<thead>
+<tr>
+<th>Algorithm</th>
+<th>Fields and meanings</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>QAOA</td>
+<td><code>reps: int</code>, <code>parameterization: str</code>, <code>parameter_order: str</code>, <code>mixer: str</code>, and <code>aggregation</code> (float alpha or <code>"expectation"</code>) describe the configured circuit/search. <code>optimized_aggregate: float</code> is the optimizer's returned value; <code>optimization_offset: float</code> records the excluded optimization constant; <code>candidate_distribution: str</code> states the observation scope. Warm starts additionally record the fields below.</td>
+</tr>
+<tr>
+<td>VQE</td>
+<td><code>ansatz: str</code> (configured name or <code>"custom"</code>), <code>variational_energy: float</code>, <code>optimizer_message: str</code>, and <code>candidate_distribution: str</code>. An optimization input also includes <code>optimization_offset: float</code>. The variational energy is not a financial feasibility or optimality certificate.</td>
+</tr>
+<tr>
+<td>SamplingVQE</td>
+<td><code>ansatz: str</code>, <code>aggregation</code> (float alpha or <code>"expectation"</code>), <code>optimized_aggregate: float</code>, and <code>candidate_distribution: str</code>; an optimization input also includes <code>optimization_offset: float</code>.</td>
+</tr>
+<tr>
+<td>ADAPT-QAOA</td>
+<td><code>operator_pool: str</code>, <code>operator_pool_size: int</code>, <code>optimization_offset: float</code>, <code>operator_sequence: list[str]</code>, <code>layers: int</code>, <code>selection_gamma: float</code>, <code>gradient_tolerance: float</code>, <code>final_gradient_norm: float</code>, <code>selection_history: list[dict]</code>, and <code>candidate_distribution: str</code>. Each selection record contains zero-based <code>layer: int</code>, <code>gradient_norm: float</code>, <code>selected_operator: str</code>, and signed <code>selected_gradient: float</code>.</td>
+</tr>
+<tr>
+<td>RecursiveQAOA</td>
+<td><code>reductions: list[dict]</code>, <code>quantum_stages: int</code>, <code>quantum_execution_performed: bool</code>, <code>residual_variables: int</code>, <code>residual_solver: str</code>, <code>residual_objective: float</code>, <code>optimization_offset: float</code>, <code>reconstructed_internal_energy: float</code>, <code>residual_candidate: dict</code>, and <code>candidate_distribution: str</code>. The residual candidate has <code>bitstring: str</code>, <code>objective: float</code>, and <code>feasible: bool</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>A recursive reduction record contains <code>input_variables: int</code>, <code>output_variables: int</code>, <code>relations: list[dict]</code>, and two-element integer lists <code>objective_history_range</code> and <code>parameter_history_range</code>. The ranges are half-open slices of the combined histories. Each relation contains original-register indices <code>eliminated: int</code>, <code>retained: int</code>, <code>sign: int</code> (<code>-1</code> or <code>1</code>), <code>correlation: float</code>, and <code>absolute_correlation: float</code>; it imposes <code>spin[eliminated] = sign * spin[retained]</code>. Residual objective and reconstructed internal energy belong to different representations and must not be compared as financial objectives without the recorded conversion.</p>
+<p>Warm-start metadata contains <code>relaxation_method: str</code>, <code>relaxation_global: bool | None</code>, <code>relaxed_solution: list[float]</code>, and <code>clipped_solution: list[float]</code>. Automatically computed relaxation also includes <code>relaxation_success: bool</code>, <code>relaxation_objective: float</code>, <code>relaxation_offset: float</code>, and <code>relaxation_message: str</code>. Its source polynomial value includes the recorded offset. Supplied probabilities report <code>relaxation_global=None</code> and do not claim a relaxation solve.</p>
+<p>Live Finance execution also records <code>algorithm_configuration</code>, <code>execution_settings</code>, and <code>quantum_structure</code> in <code>solver_info</code>. The first contains public algorithm dataclass fields recursively, the second contains all <code>QuantumRun</code> fields including <code>None</code> defaults, and the third is the inspection report above. Lists replace tuples. Caller-defined circuit/callback objects are recorded by <code>user_defined=True</code> and qualified <code>type</code> strings, with a qualified <code>callable</code> name when available; these records do not serialize executable objects.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="interchange.html"><span>Previous</span><strong>Interchange</strong></a><a class="pager-card next" href="solver-options.html"><span>Next</span><strong>Solver option reference</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#qaoa">QAOA</a><a class="toc-level-2" href="#vqe-and-samplingvqe">VQE and SamplingVQE</a><a class="toc-level-2" href="#recursive-qaoa">Recursive QAOA</a><a class="toc-level-2" href="#adapt-qaoa">ADAPT-QAOA</a><a class="toc-level-2" href="#named-and-custom-optimizers">Named and custom optimizers</a><a class="toc-level-2" href="#sample-aggregation">Sample aggregation</a><a class="toc-level-2" href="#warm-start-preparation">Warm-start preparation</a><a class="toc-level-2" href="#xy-mixer">XY mixer</a><a class="toc-level-2" href="#inspection-report">Inspection report</a><a class="toc-level-2" href="#circuit-construction-and-execution">Circuit construction and execution</a><a class="toc-level-2" href="#recorded-algorithm-diagnostics">Recorded algorithm diagnostics</a><a class="toc-level-3" href="#algorithm-metadata">Algorithm metadata</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

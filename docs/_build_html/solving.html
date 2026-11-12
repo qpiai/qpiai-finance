@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Solvers and execution">
+<title>Solvers and execution | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/solving.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="solving">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="active" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Optimization</span><span aria-hidden="true">&gt;</span><span>Solvers and execution</span></div><article class="doc-content"><h1 id="solvers-execution-and-verification">Solvers, execution, and verification</h1>
+<p>Construct a financial model, inspect its mathematical representation, select execution, and check the resulting financial decision. Finance's <code>solve</code> returns financial coordinates and recalculates source constraints and economics. It uses QpiAI Opt, Clarabel, SCIP, or the configured portfolio construction method according to the model and selected solver.</p>
+<h2 id="authentication-and-execution-modes">Authentication and execution modes</h2>
+<p>Every Finance solve requires <code>client=Client(api_key=...)</code> from <code>qpiai_opt.opt_solvers</code>. This includes Clarabel, SCIP, HRP, and local gate-based optimization. Key verification requires connectivity. Local execution refers to where computation runs, not disconnected authentication. Register for an Opt key at <a href="https://opt.qpiai.tech/">QpiAI Opt</a> and load it from the application's secret store.</p>
+<p>Gate-based quantum execution additionally requires active QCloud authentication using <code>QpiAIQuantumAuth</code> from <code>qpiai_opt.quantum</code>. Obtain its key from <a href="https://qcloud.qpiai.tech/">QpiAI QCloud</a>.</p>
+<p>The supported execution choices are:</p>
+<table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Modes</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>QpiAI Opt without a gate algorithm</td>
+<td><code>local</code>, <code>auto</code>, <code>platform</code></td>
+<td><code>local</code> is the default. <code>auto</code> follows Opt's local-first routing. Paid fallback requires <code>allow_platform=True</code>. <code>platform</code> explicitly selects platform execution.</td>
+</tr>
+<tr>
+<td>Gate-based quantum optimization</td>
+<td><code>local</code>, <code>platform</code></td>
+<td>Requires an explicit QUBO/Ising <code>PortfolioEncoding</code> and an Opt algorithm. <code>auto</code> and <code>allow_platform=True</code> are rejected.</td>
+</tr>
+<tr>
+<td>Clarabel, SCIP, HRP</td>
+<td><code>local</code></td>
+<td>Other modes and <code>allow_platform=True</code> are rejected.</td>
+</tr>
+</tbody>
+</table>
+<p>Platform execution can consume credits. QpiAI Opt's current platform route supports its documented MILP and binary-polynomial classes; QP is local-only. An authentication, validation, or transport failure does not authorize a different route or a paid retry. See <a href="https://github.com/qpiai/qpiai-opt/blob/main/docs/local-solving.md">Opt routing</a> for native capacity limits, provider settings, and fallback behavior.</p>
+<h2 id="default-solver-selection">Default solver selection</h2>
+<p>Finance uses the configured financial formulation to select a default. Explicit selection does not request a fallback search among unrelated providers.</p>
+<table>
+<thead>
+<tr>
+<th>Model structure</th>
+<th>Default <code>solver</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Supported Opt LP, MILP, or continuous convex QP</td>
+<td><code>"qpiai"</code></td>
+</tr>
+<tr>
+<td>Supported continuous conic formulation</td>
+<td><code>"clarabel"</code></td>
+</tr>
+<tr>
+<td>Supported external mixed-integer formulation</td>
+<td><code>"scip"</code></td>
+</tr>
+<tr>
+<td>Portfolio risk budgeting</td>
+<td><code>"clarabel"</code></td>
+</tr>
+<tr>
+<td>Portfolio hierarchical risk parity</td>
+<td><code>"hrp"</code></td>
+</tr>
+<tr>
+<td>Investment planning requiring the exact nonlinear cash-cost formulation</td>
+<td><code>"scip"</code></td>
+</tr>
+<tr>
+<td><code>PortfolioEncoding</code> or portfolio moment utility</td>
+<td><code>"qpiai"</code></td>
+</tr>
+</tbody>
+</table>
+<p>The accepted solver names are exactly <code>"qpiai"</code>, <code>"clarabel"</code>, <code>"scip"</code>, and <code>"hrp"</code>. Select external names in lowercase. Clarabel does not support integer decisions. Portfolio risk budgeting requires logarithmic cones and rejects SCIP. HRP requires the portfolio's <code>hierarchical_risk_parity</code> method. The exact nonlinear investment formulation accepts only SCIP. A compiled portfolio encoding accepts only the QpiAI solver.</p>
+<p>Inspection and the individual model references identify which financial constraints are represented in a solver and which construction methods check them after allocation. In particular, risk budgeting constructs and normalizes risk positions; requested financial limits are checked on the normalized result, not imposed in that construction program. HRP is a portfolio construction heuristic.</p>
+<h2 id="common-python-operations">Common Python operations</h2>
+<p>Import the following functions from <code>qpiai_finance</code>.</p>
+<h3 id="validate"><code>validate</code></h3>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">validate</span><span class="p">(</span><span class="n">model</span><span class="p">)</span>
+</code></pre></div>
+<p><code>model</code> is a supported Finance model or <code>PortfolioEncoding</code>. Returns the mathematical class of its validated representation as a string:</p>
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LP</code>, <code>MILP</code></td>
+<td>Linear or mixed-integer linear program.</td>
+</tr>
+<tr>
+<td><code>QP</code>, <code>MIQP</code></td>
+<td>Continuous or mixed-integer quadratic-objective program.</td>
+</tr>
+<tr>
+<td><code>QCQP</code>, <code>MIQCP</code></td>
+<td>Continuous or mixed-integer quadratically constrained program, including an exact quadratic cash-cost graph where required.</td>
+</tr>
+<tr>
+<td><code>SOCP</code>, <code>MISOCP</code></td>
+<td>Continuous or mixed-integer second-order-cone formulation, including supported power-impact costs.</td>
+</tr>
+<tr>
+<td><code>CONIC</code></td>
+<td>Portfolio logarithmic risk-budget construction.</td>
+</tr>
+<tr>
+<td><code>NLP</code>, <code>MINLP</code></td>
+<td>Continuous or mixed-integer nonlinear investment formulation with an exact power-impact cash-cost graph.</td>
+</tr>
+<tr>
+<td><code>HEURISTIC</code></td>
+<td>Hierarchical risk parity construction.</td>
+</tr>
+<tr>
+<td><code>QUBO</code>, <code>HUBO</code>, <code>ISING</code></td>
+<td>The selected binary/spin polynomial representation.</td>
+</tr>
+</tbody>
+</table>
+<p>Validation compiles or checks the applicable representation. It requires no credentials and does not solve or prove financial feasibility. Invalid types, financial settings, unsupported combinations, or compilation errors raise rather than returning a false validity flag.</p>
+<h3 id="inspect"><code>inspect</code></h3>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">inspect</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</code></pre></div>
+<p>Accepts the same models as <code>validate</code>. Returns a dictionary with <code>financial_model</code> and <code>optimization</code> records. <code>financial_model</code> contains the actual financial inputs and settings; handle it with the same confidentiality as the source data. <code>optimization</code> describes the representation, class, validity, and relevant size or route information.</p>
+<p>The optimization record has the following route-specific fields. Counts are integers; flags are booleans.</p>
+<table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Fields and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Native Opt</td>
+<td><code>problem_class</code>: validated class string; <code>representation</code>: normalized Python representation's class name; <code>valid=True</code>; <code>metrics</code>: size/work dictionary described below. Ordinary financial models also include <code>objective_scaling</code>, either <code>None</code> or the record below.</td>
+</tr>
+<tr>
+<td>CVXPY</td>
+<td><code>problem_class</code>: financial class string; <code>representation="CVXPY"</code>; <code>valid</code>: the compiled problem's <code>is_dcp()</code> result; <code>default_solver</code>: <code>"clarabel"</code> or <code>"scip"</code>; <code>variables</code>: scalar optimization-variable count; <code>native_opt_supported=False</code>; <code>financial_limits_in_solver</code>: false for risk-budget construction, true otherwise; <code>financial_limits_checked_on_result=True</code>. A scaled formulation additionally includes <code>numerical_units</code>.</td>
+</tr>
+<tr>
+<td>Direct SCIP investment formulation</td>
+<td><code>problem_class</code>: financial class string; <code>representation="SCIP"</code>; <code>valid=True</code>; <code>default_solver="scip"</code>; <code>variables</code>: exported decision-expression count; <code>constraints</code>: native constraint count; <code>convex</code>: true only for a continuous formulation with monotone cash-cost reconstruction; <code>cash_reconstruction</code>: <code>"monotone_cost_epigraph"</code> or <code>"exact_cost_graph"</code>; <code>native_opt_supported=False</code>; both <code>financial_limits_in_solver</code> and <code>financial_limits_checked_on_result</code> are true.</td>
+</tr>
+<tr>
+<td>HRP</td>
+<td><code>problem_class="HEURISTIC"</code>; <code>valid=True</code>; <code>method="hierarchical-risk-parity"</code>; <code>default_solver="hrp"</code>; <code>native_opt_supported=False</code>; <code>assets</code>: asset count.</td>
+</tr>
+</tbody>
+</table>
+<p>Native Opt <code>metrics</code> contains:</p>
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Metric names and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LP/MILP</td>
+<td><code>variables</code>, <code>constraints</code>, <code>nonzeros</code>: column count, row count, and constraint-matrix nonzeros.</td>
+</tr>
+<tr>
+<td>QP</td>
+<td>The LP metrics plus <code>hessian_nonzeros</code>: objective-Hessian nonzeros.</td>
+</tr>
+<tr>
+<td>QUBO/HUBO/Ising</td>
+<td><code>variables</code>: declared variable count; <code>active_variables</code>: variables in nonconstant terms; <code>terms</code>: retained polynomial-term count; <code>degree</code>: maximum term degree; <code>exact_enumeration_work</code>: native enumeration work estimate. <code>annealing_work</code> is also present when the exact-enumeration size/work cutoffs are exceeded, using stored or default read/sweep settings. The <a href="solver-options.html#opt-local-options">local option reference</a> defines those formulas and limits.</td>
+</tr>
+</tbody>
+</table>
+<p>For small LP/MILP objectives, <code>objective_scaling</code> describes multiplication of the entire objective by <code>2**exponent</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code>, <code>base</code></td>
+<td>String <code>"objective_scaling"</code> and integer <code>2</code>.</td>
+</tr>
+<tr>
+<td><code>exponent</code></td>
+<td>Nonnegative integer power; zero is possible when numerical headroom prevents scaling.</td>
+</tr>
+<tr>
+<td><code>range_limited</code></td>
+<td>Boolean: the provider's finite coefficient range prevents the desired scaling.</td>
+</tr>
+<tr>
+<td><code>exact</code>, <code>source_units_restored</code></td>
+<td>Both true: scaling preserves the objective, and result diagnostics are reported in source units. Inspection itself does not execute or restore a result.</td>
+</tr>
+</tbody>
+</table>
+<p>The CVXPY <code>numerical_units</code> dictionary records reversible changes of financial units:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code>, <code>base</code></td>
+<td>String <code>"financial_units"</code> and integer <code>2</code>.</td>
+</tr>
+<tr>
+<td><code>applied</code>, <code>range_limited</code></td>
+<td>Booleans indicating conditioned compilation and a numerical-range limit on conditioning.</td>
+</tr>
+<tr>
+<td><code>objective_exponent</code></td>
+<td>Integer <code>e</code> with source objective equal to numerical objective times <code>2**e</code>.</td>
+</tr>
+<tr>
+<td><code>maximum_coordinate_exponent</code></td>
+<td>Integer maximum across variable, row, and objective exponents; used to prepare omitted Clarabel tolerances.</td>
+</tr>
+<tr>
+<td><code>variable_exponents</code></td>
+<td>Dictionary from exported variable names to integer <code>e</code>, with source coordinate equal to numerical coordinate times <code>2**e</code>.</td>
+</tr>
+<tr>
+<td><code>row_exponents</code></td>
+<td>Dictionary from source linear row names to integer scaling exponents. Numerical rows divide their source expressions and bounds by <code>2**e</code>.</td>
+</tr>
+<tr>
+<td><code>constraint_exponents</code></td>
+<td>List in compiled CVXPY constraint order; each entry is an integer or list of integers. Multiply each numerical dual by its corresponding <code>2**e</code> to restore source units.</td>
+</tr>
+<tr>
+<td><code>integer_domains_unchanged</code></td>
+<td>True; integer coordinates retain their original units.</td>
+</tr>
+<tr>
+<td><code>fixed_zero_coordinates</code></td>
+<td>List of exported variable names represented by zero constants.</td>
+</tr>
+<tr>
+<td><code>order_total_constraints</code></td>
+<td>List of source row names identifying order-total constraints.</td>
+</tr>
+</tbody>
+</table>
+<p><code>algorithm</code> must be an authoritative Opt gate-based algorithm and is accepted only with <code>PortfolioEncoding</code>. Encoded inspection adds top-level <code>transformations</code> and a pandas <code>variable_mapping</code> DataFrame, as defined in the <a href="quantum.html">encoding reference</a>. Portfolio moment utility is inspected through its default HUBO encoding and returns those fields too. Algorithm inspection also checks compatibility and adds the Opt circuit/resource report as <code>optimization["quantum"]</code>. No circuits execute, no credential is verified, and no job is submitted. Inspection is not a feasibility proof or a guarantee that a particular solver can finish within a resource budget.</p>
+<h3 id="solve"><code>solve</code></h3>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">solve</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"local"</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">execution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">allow_platform</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>model</code></td>
+<td><code>PortfolioModel</code>, <code>TradingModel</code>, <code>ExecutionModel</code>, <code>HedgeModel</code>, <code>CreditAllocationModel</code>, <code>FundingModel</code>, <code>LiabilityMatchingModel</code>, <code>ReinsuranceModel</code>, <code>CollateralAllocationModel</code>, <code>SettlementModel</code>, or <code>PortfolioEncoding</code>. Arbitrary Opt or CVXPY models are not Finance model inputs.</td>
+</tr>
+<tr>
+<td><code>client</code></td>
+<td>Required authenticated Opt <code>Client</code> for execution; the signature's <code>None</code> default raises when no client is supplied.</td>
+</tr>
+<tr>
+<td><code>mode</code></td>
+<td><code>"local"</code>, <code>"auto"</code>, or <code>"platform"</code>; ordinary Finance model routing accepts case-insensitive mode spelling. The route restrictions above apply.</td>
+</tr>
+<tr>
+<td><code>solver</code></td>
+<td>Supported lowercase name or <code>None</code> for the model's default.</td>
+</tr>
+<tr>
+<td><code>algorithm</code></td>
+<td>Optional Opt <code>QAOA</code>, <code>VQE</code>, <code>SamplingVQE</code>, <code>RecursiveQAOA</code>, or <code>ADAPTQAOA</code> instance. Requires explicit eligible <code>PortfolioEncoding</code>.</td>
+</tr>
+<tr>
+<td><code>execution</code></td>
+<td>Opt <code>QuantumRun</code> for a gate algorithm; <code>None</code> uses its default. Rejected without an algorithm.</td>
+</tr>
+<tr>
+<td><code>allow_platform</code></td>
+<td>Python boolean; default <code>False</code>. Permits Opt's automatic paid fallback only in its supported route.</td>
+</tr>
+<tr>
+<td><code>tolerance</code></td>
+<td>Finite nonnegative real scalar; absolute Finance verification tolerance in each constraint row's source units. Default <code>1e-7</code>.</td>
+</tr>
+<tr>
+<td><code>**options</code></td>
+<td>Settings for the selected solver route, described below.</td>
+</tr>
+</tbody>
+</table>
+<p>Returns a <code>FinanceResult</code>. Ordinary solves copy the financial model before compilation and retain its input specification in the result. A <code>PortfolioEncoding</code> retains the financial snapshot created during compilation. Changing a source model after creating an encoding does not change that encoding.</p>
+<p><code>tolerance</code> governs Finance's constraint verification. It does not relax the financial model or directly set every backend feasibility tolerance. Objective reconciliation uses this absolute tolerance plus relative <code>1e-7</code>. Solver-specific settings remain separate; inspect the effective settings in <code>result.solver_info</code>.</p>
+<p>Portfolio moment utility uses native HUBO compilation automatically when passed directly to <code>solve</code>. Select another representation explicitly with <code>compile_portfolio</code>.</p>
+<h2 id="solver-options">Solver options</h2>
+<h3 id="qpiai-opt">QpiAI Opt</h3>
+<p>Finance forwards supported <code>**options</code> to <code>qpiai_opt.opt_solvers.solve</code>, together with execution mode and fallback permission. The <a href="solver-options.html">solver option reference</a> lists every supported local option, platform lifecycle field, LP/MILP configuration field, and HUBO control with types, allowed values, defaults, and meanings. An option for another mathematical class is not interchangeable.</p>
+<p>For LP/MILP objectives with small coefficients, Finance can multiply the whole objective by a positive power of two for numerical conditioning. It restores objectives, bounds, dual values, reduced costs, and applicable objective-unit settings to source units. This preserves the financial objective and feasible set. The inspection report and result retain the scaling record. Save that record when recovering a separately submitted Opt job result.</p>
+<h3 id="clarabel-through-cvxpy">Clarabel through CVXPY</h3>
+<p>Options are passed to <code>cvxpy.Problem.solve(solver=CLARABEL, **options)</code>. The <a href="solver-options.html#clarabel-settings">complete Clarabel settings table</a> defines all fields and defaults; <a href="solver-options.html#cvxpy-controls">CVXPY controls</a> defines canonicalization, output, and warm-start options.</p>
+<p>Finance rejects route overrides named <code>solver</code>, <code>solver_path</code>, <code>gp</code>, <code>qcp</code>, or <code>requires_grad</code>. When a formulation uses recorded numerical unit scaling, Finance converts applicable absolute-gap settings and dual units; the result records requested and numerical options. An incompatible explicit solver raises.</p>
+<h3 id="scip">SCIP</h3>
+<p>Use <code>scip_params</code> for native SCIP parameter names and <code>verbose</code> for output:</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">result</span> <span class="o">=</span> <span class="n">solve</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">,</span>
+    <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span>
+    <span class="n">solver</span><span class="o">=</span><span class="s2">"scip"</span><span class="p">,</span>
+    <span class="n">scip_params</span><span class="o">=</span><span class="p">{</span><span class="s2">"limits/time"</span><span class="p">:</span> <span class="mf">120.0</span><span class="p">,</span> <span class="s2">"limits/gap"</span><span class="p">:</span> <span class="mf">0.001</span><span class="p">},</span>
+    <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>The model must support SCIP. CVXPY-backed SCIP uses CVXPY's solver interface. Direct SCIP execution for exact nonlinear investment models accepts only <code>scip_params</code> and <code>verbose</code>. <code>scip_params</code> must be a dictionary with string keys; <code>verbose</code> must be a Python boolean. The <a href="solver-options.html#scip-controls">SCIP controls</a> and <a href="scip-parameters.html">full parameter catalogue</a> define fields, native defaults, ranges, and meanings. Direct execution starts with <code>numerics/feastol=1e-9</code> unless explicitly overridden, adjusts <code>numerics/epsilon</code> consistently when needed, and records effective settings. Native bounds and gaps are reported when available.</p>
+<h3 id="hrp-and-gate-algorithms">HRP and gate algorithms</h3>
+<p>HRP accepts no solve options; configure linkage through the portfolio method. Gate-based solve options belong to the algorithm object and <code>QuantumRun</code>, rather than arbitrary <code>**options</code>. See <a href="quantum.html">quantum-inspired and gate-based quantum optimization</a> for compatibility, controls, samples, and recovery.</p>
+<h2 id="result-acceptance">Result acceptance</h2>
+<p>Use <code>result.feasible</code> to determine whether the recovered primary decision satisfies Finance's original constraints. Use <code>result.optimality_proven</code> independently when the application requires an optimum. A limit termination can still have a feasible incumbent; inspect both the status and decision evidence.</p>
+<p>Without an incumbent, ordinary financial results contain no decision, objective, or financial evaluation tables. A recovered candidate that fails original financial checks has <code>status="verification_failed"</code>. For a feasible candidate, if a backend claims an optimum but its objective disagrees with the recalculated financial objective, the result has <code>status="objective_mismatch"</code> and no proven optimum. Inconsistent solver reconstruction also removes the proof claim.</p>
+<p>Full fields, domain tables, proof scope, interchange, and replay are described in <a href="results.html">results and verification</a>.</p>
+<h2 id="failures-and-recovery">Failures and recovery</h2>
+<table>
+<thead>
+<tr>
+<th>Condition</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Invalid data, labels, options, or unsupported formulation</td>
+<td>Correct the input or choose a supported explicit representation. Do not silently discard a financial rule.</td>
+</tr>
+<tr>
+<td>Authentication failure</td>
+<td>Correct the credential or connectivity. Do not change the solver or authorize remote execution implicitly.</td>
+</tr>
+<tr>
+<td>Opt local limit exceeded</td>
+<td>Inspect the reported capacity and choose a supported smaller formulation or an explicitly authorized route.</td>
+</tr>
+<tr>
+<td>Solver infeasibility</td>
+<td>Inspect the model and constraints; a structural validation result does not imply feasibility.</td>
+</tr>
+<tr>
+<td>Limit with incumbent</td>
+<td>Check source feasibility, objective, and available bound/gap against application requirements.</td>
+</tr>
+<tr>
+<td>Ambiguous platform submission</td>
+<td>Reconcile existing jobs using Opt's job API before retrying. A timeout does not establish that no job was created.</td>
+</tr>
+<tr>
+<td>Recorded result available</td>
+<td>Retain the original model and compilation metadata; recover with <code>results.from_opt</code> or <code>PortfolioEncoding.decode_result</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Finance has no separate nonblocking job scheduler. For explicit asynchronous Opt work, use <a href="https://github.com/qpiai/qpiai-opt/blob/main/automation.md#nonblocking-platform-lifecycle">Opt's submission and retrieval API</a>, retain the exact submitted representation and metadata, and perform Finance result recovery after retrieval.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="quantum.html"><span>Previous</span><strong>Quantum-inspired and gate-based optimization</strong></a><a class="pager-card next" href="custom-models.html"><span>Next</span><strong>Custom models and compilation</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#authentication-and-execution-modes">Authentication and execution modes</a><a class="toc-level-2" href="#default-solver-selection">Default solver selection</a><a class="toc-level-2" href="#common-python-operations">Common Python operations</a><a class="toc-level-3" href="#validate">validate</a><a class="toc-level-3" href="#inspect">inspect</a><a class="toc-level-3" href="#solve">solve</a><a class="toc-level-2" href="#solver-options">Solver options</a><a class="toc-level-3" href="#qpiai-opt">QpiAI Opt</a><a class="toc-level-3" href="#clarabel-through-cvxpy">Clarabel through CVXPY</a><a class="toc-level-3" href="#scip">SCIP</a><a class="toc-level-3" href="#hrp-and-gate-algorithms">HRP and gate algorithms</a><a class="toc-level-2" href="#result-acceptance">Result acceptance</a><a class="toc-level-2" href="#failures-and-recovery">Failures and recovery</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

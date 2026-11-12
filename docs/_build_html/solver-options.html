@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Solver option reference">
+<title>Solver option reference | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/solver-options.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="solver-options">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="active" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Reference</span><span aria-hidden="true">&gt;</span><span>Solver option reference</span></div><article class="doc-content"><h1 id="solver-option-reference">Solver option reference</h1>
+<p>Pass these options to <code>qpiai_finance.solve</code> after selecting the financial model and execution route. This reference describes Finance 1.0.3 with QpiAI Opt 0.0.9 and Clarabel 0.11.1. SCIP's parameter catalogue depends on its installed native build. <a href="solving.html">Solving</a> defines routing, authentication, return types, and verification; <a href="algorithm-controls.html">algorithm controls</a> covers gate-based optimization.</p>
+<p>Solver tolerances are separate from Finance's <code>tolerance=1e-7</code>, which checks the recovered financial decision. Options for another route are rejected rather than silently translated into an unrelated method.</p>
+<h2 id="opt-local-options">Opt local options</h2>
+<p>The complete direct option set for local Finance Opt execution is:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Classes</th>
+<th>Type and allowed values</th>
+<th>Default and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>time_limit</code></td>
+<td>LP, MILP, QP</td>
+<td>Finite real <code>&gt; 0</code>, excluding booleans; <code>None</code> selects default.</td>
+<td><code>60.0</code> seconds of solver computation.</td>
+</tr>
+<tr>
+<td><code>mip_rel_gap</code></td>
+<td>MILP</td>
+<td>Finite real <code>&gt;= 0</code>, excluding booleans; <code>None</code> selects default.</td>
+<td><code>1e-4</code>; relative incumbent/bound gap target.</td>
+</tr>
+<tr>
+<td><code>node_limit</code></td>
+<td>MILP</td>
+<td>Positive Python integer, excluding booleans; <code>None</code> leaves unset.</td>
+<td>No node cap.</td>
+</tr>
+<tr>
+<td><code>num_reads</code></td>
+<td>QUBO, HUBO, Ising</td>
+<td>Positive Python integer, excluding booleans; <code>None</code> selects default.</td>
+<td><code>8</code> independent annealing runs.</td>
+</tr>
+<tr>
+<td><code>num_sweeps</code></td>
+<td>QUBO, HUBO, Ising</td>
+<td>Positive Python integer, excluding booleans; <code>None</code> selects default.</td>
+<td><code>500</code> sweeps per run.</td>
+</tr>
+<tr>
+<td><code>seed</code></td>
+<td>QUBO, HUBO, Ising</td>
+<td>Python integer in <code>[0, 2**32-1]</code>, excluding booleans; <code>None</code> selects default.</td>
+<td><code>0</code>; sampling seed.</td>
+</tr>
+</tbody>
+</table>
+<p>The local polynomial solver chooses exhaustive enumeration when there are at most 20 active variables and exact work is at most 2,000,000. An active variable occurs in a nonzero nonconstant term. Exact work is <code>2**active_variables * max(1, active_variables + sum(nonconstant_term_degrees))</code>. Otherwise it uses native annealing. Enumeration does not use read/sweep/seed controls and records an empty effective-settings dictionary. The strategy follows the compiled problem, including auxiliaries and interactions; it is not an option to request a global proof above those limits.</p>
+<h3 id="local-capacity">Local capacity</h3>
+<p>Limits are inclusive and apply to the compiled optimization representation rather than merely the count of original financial assets.</p>
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Variables</th>
+<th>Rows</th>
+<th>Nonzero terms/coefficients</th>
+<th>Reads</th>
+<th>Sweeps</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LP, MILP</td>
+<td>20,000</td>
+<td>20,000</td>
+<td>1,000,000 matrix nonzeros</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>QP</td>
+<td>1,000</td>
+<td>20,000</td>
+<td>1,000,000 matrix and 100,000 Hessian nonzeros</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>QUBO, Ising</td>
+<td>250</td>
+<td>—</td>
+<td>5,000 polynomial terms</td>
+<td>16</td>
+<td>5,000</td>
+</tr>
+<tr>
+<td>HUBO</td>
+<td>100</td>
+<td>—</td>
+<td>1,500 polynomial terms; no separate degree cap</td>
+<td>16</td>
+<td>2,500</td>
+</tr>
+</tbody>
+</table>
+<p>Polynomial annealing work cannot exceed 10,000,000. With nonconstant term degrees <code>d</code>, it is <code>num_reads * (sum(max(1,d)) + num_sweeps * (active_variables + sum(d*max(1,d-1))))</code>. LP/MILP file inputs additionally have a 50,000,000-byte limit. Local linear/Hessian nonzero coefficients require <code>1e-9 &lt; abs(value) &lt; 1e15</code>; objective coefficients and finite bounds require magnitude below <code>1e20</code>. Exactly represented integer data have magnitude at most <code>2**53</code>. Use compatible financial units when coefficients exceed the numerical range.</p>
+<p>In <code>mode="auto"</code>, only <code>LocalLimitExceeded</code> permits fallback, and only with <code>allow_platform=True</code>. Platform-only options are not accepted by the local attempt. HUBO read/sweep/seed names remain supported on the platform; QUBO/Ising platform routes reject those direct controls instead of discarding them. LP/MILP high-level <code>time_limit</code>, <code>mip_rel_gap</code>, and <code>node_limit</code> translate to platform configuration fields when applicable. These contracts and limits are defined by the pinned <a href="https://github.com/qpiai/qpiai-opt/blob/main/docs/local-solving.md">Opt local runtime</a>.</p>
+<h2 id="opt-platform-options">Opt platform options</h2>
+<p>Platform calls may consume credits. Finance constructs the algebraic/file representation where the provider requires it; QP remains local-only. The allowed blocking-call options are the common lifecycle fields below, plus the class-specific fields in subsequent tables.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Type and allowed values</th>
+<th>Default and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>timeout</code></td>
+<td>Finite real <code>&gt; 0</code>, excluding booleans.</td>
+<td>LP/MILP <code>600.0</code> seconds; polynomial classes <code>5400.0</code>. Job-wait budget beginning after submission, not an overall end-to-end deadline. Expiry does not cancel the job.</td>
+</tr>
+<tr>
+<td><code>poll_interval</code></td>
+<td>Finite real <code>&gt; 0</code>, excluding booleans.</td>
+<td><code>5.0</code> seconds between status polls.</td>
+</tr>
+<tr>
+<td><code>request_timeout</code></td>
+<td>Positive finite non-Boolean real or <code>None</code>.</td>
+<td><code>None</code> uses client request timeout, normally 60 seconds. Applies separately to submission/result requests.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>Nonblank stripped string or <code>None</code>.</td>
+<td><code>None</code> generates a problem name.</td>
+</tr>
+<tr>
+<td><code>experiment_id</code></td>
+<td>Path-safe nonempty string or <code>None</code>.</td>
+<td><code>None</code> uses client/solver experiment selection.</td>
+</tr>
+<tr>
+<td><code>experiment_name</code></td>
+<td>Nonblank stripped string or <code>None</code>.</td>
+<td><code>None</code> uses configured/default experiment name.</td>
+</tr>
+<tr>
+<td><code>compute_resource_id</code></td>
+<td>Path-safe nonempty string or <code>None</code>.</td>
+<td><code>None</code> permits provider resource selection.</td>
+</tr>
+<tr>
+<td><code>queue</code></td>
+<td>Python boolean; QUBO/HUBO/Ising only.</td>
+<td><code>True</code> enables event-stream monitoring; <code>False</code> uses polling.</td>
+</tr>
+<tr>
+<td><code>workspace_id</code>, <code>project_id</code></td>
+<td>Path-safe nonempty strings or <code>None</code>; LP/MILP only.</td>
+<td><code>None</code> uses storage defaults. Scope uploaded model storage.</td>
+</tr>
+</tbody>
+</table>
+<p>Path-safe IDs use ASCII letters, digits, <code>.</code>, <code>_</code>, <code>-</code>, <code>~</code>; <code>.</code> and <code>..</code> are rejected. Experiment ID/name select context rather than financial data. A failed or ambiguous wait/submission does not authorize duplicate work; retain returned problem/job identifiers and reconcile them before retrying.</p>
+<h3 id="platform-lpmilp-configuration">Platform LP/MILP configuration</h3>
+<p><code>config=None</code> uses a new <code>MILPSolverConfig()</code> from <code>qpiai_opt.opt_solvers.milp</code>. Supply that typed configuration object for explicit control. Its keyword-only fields are all listed below. Unknown fields raise a Pydantic validation error. Real values must be finite and non-Boolean; integer and Boolean fields use strict types. Case is normalized for enum strings, without stripping surrounding whitespace.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Allowed type/values</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>time_limit</code></td>
+<td>Real <code>&gt;= 0</code></td>
+<td><code>300.0</code></td>
+<td>Solver wall-clock seconds; zero leaves unset.</td>
+</tr>
+<tr>
+<td><code>mip_max_nodes</code></td>
+<td>Integer <code>&gt;= -1</code></td>
+<td><code>-1</code></td>
+<td>Branch-and-bound node cap; <code>-1</code> unset.</td>
+</tr>
+<tr>
+<td><code>solution_limit</code></td>
+<td>Integer <code>-1</code> or <code>&gt; 0</code></td>
+<td><code>-1</code></td>
+<td>Feasible MIP solution count before stopping; one stops at the first.</td>
+</tr>
+<tr>
+<td><code>objective_bound</code></td>
+<td>Real or <code>None</code></td>
+<td><code>None</code></td>
+<td>Stop when the dual bound reaches this value; for minimization, lower bound at least this value.</td>
+</tr>
+<tr>
+<td><code>objective_target</code></td>
+<td>Real or <code>None</code></td>
+<td><code>None</code></td>
+<td>Stop at a feasible objective at least as good; for minimization, incumbent no greater than target.</td>
+</tr>
+<tr>
+<td><code>mip_rel_gap</code></td>
+<td>Real <code>&gt;= 0</code></td>
+<td><code>1e-4</code></td>
+<td>Relative MIP objective-gap target.</td>
+</tr>
+<tr>
+<td><code>mip_abs_gap</code></td>
+<td>Real <code>&gt;= 0</code></td>
+<td><code>1e-6</code></td>
+<td>Absolute MIP objective-gap target.</td>
+</tr>
+<tr>
+<td><code>primal_feasibility_tolerance</code></td>
+<td>Real <code>&gt; 0</code></td>
+<td><code>1e-7</code></td>
+<td>Solver primal constraint tolerance.</td>
+</tr>
+<tr>
+<td><code>dual_feasibility_tolerance</code></td>
+<td>Real <code>&gt; 0</code></td>
+<td><code>1e-7</code></td>
+<td>LP dual feasibility tolerance.</td>
+</tr>
+<tr>
+<td><code>mip_feasibility_tolerance</code></td>
+<td>Real <code>&gt; 0</code></td>
+<td><code>1e-6</code></td>
+<td>Distance-to-integer tolerance.</td>
+</tr>
+<tr>
+<td><code>threads</code></td>
+<td>Integer <code>&gt;= 0</code></td>
+<td><code>0</code></td>
+<td>Thread count; zero selects automatically.</td>
+</tr>
+<tr>
+<td><code>presolve</code></td>
+<td><code>"on"</code>, <code>"off"</code>, <code>"choose"</code></td>
+<td><code>"choose"</code></td>
+<td>Enable, disable, or delegate presolve.</td>
+</tr>
+<tr>
+<td><code>solver_algorithm</code></td>
+<td><code>"simplex"</code>, <code>"ipm"</code>, <code>"choose"</code></td>
+<td><code>"choose"</code></td>
+<td>LP simplex, interior point, or provider-selected algorithm.</td>
+</tr>
+<tr>
+<td><code>mip_heuristic_effort</code></td>
+<td>Real in <code>[0,1]</code></td>
+<td><code>0.05</code></td>
+<td>MIP heuristic effort.</td>
+</tr>
+<tr>
+<td><code>output_flag</code></td>
+<td>Boolean</td>
+<td><code>False</code></td>
+<td>Console solver output.</td>
+</tr>
+<tr>
+<td><code>log_file</code></td>
+<td>Nonblank string or <code>None</code></td>
+<td><code>None</code></td>
+<td>Log path on the solver host.</td>
+</tr>
+<tr>
+<td><code>include_dual_info</code></td>
+<td>Boolean</td>
+<td><code>False</code></td>
+<td>Request LP/relaxation shadow prices and reduced costs.</td>
+</tr>
+<tr>
+<td><code>compute_ranging</code></td>
+<td>Boolean</td>
+<td><code>False</code></td>
+<td>Request coefficient/RHS sensitivity ranges; requires a simplex basis.</td>
+</tr>
+<tr>
+<td><code>compute_iis</code></td>
+<td>Boolean</td>
+<td><code>True</code></td>
+<td>Request an irreducible infeasible set on infeasibility.</td>
+</tr>
+<tr>
+<td><code>collect_solution_pool</code></td>
+<td>Boolean</td>
+<td><code>False</code></td>
+<td>Collect improving MIP solutions; memory grows with stored assignments.</td>
+</tr>
+</tbody>
+</table>
+<p>The optional high-level aliases <code>time_limit</code> (LP/MILP), <code>mip_rel_gap</code> and <code>node_limit</code> (MILP only) populate <code>config.time_limit</code>, <code>.mip_rel_gap</code>, and <code>.mip_max_nodes</code>. Their platform domains are finite non-Boolean real <code>time_limit &gt; 0</code>, finite non-Boolean real <code>mip_rel_gap &gt;= 0</code>, and positive Python integer <code>node_limit</code>, excluding booleans. Explicit <code>None</code> is rejected; omit an alias to retain its default. Do not combine aliases with the <code>config</code> keyword, including <code>config=None</code>.</p>
+<p><code>warm_start=None</code> means no supplied start. A start is <code>qpiai_opt.opt_solvers.milp.WarmStart(*, col_values=None, col_basis_status=None, row_basis_status=None)</code>. <code>col_values</code> is a finite real dictionary keyed by nonempty optimization-variable names; missing variables form a partial start. Basis fields are lists of <code>"lower"</code>, <code>"basic"</code>, <code>"upper"</code>, <code>"zero"</code>, or <code>"nonbasic"</code>, in exported column/row order, case-insensitive. Both basis lists must be supplied together. At least column values or a complete basis is required. Unknown fields fail validation. Starts use the actual exported optimization coordinates and are not financial decision dictionaries.</p>
+<p>Finance can scale an entire small LP/MILP objective by a positive power of two. It converts explicitly set configuration fields <code>objective_bound</code>, <code>objective_target</code>, <code>mip_abs_gap</code>, and <code>dual_feasibility_tolerance</code> to solver units, then restores source objective, bound, and dual units in results. Unset fields keep their provider-unit defaults; the restored settings show their source-unit values. Source constraints and the financial objective are preserved. Retain the scaling record for later recovery.</p>
+<h3 id="platform-polynomial-controls">Platform polynomial controls</h3>
+<p>QUBO and Ising blocking routes expose only the common polynomial lifecycle/context options. They do not expose public arbitrary sampling controls through Finance <code>solve</code>. The QUBO problem container uses its default evaluation budget; execution details returned by the provider remain in result diagnostics.</p>
+<p>HUBO additionally accepts <code>solver_config: dict | omitted</code>, with exactly these keys, or the same keys directly as solve options. Direct values override dictionary values. Omitted values are left to the platform resource; the SDK does not define numerical defaults for those fields. This is distinct from the explicit local defaults.</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Allowed type/values</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>num_reads</code></td>
+<td>Positive Python integer, excluding booleans</td>
+<td>Independent runs.</td>
+</tr>
+<tr>
+<td><code>num_sweeps</code></td>
+<td>Positive Python integer, excluding booleans</td>
+<td>Sweeps per run.</td>
+</tr>
+<tr>
+<td><code>beta_min</code>, <code>beta_max</code></td>
+<td>Positive finite non-Boolean real</td>
+<td>Initial/final inverse temperature. When both supplied, minimum cannot exceed maximum.</td>
+</tr>
+<tr>
+<td><code>num_threads</code></td>
+<td>Positive Python integer, excluding booleans</td>
+<td>Requested thread count.</td>
+</tr>
+<tr>
+<td><code>temperature_schedule</code></td>
+<td><code>"LINEAR"</code> or <code>"GEOMETRIC"</code>, case-insensitive</td>
+<td>Inverse-temperature schedule.</td>
+</tr>
+<tr>
+<td><code>seed</code></td>
+<td>Python integer, excluding booleans</td>
+<td>Requested platform random seed.</td>
+</tr>
+</tbody>
+</table>
+<p>Unknown keys and explicit <code>None</code> configuration values are rejected; omit unset fields. Platform HUBO requires active variables and cannot retain isolated encoded variables. Zero-coefficient QUBO platform inputs are also rejected. These are representation restrictions, independent of financial feasibility.</p>
+<h2 id="cvxpy-controls">CVXPY controls</h2>
+<p>Clarabel and CVXPY-backed SCIP accept the following common CVXPY solve controls. Defaults here are CVXPY defaults; Finance creates a fresh problem for each solve, so a cached warm start generally has no previous Finance solve to reuse. Version-dependent details below cover CVXPY 1.7.5 and 1.9.3, within Finance's supported dependency range.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Type/default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>verbose</code></td>
+<td>Boolean, <code>False</code></td>
+<td>Compilation and solver output.</td>
+</tr>
+<tr>
+<td><code>solver_verbose</code></td>
+<td>Boolean, <code>False</code></td>
+<td>Solver output without full CVXPY logging.</td>
+</tr>
+<tr>
+<td><code>bibtex</code></td>
+<td>Boolean, <code>False</code></td>
+<td>Print CVXPY, problem-grammar, and solver citations when <code>verbose=True</code>.</td>
+</tr>
+<tr>
+<td><code>warm_start</code></td>
+<td>Boolean, <code>True</code></td>
+<td>Permit an interface-supported cached start.</td>
+</tr>
+<tr>
+<td><code>enforce_dpp</code></td>
+<td>Boolean, <code>False</code></td>
+<td>Raise for non-DPP parameterized problems.</td>
+</tr>
+<tr>
+<td><code>ignore_dpp</code></td>
+<td>Boolean, <code>False</code></td>
+<td>Treat parameterized problems as non-DPP. Cannot combine true with <code>enforce_dpp=True</code>.</td>
+</tr>
+<tr>
+<td><code>canon_backend</code></td>
+<td><code>None</code> by default, or a case-sensitive string from the backend table below</td>
+<td>Canonicalization backend; <code>None</code> uses CVXPY selection, normally <code>"CPP"</code>.</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Backend</th>
+<th>Meaning and availability</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"CPP"</code></td>
+<td>C++ canonicalization. Available in both documented versions; restricted expression types may require a Python backend.</td>
+</tr>
+<tr>
+<td><code>"SCIPY"</code></td>
+<td>Python canonicalization using SciPy sparse matrices. Available in both documented versions.</td>
+</tr>
+<tr>
+<td><code>"NUMPY"</code></td>
+<td>Dense NumPy canonicalization in CVXPY 1.7.5; removed in 1.8.</td>
+</tr>
+<tr>
+<td><code>"COO"</code></td>
+<td>Sparse three-dimensional coordinate tensors, added in CVXPY 1.8. Available in 1.9.3.</td>
+</tr>
+<tr>
+<td><code>"RUST"</code></td>
+<td>Experimental Rust canonicalization through the optional <code>cvxpy_rust</code> extension module. The backend name exists in both documented versions; the extension must be installed.</td>
+</tr>
+</tbody>
+</table>
+<p>Unknown names or unavailable backend dependencies raise. Consult the installed <a href="https://www.cvxpy.org/tutorial/advanced/index.html#canonicalization-backends">CVXPY canonicalization reference</a> when using another supported release.</p>
+<p>The following controls apply specifically to Clarabel through CVXPY, rather than to Clarabel's native settings object:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Type/default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>use_quad_obj</code></td>
+<td>Boolean, <code>True</code></td>
+<td>Retain a supported quadratic objective during canonicalization instead of converting it to cones. SCIP does not accept this keyword.</td>
+</tr>
+<tr>
+<td><code>accept_unknown</code></td>
+<td>Boolean; omitted by default</td>
+<td>CVXPY 1.8+ can recover an <code>InsufficientProgress</code> iterate when both primal and dual vectors exist. CVXPY 1.7.5 rejects this keyword. In 1.9.3, presence of the keyword enables recovery even with <code>False</code>; omit it to disable recovery. Finance reports the recovered candidate without an optimality proof and still checks its original financial constraints.</td>
+</tr>
+</tbody>
+</table>
+<p>Finance rejects route overrides <code>solver</code>, <code>solver_path</code>, <code>gp</code>, <code>qcp</code>, and <code>requires_grad</code>. Provider-specific unsupported names raise rather than being ignored. The installed <a href="https://www.cvxpy.org/tutorial/solvers/index.html">CVXPY solve API</a> governs canonicalization controls; direct SCIP bypasses this interface and accepts only the two fields below.</p>
+<p>CVXPY 1.9 also exposes <code>nlp: bool = False</code> to select its nonlinear-programming route. Finance's Clarabel and SCIP interfaces use convex/conic canonicalization; leave <code>nlp</code> omitted or false. <code>nlp=True</code> selects a provider route that does not support these solver selections and raises. Earlier CVXPY versions reject it as an unknown solver option. The versioned <a href="https://github.com/cvxpy/cvxpy/blob/v1.9.3/cvxpy/reductions/solvers/conic_solvers/clarabel_conif.py">Clarabel interface</a> defines the recovery behavior above.</p>
+<h2 id="clarabel-settings">Clarabel settings</h2>
+<p>Pass fields directly as solve keywords. The table covers every field of Clarabel 0.11.1's Python <code>DefaultSettings</code>; Finance/CVXPY makes verbosity false by default. <code>uint32</code> means a Python integer in <code>[0, 2**32-1]</code>; <code>float</code> means a real floating-point setting. The native settings validator checks string choices and requires a direct KKT solver, but does not generally sanity-check numeric ranges. For meaningful numerical controls, use nonnegative tolerances, positive scaling/regularization magnitudes, ordered scaling bounds, and step fractions in <code>(0,1)</code>. These numerical conditions describe appropriate algorithm inputs rather than additional Finance validation. Defaults below are from the Python runtime and <a href="https://raw.githubusercontent.com/oxfordcontrol/Clarabel.rs/v0.11.1/src/solver/implementations/default/settings.rs">versioned settings contract</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>max_iter</code></td>
+<td><code>uint32</code></td>
+<td><code>200</code></td>
+<td>Iteration cap.</td>
+</tr>
+<tr>
+<td><code>time_limit</code></td>
+<td><code>float</code></td>
+<td><code>float("inf")</code></td>
+<td>Runtime seconds.</td>
+</tr>
+<tr>
+<td><code>verbose</code></td>
+<td><code>bool</code></td>
+<td><code>False</code> through CVXPY</td>
+<td>Solver output.</td>
+</tr>
+<tr>
+<td><code>max_step_fraction</code></td>
+<td><code>float</code></td>
+<td><code>0.99</code></td>
+<td>Maximum step fraction.</td>
+</tr>
+<tr>
+<td><code>tol_gap_abs</code></td>
+<td><code>float</code></td>
+<td><code>1e-8</code></td>
+<td>Absolute duality gap.</td>
+</tr>
+<tr>
+<td><code>tol_gap_rel</code></td>
+<td><code>float</code></td>
+<td><code>1e-8</code></td>
+<td>Relative duality gap.</td>
+</tr>
+<tr>
+<td><code>tol_feas</code></td>
+<td><code>float</code></td>
+<td><code>1e-8</code></td>
+<td>Primal/dual feasibility tolerance.</td>
+</tr>
+<tr>
+<td><code>tol_infeas_abs</code></td>
+<td><code>float</code></td>
+<td><code>1e-8</code></td>
+<td>Absolute infeasibility threshold.</td>
+</tr>
+<tr>
+<td><code>tol_infeas_rel</code></td>
+<td><code>float</code></td>
+<td><code>1e-8</code></td>
+<td>Relative infeasibility threshold.</td>
+</tr>
+<tr>
+<td><code>tol_ktratio</code></td>
+<td><code>float</code></td>
+<td><code>1e-6</code></td>
+<td>Homogeneous embedding ratio threshold.</td>
+</tr>
+<tr>
+<td><code>reduced_tol_gap_abs</code></td>
+<td><code>float</code></td>
+<td><code>5e-5</code></td>
+<td>Reduced-accuracy absolute gap.</td>
+</tr>
+<tr>
+<td><code>reduced_tol_gap_rel</code></td>
+<td><code>float</code></td>
+<td><code>5e-5</code></td>
+<td>Reduced-accuracy relative gap.</td>
+</tr>
+<tr>
+<td><code>reduced_tol_feas</code></td>
+<td><code>float</code></td>
+<td><code>1e-4</code></td>
+<td>Reduced-accuracy feasibility.</td>
+</tr>
+<tr>
+<td><code>reduced_tol_infeas_abs</code></td>
+<td><code>float</code></td>
+<td><code>5e-12</code></td>
+<td>Reduced-accuracy absolute infeasibility.</td>
+</tr>
+<tr>
+<td><code>reduced_tol_infeas_rel</code></td>
+<td><code>float</code></td>
+<td><code>5e-5</code></td>
+<td>Reduced-accuracy relative infeasibility.</td>
+</tr>
+<tr>
+<td><code>reduced_tol_ktratio</code></td>
+<td><code>float</code></td>
+<td><code>1e-4</code></td>
+<td>Reduced-accuracy embedding ratio.</td>
+</tr>
+<tr>
+<td><code>equilibrate_enable</code></td>
+<td><code>bool</code></td>
+<td><code>True</code></td>
+<td>Enable data equilibration.</td>
+</tr>
+<tr>
+<td><code>equilibrate_max_iter</code></td>
+<td><code>uint32</code></td>
+<td><code>10</code></td>
+<td>Scaling iteration cap.</td>
+</tr>
+<tr>
+<td><code>equilibrate_min_scaling</code></td>
+<td><code>float</code></td>
+<td><code>1e-4</code></td>
+<td>Minimum scaling factor.</td>
+</tr>
+<tr>
+<td><code>equilibrate_max_scaling</code></td>
+<td><code>float</code></td>
+<td><code>1e4</code></td>
+<td>Maximum scaling factor.</td>
+</tr>
+<tr>
+<td><code>linesearch_backtrack_step</code></td>
+<td><code>float</code></td>
+<td><code>0.8</code></td>
+<td>Backtracking multiplier.</td>
+</tr>
+<tr>
+<td><code>min_switch_step_length</code></td>
+<td><code>float</code></td>
+<td><code>0.1</code></td>
+<td>Asymmetric-cone scaling-switch threshold.</td>
+</tr>
+<tr>
+<td><code>min_terminate_step_length</code></td>
+<td><code>float</code></td>
+<td><code>1e-4</code></td>
+<td>Small-step termination threshold.</td>
+</tr>
+<tr>
+<td><code>max_threads</code></td>
+<td><code>uint32</code></td>
+<td><code>0</code></td>
+<td>Linear-solver threads; zero automatic.</td>
+</tr>
+<tr>
+<td><code>direct_kkt_solver</code></td>
+<td><code>bool</code></td>
+<td><code>True</code></td>
+<td>Direct KKT solve; must remain true.</td>
+</tr>
+<tr>
+<td><code>direct_solve_method</code></td>
+<td><code>str</code></td>
+<td><code>"auto"</code></td>
+<td><code>"auto"</code>, <code>"qdldl"</code>, or build-enabled <code>"faer"</code>, <code>"mkl"</code>, <code>"panua"</code>; Pardiso choices also require an available runtime.</td>
+</tr>
+<tr>
+<td><code>static_regularization_enable</code></td>
+<td><code>bool</code></td>
+<td><code>True</code></td>
+<td>Enable static regularization.</td>
+</tr>
+<tr>
+<td><code>static_regularization_constant</code></td>
+<td><code>float</code></td>
+<td><code>1e-8</code></td>
+<td>Static diagonal shift.</td>
+</tr>
+<tr>
+<td><code>static_regularization_proportional</code></td>
+<td><code>float</code></td>
+<td><code>4.930380657631324e-32</code></td>
+<td>Diagonal-relative static shift.</td>
+</tr>
+<tr>
+<td><code>dynamic_regularization_enable</code></td>
+<td><code>bool</code></td>
+<td><code>True</code></td>
+<td>Enable dynamic regularization.</td>
+</tr>
+<tr>
+<td><code>dynamic_regularization_eps</code></td>
+<td><code>float</code></td>
+<td><code>1e-13</code></td>
+<td>Dynamic pivot threshold.</td>
+</tr>
+<tr>
+<td><code>dynamic_regularization_delta</code></td>
+<td><code>float</code></td>
+<td><code>2e-7</code></td>
+<td>Dynamic pivot shift.</td>
+</tr>
+<tr>
+<td><code>iterative_refinement_enable</code></td>
+<td><code>bool</code></td>
+<td><code>True</code></td>
+<td>Refine linear solves.</td>
+</tr>
+<tr>
+<td><code>iterative_refinement_reltol</code></td>
+<td><code>float</code></td>
+<td><code>1e-13</code></td>
+<td>Relative refinement tolerance.</td>
+</tr>
+<tr>
+<td><code>iterative_refinement_abstol</code></td>
+<td><code>float</code></td>
+<td><code>1e-12</code></td>
+<td>Absolute refinement tolerance.</td>
+</tr>
+<tr>
+<td><code>iterative_refinement_max_iter</code></td>
+<td><code>uint32</code></td>
+<td><code>10</code></td>
+<td>Refinement iteration cap.</td>
+</tr>
+<tr>
+<td><code>iterative_refinement_stop_ratio</code></td>
+<td><code>float</code></td>
+<td><code>5.0</code></td>
+<td>Refinement stalling threshold.</td>
+</tr>
+<tr>
+<td><code>presolve_enable</code></td>
+<td><code>bool</code></td>
+<td><code>True</code></td>
+<td>Presolve constraint reduction.</td>
+</tr>
+<tr>
+<td><code>input_sparse_dropzeros</code></td>
+<td><code>bool</code></td>
+<td><code>False</code></td>
+<td>Drop explicit sparse zeros.</td>
+</tr>
+<tr>
+<td><code>chordal_decomposition_enable</code></td>
+<td><code>bool</code></td>
+<td><code>True</code></td>
+<td>Decompose semidefinite cones.</td>
+</tr>
+<tr>
+<td><code>chordal_decomposition_merge_method</code></td>
+<td><code>str</code></td>
+<td><code>"clique_graph"</code></td>
+<td><code>"clique_graph"</code>, <code>"parent_child"</code>, or <code>"none"</code>.</td>
+</tr>
+<tr>
+<td><code>chordal_decomposition_compact</code></td>
+<td><code>bool</code></td>
+<td><code>True</code></td>
+<td>Compact decomposed system.</td>
+</tr>
+<tr>
+<td><code>chordal_decomposition_complete_dual</code></td>
+<td><code>bool</code></td>
+<td><code>True</code></td>
+<td>Complete decomposed PSD dual.</td>
+</tr>
+<tr>
+<td><code>pardiso_iparm</code></td>
+<td><code>list[int32]</code></td>
+<td>64 entries of <code>-2147483648</code></td>
+<td>Signed 32-bit integer sequence of length 64; sentinel entries keep Pardiso defaults.</td>
+</tr>
+<tr>
+<td><code>pardiso_verbose</code></td>
+<td><code>bool</code></td>
+<td><code>False</code></td>
+<td>Pardiso output.</td>
+</tr>
+</tbody>
+</table>
+<p>When Finance records numerical financial-unit scaling, omitted <code>tol_feas</code>, <code>tol_gap_rel</code>, and <code>tol_gap_abs</code> become <code>min(native_default, tolerance * 2**(-maximum_coordinate_exponent))</code>, evaluated with binary floating-point scaling. The exponent comes from the inspection record. Explicit <code>tol_gap_abs</code> and <code>reduced_tol_gap_abs</code> are interpreted in source objective units and converted. Requested/numerical options and restored dual units are retained in results. See the <a href="https://clarabel.org/stable/api_settings/">Clarabel settings guide</a> for the underlying interior-point method.</p>
+<p>The result's <code>settings</code> record reconstructs scalar native defaults and supplied overrides. It omits list-valued <code>pardiso_iparm</code> and does not incorporate CVXPY's separate <code>solver_verbose</code> logging override. <code>requested_options</code> retains the supplied controls; <code>numerical_options</code> retains the converted controls when financial-unit scaling applies.</p>
+<h2 id="scip-controls">SCIP controls</h2>
+<p><code>scip_params</code> is a dictionary of native parameter-name strings to typed values. Default <code>{}</code> retains backend defaults, except Finance's direct-execution feasibility settings below. <code>verbose</code> is a Python boolean, default <code>False</code>. Direct SCIP accepts exactly these two top-level options. CVXPY-backed SCIP also accepts common CVXPY controls and native parameter names as direct keywords; prefer <code>scip_params</code> for consistent routing. In that interface, dictionary entries take precedence over duplicate direct native names.</p>
+<p>The complete <a href="scip-parameters.html">SCIP parameter catalogue</a> lists every native name, type, range, default, and meaning for the documented build. Unknown names and incompatible values are rejected by SCIP. The installed solver is authoritative when a different supported build exposes another catalogue; <code>Model.getParams()</code> supplies current values and <code>Model.writeParams(..., comments=True, onlychanged=False)</code> supplies full type/range/default descriptions without running optimization.</p>
+<p>Finance's direct SCIP execution starts with <code>numerics/feastol=1e-9</code>, unless explicitly overridden. If this is tighter than the native default and <code>numerics/epsilon</code> is omitted, it reduces epsilon in proportion, bounded below by <code>1e-20</code>. CVXPY-backed execution retains that interface's setup: for a continuous linear problem it disables presolve, heuristics, and propagation to obtain dual information.</p>
+<p>For CVXPY-backed execution with native statistics available, <code>settings</code> records actual values of <code>limits/time</code>, <code>limits/gap</code>, <code>limits/nodes</code>, <code>numerics/feastol</code>, <code>numerics/epsilon</code>, <code>randomization/randomseedshift</code>, <code>parallel/maxnthreads</code>, and every key supplied in <code>scip_params</code>. Additional native names passed directly as keywords remain in <code>requested_options</code> but are not automatically added to <code>settings</code>. Older CVXPY interfaces may not expose the native model: then <code>native_statistics_available=False</code>, <code>settings</code> contains only supplied <code>scip_params</code>, and the native version, bound, and gap are <code>None</code>.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="algorithm-controls.html"><span>Previous</span><strong>Gate-based algorithm controls</strong></a><a class="pager-card next" href="scip-parameters.html"><span>Next</span><strong>SCIP parameter catalogue</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#opt-local-options">Opt local options</a><a class="toc-level-3" href="#local-capacity">Local capacity</a><a class="toc-level-2" href="#opt-platform-options">Opt platform options</a><a class="toc-level-3" href="#platform-lpmilp-configuration">Platform LP/MILP configuration</a><a class="toc-level-3" href="#platform-polynomial-controls">Platform polynomial controls</a><a class="toc-level-2" href="#cvxpy-controls">CVXPY controls</a><a class="toc-level-2" href="#clarabel-settings">Clarabel settings</a><a class="toc-level-2" href="#scip-controls">SCIP controls</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

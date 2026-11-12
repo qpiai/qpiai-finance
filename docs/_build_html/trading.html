@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Multi-period investment planning">
+<title>Multi-period investment planning | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/trading.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="trading">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="active" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Financial models</span><span aria-hidden="true">&gt;</span><span>Multi-period investment planning</span></div><article class="doc-content"><h1 id="multi-period-investment-planning">Multi-period investment planning</h1>
+<p><code>TradingModel</code> chooses an investment policy on an explicit financial information tree. Decisions use signed asset quantities and a cash account, with costs, carry, liabilities, term funding, and risk limits in financial units. Import it from <code>qpiai_finance.trading</code>.</p>
+<p>Each observed node has one shared decision for every scenario passing through it. This enforces the supplied information structure: a future scenario cannot change a trade before its information is available. Prices, probabilities, trade capacities, and financing terms are supplied inputs. The model neither estimates a trading signal nor submits orders. For scheduling a fixed set of target orders across venues, use <a href="execution.html">execution scheduling</a>.</p>
+<h2 id="constructor">Constructor</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">TradingModel</span><span class="p">(</span>
+    <span class="n">prices</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tree</span><span class="p">,</span> <span class="n">holdings</span><span class="p">,</span> <span class="n">cash</span><span class="p">,</span> <span class="n">currency</span><span class="p">,</span> <span class="n">buy_limits</span><span class="p">,</span> <span class="n">sell_limits</span><span class="p">,</span>
+    <span class="n">cash_settlement</span><span class="p">,</span> <span class="n">asset_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">credit_limits</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">borrow_limits</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Type, default, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>prices</code></td>
+<td>Required finite nonnegative node-by-asset valuation-price grid, in currency per asset unit. Zero prices are allowed.</td>
+</tr>
+<tr>
+<td><code>tree</code></td>
+<td>Required exact <code>ScenarioTree</code> instance, copied on input. Defines observed information, stage clock, and optional case probabilities.</td>
+</tr>
+<tr>
+<td><code>holdings</code></td>
+<td>Required finite signed scalar or complete asset vector, Series, or mapping of quantities before root flows/trades.</td>
+</tr>
+<tr>
+<td><code>cash</code></td>
+<td>Required finite signed scalar of cash before root events. Post-event revolving-credit limits are checked separately; no opening feasibility check is inferred.</td>
+</tr>
+<tr>
+<td><code>currency</code></td>
+<td>Required uppercase three-letter code for the account, prices, costs, debt, and wealth.</td>
+</tr>
+<tr>
+<td><code>buy_limits</code>, <code>sell_limits</code></td>
+<td>Required finite nonnegative node-by-asset grids of maximum bought/sold quantities. Set terminal-node capacities to zero for valuation without terminal trading.</td>
+</tr>
+<tr>
+<td><code>cash_settlement</code></td>
+<td>Required <code>"net"</code> or <code>"prefunded"</code>. Net combines node flows, purchases, sales, and charges. Prefunded additionally requires purchases and charges to be financed before sale proceeds.</td>
+</tr>
+<tr>
+<td><code>asset_ids</code></td>
+<td>Optional unique nonblank string/integer IDs, inferred from price DataFrame columns or Series/mapping keys, otherwise two-dimensional price-array columns use positional integers. Supply IDs explicitly when a scalar or otherwise unlabelled constant vector cannot identify assets.</td>
+</tr>
+<tr>
+<td><code>credit_limits</code></td>
+<td>Finite nonnegative scalar or complete node vector, Series, or mapping of approved revolving negative-cash capacity; default zero.</td>
+</tr>
+<tr>
+<td><code>borrow_limits</code></td>
+<td>Finite nonnegative node-by-asset grid of approved post-trade short quantities; default zero.</td>
+</tr>
+</tbody>
+</table>
+<p>A node-by-asset grid accepts an aligned DataFrame, ordered two-dimensional array/sparse matrix, complete per-asset vector/Series/mapping broadcast over nodes, or scalar broadcast over the full grid. Node-by-exposure grids follow the same convention with exposure columns. Node vectors accept a scalar or complete ordered vector, Series, or mapping. All numeric values must be finite unless an absent bound is represented by its documented <code>None</code> argument. Labelled axes must match exactly; missing/extra/duplicate labels are rejected. <a href="data.html">Data conventions</a> defines the common input rules.</p>
+<p>Properties <code>asset_ids</code> and <code>node_ids</code> return detached pandas indices; <code>tree</code> returns a detached <code>ScenarioTree</code>; <code>currency</code> is a string. All setters below mutate the financial specification and return <code>self</code>.</p>
+<h2 id="trading-costs-and-quantity-steps">Trading costs and quantity steps</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">set_trading_costs</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span> <span class="n">bid_prices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ask_prices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">buy_per_unit</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">sell_per_unit</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">fixed</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">minimum_trade</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">trade_in_lots</span><span class="p">(</span><span class="n">lot_sizes</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">set_market_impact</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">quadratic</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">power_3_2</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">curves</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type, default, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bid_prices</code>, <code>ask_prices</code></td>
+<td>Optional nonnegative node-by-asset grids of execution quotes. Default <code>None</code> resets to valuation prices. Require <code>0 &lt;= bid &lt;= valuation price &lt;= ask</code>.</td>
+</tr>
+<tr>
+<td><code>buy_per_unit</code>, <code>sell_per_unit</code></td>
+<td>Nonnegative node-by-asset grids of additional currency fees per bought/sold unit; default zero. Bid/ask already charges spread.</td>
+</tr>
+<tr>
+<td><code>fixed</code></td>
+<td>Nonnegative node-by-asset grid of currency charges per active trade; default zero. Positive charges at an available trade require a positive minimum quantity or lot when the model is used.</td>
+</tr>
+<tr>
+<td><code>minimum_trade</code></td>
+<td>Nonnegative node-by-asset grid of minimum absolute quantity when active; default zero. Zero trade remains allowed.</td>
+</tr>
+<tr>
+<td><code>lot_sizes</code></td>
+<td>Required nonnegative node-by-asset grid of quantity steps. Positive entries require whole lots; zero means divisible quantity. Default model steps are zero.</td>
+</tr>
+<tr>
+<td><code>quadratic</code></td>
+<td>Nonnegative node-by-asset grid of temporary cost coefficients in currency/unit²; default zero.</td>
+</tr>
+<tr>
+<td><code>power_3_2</code></td>
+<td>Nonnegative node-by-asset grid in currency/unit^1.5; default zero.</td>
+</tr>
+<tr>
+<td><code>curves</code></td>
+<td>Optional DataFrame containing exactly <code>node</code>, <code>asset</code>, <code>quantity</code>, <code>cost</code>, in point order within each supplied node/asset curve. Default <code>None</code> removes quoted curves; an empty table with those columns is also allowed.</td>
+</tr>
+</tbody>
+</table>
+<p>Each cost setter replaces all its components, resetting omitted arguments to their defaults. For signed trade <code>q</code>, temporary impact is <code>quadratic*abs(q)**2 + power_3_2*abs(q)**1.5</code> plus any quoted curve cost. All costs debit node cash. No permanent impact, cross-impact, or market calibration is inferred.</p>
+<p>Curve points must be finite, start at <code>(0,0)</code>, have strictly increasing quantities and nonnegative nondecreasing slopes. The linear interpolant is the specified cost function. Configure capacities, participation, and lots before curves. Coverage must reach the largest permitted whole-lot trade and is rechecked on use. Trading beyond a quoted domain raises <code>ValueError</code> during replay. Exact piecewise graphs can introduce integer segment choices even when quantities are divisible. Bid/ask, fees, or other trading frictions may also require direction decisions to exclude simultaneous buying and selling.</p>
+<h2 id="cash-flows-and-carry">Cash flows and carry</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">set_cash_flows</span><span class="p">(</span><span class="n">flows</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">set_carry</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span> <span class="n">deposit_factors</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">borrowing_factors</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">dividends</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">share_factors</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">short_fees</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><code>flows</code> is a finite signed node vector of incremental external account cash: deposits positive, liabilities/withdrawals negative. Default zero. Do not duplicate financing represented by loan contracts. Wealth includes these external flows; it is not a flow-adjusted return measure. Encode an earlier payment deadline at an earlier node.</p>
+<p>Carry setters use <strong>non-root nodes only</strong>: each row describes the incoming parent-to-node interval. A root-only tree rejects <code>set_carry</code>. Defaults are reset on every call.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type, default, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>deposit_factors</code></td>
+<td>Strictly positive finite non-root node vector of gross factors on positive parent cash; default one. These are interval factors, not annual rates.</td>
+</tr>
+<tr>
+<td><code>borrowing_factors</code></td>
+<td>Strictly positive finite non-root node vector of gross factors on negative parent cash; default one.</td>
+</tr>
+<tr>
+<td><code>dividends</code></td>
+<td>Finite signed non-root-node-by-asset grid of currency payments per parent holding unit, before share adjustment; default zero. Shorts pay positive dividends.</td>
+</tr>
+<tr>
+<td><code>share_factors</code></td>
+<td>Strictly positive finite non-root-node-by-asset grid multiplying parent quantities before node trades; default one.</td>
+</tr>
+<tr>
+<td><code>short_fees</code></td>
+<td>Nonnegative finite non-root-node-by-asset grid of currency fees per absolute short parent holding unit; default zero.</td>
+</tr>
+</tbody>
+</table>
+<p>No total-return, split, dividend, or annualization adjustment is inferred from the price grid. Before node trades, cash includes parent cash with the appropriate carry factor, parent-unit dividends, less short fees, plus external and net funding flows. Holdings start from share-adjusted parent quantities. Root cash and holdings come from the constructor.</p>
+<h2 id="revolving-credit-and-term-borrowing">Revolving credit and term borrowing</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">set_credit_limits</span><span class="p">(</span><span class="n">maximum</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">set_borrow_limits</span><span class="p">(</span><span class="n">maximum</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_funding</span><span class="p">(</span>
+    <span class="n">funding_id</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">draw_node</span><span class="p">,</span> <span class="n">repayment_stage</span><span class="p">,</span> <span class="n">maximum</span><span class="p">,</span>
+    <span class="n">interest</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">fee</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">fixed_fee</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">minimum</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">lot_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_existing_debt</span><span class="p">(</span>
+    <span class="n">debt_id</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">principal</span><span class="p">,</span> <span class="n">repayment_stage</span><span class="p">,</span> <span class="n">interest</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_debt</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">maximum</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_facility</span><span class="p">(</span>
+    <span class="n">facility_id</span><span class="p">,</span> <span class="n">funding_ids</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">maximum</span><span class="p">,</span> <span class="n">currency</span><span class="p">,</span>
+    <span class="n">fx_rates</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">reserved</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><code>set_credit_limits</code> replaces a nonnegative node vector of revolving negative-cash capacity; <code>set_borrow_limits</code> replaces a nonnegative node-by-asset grid of short approvals. Term borrowing is a separate explicit principal liability and does not expand either of these controls automatically.</p>
+<p>Funding/debt IDs are nonblank strings/integers and unique across those two collections. <code>draw_node</code> is a supplied observed node. <code>repayment_stage</code> is a supplied later stage for new funding; stage timestamps use the tree's date/aware clock. One draw decision applies whenever that node is reached and repays at every descendant maturity node, once per realized path. Existing-debt maturity may be the root and adds no historical draw to cash.</p>
+<table>
+<thead>
+<tr>
+<th>Funding term</th>
+<th>Type, default, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>maximum</code></td>
+<td>Required finite nonnegative new-principal cap in account currency.</td>
+</tr>
+<tr>
+<td><code>principal</code></td>
+<td>Required finite strictly positive opening-debt amount.</td>
+</tr>
+<tr>
+<td><code>interest</code></td>
+<td>Finite remaining total-term fraction, at least <code>-1</code>, default zero. Paid at maturity; no intermediate accrual or fair value is inferred.</td>
+</tr>
+<tr>
+<td><code>fee</code></td>
+<td>Finite nonnegative new-principal fraction paid at draw, default zero. No upper cap is imposed.</td>
+</tr>
+<tr>
+<td><code>fixed_fee</code></td>
+<td>Finite nonnegative currency charge per positive new draw, default zero. Requires positive <code>minimum</code> or a lot.</td>
+</tr>
+<tr>
+<td><code>minimum</code></td>
+<td>Finite amount in <code>[0, maximum]</code>, default zero. New borrowing is zero or at least this quantity.</td>
+</tr>
+<tr>
+<td><code>lot_size</code></td>
+<td>Optional finite strictly positive new-principal step, default <code>None</code> for continuous principal.</td>
+</tr>
+</tbody>
+</table>
+<p>New draw proceeds are <code>(1-fee)*principal - active_fixed_fee</code>; repayment is <code>(1+interest)*principal</code>. Funding events net within the node before trade prefunding. No intraday sequence, rollover, or collateral rights are inferred.</p>
+<p><code>limit_debt(maximum=...)</code> takes a finite nonnegative node vector capping outstanding term principal after draws and repayments, separately from negative cash. Initially there is no debt cap.</p>
+<p><code>limit_facility</code> uses the shared-commitment contract documented in <a href="funding.html#cash-debt-and-shared-facilities">funding facilities</a>. <code>funding_ids</code> is a nonempty distinct sequence of already configured contracts; <code>maximum</code> and default-zero <code>reserved</code> are nonnegative node vectors in facility currency. Capacity counts live principal on the realized path after repayments/draws; overlapping facilities are allowed. Reservation moves no cash and may make the model infeasible. Reusing the ID replaces that facility.</p>
+<p>All principals here use the single account currency. Optional facility <code>fx_rates</code> is a positive scalar, single-currency vector/Series/mapping, or node-by-single-currency DataFrame/array in facility units per account-currency unit. Cross-currency valuation requires explicit quotes; same-currency rates equal one. These quotes do not trade FX or change the account currency.</p>
+<h2 id="financial-limits">Financial limits</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">limit_cash</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">minimum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">maximum</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_positions</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_turnover</span><span class="p">(</span><span class="n">maximum</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_gross_notional</span><span class="p">(</span><span class="n">maximum</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_exposures</span><span class="p">(</span>
+    <span class="n">coefficients</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">,</span> <span class="n">risk_units</span><span class="p">,</span> <span class="n">exposure_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_participation</span><span class="p">(</span><span class="n">volumes</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">maximum_rate</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_terminal_wealth</span><span class="p">(</span><span class="n">minimum</span><span class="p">)</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Control</th>
+<th>Input types, defaults, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Cash <code>minimum</code>, <code>maximum</code></td>
+<td>Optional finite signed node vectors bounding post-trade cash. <code>None</code> removes that side; both <code>None</code> removes these bounds. Revolving-credit floors still apply. Finite cash ceilings affect nonlinear-impact formulation as described below.</td>
+</tr>
+<tr>
+<td>Position <code>lower</code>, <code>upper</code></td>
+<td>Optional finite signed node-by-asset grids bounding post-trade quantities. <code>None</code> removes that side; both <code>None</code> removes these bounds. Short approvals still apply.</td>
+</tr>
+<tr>
+<td>Turnover <code>maximum</code></td>
+<td>Required nonnegative node vector of currency caps on absolute trades at that node's valuation prices. No factor of one-half.</td>
+</tr>
+<tr>
+<td>Gross <code>maximum</code></td>
+<td>Required nonnegative node vector capping <code>sum(prices * abs(post_trade_holdings))</code> in currency.</td>
+</tr>
+<tr>
+<td>Exposure <code>coefficients</code></td>
+<td>Required finite signed exposure-by-asset matrix of supplied per-unit sensitivities/amounts, with aligned labels when labelled.</td>
+</tr>
+<tr>
+<td>Exposure <code>lower</code>, <code>upper</code></td>
+<td>Required finite signed node-by-exposure grids of ordered bounds. Equal bounds impose matching.</td>
+</tr>
+<tr>
+<td><code>risk_units</code></td>
+<td>Required nonblank unit string broadcast to all exposure rows, or complete sequence, Series, or mapping of nonblank physical-unit labels.</td>
+</tr>
+<tr>
+<td><code>exposure_ids</code></td>
+<td>Optional unique nonblank string/integer row IDs, inferred from DataFrame rows or positional integers. IDs must be unique across calls; each call adds a block.</td>
+</tr>
+<tr>
+<td><code>volumes</code>, <code>maximum_rate</code></td>
+<td>Required nonnegative quantity grid and rate grid in <code>[0,1]</code>. Their product caps absolute node/asset trading along with buy/sell capacities.</td>
+</tr>
+<tr>
+<td>Terminal <code>minimum</code></td>
+<td>Required finite signed scalar or complete case vector, Series, or mapping of minimum terminal currency wealth. Applies to every case, including zero-probability cases.</td>
+</tr>
+</tbody>
+</table>
+<p>Bounds require lower no greater than upper. Except added exposure blocks and the separately identified facilities, setters replace their prior settings.</p>
+<p>Closing cash is available cash minus purchases plus sales minus fees and impact. Net settlement checks closing credit. Prefunded settlement also checks available cash minus purchases and charges against the revolving-credit floor before adding sales. Additional <code>limit_cash</code> bounds apply to closing cash. Intermediate pre-node cash is not a separate settlement checkpoint.</p>
+<p>At any node, reported wealth equals cash plus marked holdings minus outstanding term principal. Terminal wealth includes all configured loan repayments because maturities lie within the horizon. Intermediate principal accounting does not infer debt fair value or accrued remaining interest. Asset eligibility, valuation, sensitivities, volumes, and legal financing permissions remain supplied inputs.</p>
+<h2 id="wealth-and-tail-risk-objectives">Wealth and tail-risk objectives</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">maximize_expected_wealth</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">maximize_worst_case_wealth</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">minimize_expected_shortfall</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_expected_shortfall</span><span class="p">(</span><span class="n">maximum</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)</span>
+</code></pre></div>
+<p>Expected terminal wealth is the default objective and requires explicit tree case probabilities. Worst-case selection maximizes the minimum wealth over every supplied case and permits probability-free stress planning. No equal weights are inferred.</p>
+<p>Both ES methods require probabilities when the model is exported, validated, evaluated, or solved. Required <code>target</code> is a finite signed scalar or complete case vector, Series, or mapping in currency. Case loss is <code>target - terminal_wealth</code>, without clipping gains. <code>confidence</code> is strictly in <code>(0,1)</code>, default <code>0.95</code>. ES is the finite weighted upper-tail mean with fractional boundary mass. Minimization changes the objective; a hard cap remains under every objective. Required hard <code>maximum</code> is a finite signed currency scalar. Its target and confidence are independent of those used by the objective. Repeated calls replace the corresponding setting.</p>
+<h2 id="exports-and-execution">Exports and execution</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">to_model</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">return_variables</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">to_cvxpy</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">to_scip</span><span class="p">()</span>
+</code></pre></div>
+<p><code>to_matrix()</code> returns detached complete sparse Opt LP/MILP data for models without active quadratic or power impact. Quoted piecewise costs retain their exact interpolant. The dictionary contains <code>name="multi_period_investment"</code>, <code>format="matrix"</code>, <code>problem_type</code>, <code>sense</code> (<code>max</code> wealth or <code>min</code> ES), <code>variable_names</code>, <code>objective</code>, <code>objective_offset=0.0</code>, CSR <code>constraint_matrix</code>, <code>row_lower</code>, <code>row_upper</code>, <code>constraint_names</code>, <code>lower_bounds</code>, <code>upper_bounds</code>, and <code>integrality</code>. Vectors are NumPy arrays; infinite endpoints indicate absent bounds.</p>
+<p><code>to_model()</code> returns the equivalent detached algebraic Opt formulation; boolean <code>return_variables=True</code> returns <code>(model, expressions)</code>. These linear exports permit explicit further compilation as described in <a href="custom-models.html">custom models</a>.</p>
+<p><code>to_cvxpy()</code> returns <code>(cvxpy.Problem, expressions)</code> for complete linear/piecewise models and nonlinear-impact models without finite cash ceilings. <code>to_scip()</code> returns <code>(pyscipopt.Model, expressions)</code>, including exact nonlinear cost graphs when cash ceilings are present. Every financial expression mapping has node-by-asset DataFrames <code>trades</code>, <code>holdings</code> and node Series <code>cash_balances</code> named <code>cash</code>; configured new loans add funding-ID Series <code>draws</code> named <code>principal</code>; facilities add <code>(node, facility)</code> Series <code>facility_utilization</code> named <code>utilization</code>. Values use actual asset units, native principal, and facility-currency utilization, including reserved usage; they are not lot counts. Export changes do not change the source specification.</p>
+<p>Without nonlinear impact the class is LP or MILP. Integers may arise from lots, fixed/minimum trades, trading direction, exact cash/short carry pieces, funding activation, or piecewise curve segments. With quadratic/power impact and no cash ceilings the formulation is SOCP or MISOCP. A cost epigraph permits reconstruction of true costs and no less cash; all financial limits and wealth/tail tests are rechecked. With finite cash ceilings an epigraph could artificially spend cash, so an exact graph is required: quadratic costs give QCQP/MIQCP and active power costs give NLP/MINLP. These routes require SCIP; Opt linear exports and <code>to_cvxpy</code> reject them.</p>
+<p><a href="solving.html">Solving</a> defines authentication, routing, and options. Defaults select Opt for linear models, Clarabel for continuous conic models, and SCIP where integer conic or exact nonlinear execution is required. Every Finance solve requires Opt authentication. Export and evaluation are offline.</p>
+<h2 id="evaluate-a-policy-and-inspect-results">Evaluate a policy and inspect results</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">trades</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">draws</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">)</span>
+</code></pre></div>
+<p><code>trades</code> is a complete finite signed node-by-asset matrix: aligned DataFrame, supported column mapping, ordered dense array, or sparse matrix. Unlike setter grids, evaluation does not broadcast scalar or per-asset decisions. <code>draws</code> requires a complete finite new-funding vector, Series, or mapping in insertion order when loans are configured, including explicit zero draws. Opening debt has no decision. Default <code>None</code> is valid without new funding. <code>tolerance</code> is a finite nonnegative absolute scalar, default <code>1e-7</code>.</p>
+<p>Evaluation replays the complete policy and original financial limits without authentication or solving. It returns <code>objective</code>, <code>feasible</code>, <code>constraints</code>, <code>decision</code>, <code>metrics</code>, <code>tables</code>, <code>costs</code>, and <code>transformations</code>. Original sums/products determine residuals before binary64 reporting, including carry, liabilities, financing, nonlinear costs, and terminal risk. It checks fractional lots and violated bounds rather than repairing decisions.</p>
+<p><code>result.trades</code> and <code>result.holdings</code> are node-by-asset DataFrames; <code>cash_balances</code> is a node Series named <code>cash</code>; configured <code>draws</code> is a new-funding Series named <code>principal</code>. Objective and wealth units are currency.</p>
+<table>
+<thead>
+<tr>
+<th>Location</th>
+<th>Fields</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>metrics</code></td>
+<td><code>expected_terminal_wealth</code> (<code>None</code> without probabilities), <code>worst_terminal_wealth</code>, <code>terminal_expected_shortfall</code> (<code>None</code> unless ES objective), <code>hard_expected_shortfall</code> (<code>None</code> without a hard cap), <code>currency</code>.</td>
+</tr>
+<tr>
+<td><code>costs</code></td>
+<td>Node-order lists <code>funding_interest_by_node</code>, <code>funding_fees_by_node</code>, <code>impact_by_node</code>, <code>trading_fees_by_node</code>, <code>spread_by_node</code>, <code>short_fees_by_node</code>; <code>currency</code>. These lists follow nodes, not whole-path totals.</td>
+</tr>
+<tr>
+<td><code>investment_accounts</code> table</td>
+<td>Tree-node metadata plus <code>available_cash</code>, <code>interest</code> (signed revolving cash carry), <code>dividends</code>, <code>short_fees</code>, <code>external_flow</code>, <code>funding_draws</code>, <code>principal_repayments</code>, <code>funding_interest</code>, <code>funding_fees</code>, <code>outstanding_debt</code>, <code>net_funding_cash_flow</code>, <code>purchase_outlay</code>, <code>sale_proceeds</code>, <code>trading_fees</code>, <code>market_impact</code>, <code>spread_cost</code>, <code>closing_cash</code>, <code>wealth</code>, <code>gross_assets</code>. Currency is a DataFrame attribute.</td>
+</tr>
+<tr>
+<td><code>investment_funding</code> table</td>
+<td>Indexed by <code>(funding_id, node, event)</code>: <code>stage</code>, <code>time</code>, <code>principal</code>, <code>interest</code>, <code>fees</code>, <code>cash_flow</code>. Events are <code>draw</code>, <code>repayment</code>, or <code>existing_debt_repayment</code>. Currency is a DataFrame attribute.</td>
+</tr>
+<tr>
+<td><code>investment_scenarios</code> table</td>
+<td>Case-indexed <code>terminal_wealth</code>, optional <code>probability</code>; ES objective adds <code>target</code>, <code>loss</code>; hard ES adds <code>hard_tail_target</code>, <code>hard_tail_loss</code>. Currency is an attribute.</td>
+</tr>
+<tr>
+<td><code>investment_information</code> table</td>
+<td>Case/stage information-node mapping from the tree.</td>
+</tr>
+<tr>
+<td><code>investment_stage_times</code> table</td>
+<td>Stage-indexed <code>time</code> column from the tree's clock.</td>
+</tr>
+<tr>
+<td><code>funding_facilities</code>, <code>funding_facility_components</code></td>
+<td>When configured, the utilization and principal-contribution schemas in <a href="funding.html#result-fields">funding results</a>, with node rows.</td>
+</tr>
+</tbody>
+</table>
+<p>Numeric decisions, metrics, account amounts, and cost-list entries are floats; the documented inactive metrics remain <code>None</code>. <code>investment_accounts</code> retains node order. <code>gross_assets</code> is closing cash plus the signed marked value of holdings, before subtracting term principal; the gross-notional limit separately uses absolute holding values. <code>available_cash</code> is after carry, external flows, and net loan events, before node trades. <code>net_funding_cash_flow</code> equals funding draws minus principal repayments, funding interest, and funding fees. Purchases and sales include their execution quotes; <code>spread_cost</code> reports the quote-versus-valuation difference already paid in those cash flows.</p>
+<p>For nonlinear impact without cash ceilings, evaluation includes one transformation with <code>type="market_impact_epigraph"</code> and boolean fields <code>cash_upper_bounds_absent=True</code>, <code>source_cash_recomputed=True</code>, and <code>exact_financial_projection=True</code>. Other formulations return an empty transformation list from direct evaluation. Asset-quantity constraints use <code>asset_units</code>, trade/funding lot residuals use <code>lots</code>, monetary limits use currency, and exposure bounds use their declared physical units.</p>
+<p>Solving recovers signed financial trades and draws and replays the policy. <a href="results.html">Results</a> defines source feasibility, solver evidence, and acceptance; <a href="plotting.html">plotting</a> covers policy, wealth, cash, and scenario figures.</p>
+<p>Invalid dimensions, labels, factors, bounds, missing probabilities, curve domains, or unsupported exports raise <code>TypeError</code> or <code>ValueError</code>; unrepresentable calculations raise <code>ValueError</code>. Valid but incompatible mandates may produce an infeasible solve. A scenario policy describes decisions conditional on supplied observations, not a forecast guarantee.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="portfolio.html"><span>Previous</span><strong>Portfolios and rebalancing</strong></a><a class="pager-card next" href="execution.html"><span>Next</span><strong>Execution scheduling</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#constructor">Constructor</a><a class="toc-level-2" href="#trading-costs-and-quantity-steps">Trading costs and quantity steps</a><a class="toc-level-2" href="#cash-flows-and-carry">Cash flows and carry</a><a class="toc-level-2" href="#revolving-credit-and-term-borrowing">Revolving credit and term borrowing</a><a class="toc-level-2" href="#financial-limits">Financial limits</a><a class="toc-level-2" href="#wealth-and-tail-risk-objectives">Wealth and tail-risk objectives</a><a class="toc-level-2" href="#exports-and-execution">Exports and execution</a><a class="toc-level-2" href="#evaluate-a-policy-and-inspect-results">Evaluate a policy and inspect results</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

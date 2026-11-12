@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Getting started">
+<title>Getting started | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/getting-started.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="getting-started">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="active" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Overview</span><span aria-hidden="true">&gt;</span><span>Getting started</span></div><article class="doc-content"><h1 id="getting-started">Getting started</h1>
+<p>Use QpiAI Finance to describe a financial decision, choose its objective and restrictions, then obtain and verify the financial outcome. The same domain model provides an entry to supported quantum-inspired representations and standard numerical formulations.</p>
+<h2 id="install-and-check-the-environment">Install and check the environment</h2>
+<div class="code-shell"><div class="code-toolbar"><span>bash</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-bash">pip<span class="w"> </span>install<span class="w"> </span>qpiai-finance
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>check
+python<span class="w"> </span>-c<span class="w"> </span><span class="s2">"from importlib.metadata import version; print(version('qpiai-finance'))"</span>
+</code></pre></div>
+<p>The package declares Python <code>&gt;=3.10,&lt;3.15</code>. Installation also requires compatible distributions of its dependencies for the selected Python version, operating system, and architecture. Runtime dependencies are:</p>
+<table>
+<thead>
+<tr>
+<th>Distribution</th>
+<th>Declared requirement</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>qpiai-opt[quantum]</code></td>
+<td><code>==0.0.9</code></td>
+<td>Opt modeling, solver execution, polynomial representations, gate-based integration, and compatible Quantum SDK dependency.</td>
+</tr>
+<tr>
+<td><code>numpy</code></td>
+<td><code>&gt;=1.26,&lt;3</code></td>
+<td>Numeric arrays and linear algebra.</td>
+</tr>
+<tr>
+<td><code>scipy</code></td>
+<td><code>&gt;=1.15,&lt;2</code></td>
+<td>Sparse matrices, statistical/numerical calculations, and clustering.</td>
+</tr>
+<tr>
+<td><code>pandas</code></td>
+<td><code>&gt;=2.2,&lt;4</code></td>
+<td>Labeled financial inputs and result tables.</td>
+</tr>
+<tr>
+<td><code>cvxpy</code></td>
+<td><code>&gt;=1.7.5,&lt;2</code></td>
+<td>Supported convex and mixed-integer formulations.</td>
+</tr>
+<tr>
+<td><code>clarabel</code></td>
+<td><code>&gt;=0.11.1,&lt;0.12</code></td>
+<td>Continuous conic solving.</td>
+</tr>
+<tr>
+<td><code>pyscipopt</code></td>
+<td><code>&gt;=6.3,&lt;7</code></td>
+<td>SCIP integration for supported mixed-integer and nonlinear models.</td>
+</tr>
+<tr>
+<td><code>matplotlib</code></td>
+<td><code>&gt;=3.8,&lt;4</code></td>
+<td>Financial result and analysis plots.</td>
+</tr>
+</tbody>
+</table>
+<p>The <code>dev</code> extra adds development tools. QpiAI Opt's pinned quantum extra selects <code>qpiai-quantum==0.3.0</code>.</p>
+<h2 id="prepare-financial-inputs">Prepare financial inputs</h2>
+<p>Use adjusted prices, supplied forecasts, or outputs from existing institutional data and risk systems. Finance does not download market data or price instruments. For a portfolio, align expected arithmetic returns and covariance at the same horizon.</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">qpiai_finance.portfolio</span><span class="w"> </span><span class="kn">import</span> <span class="n">PortfolioModel</span>
+
+<span class="n">expected_returns</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">({</span><span class="s2">"equity"</span><span class="p">:</span> <span class="mf">0.08</span><span class="p">,</span> <span class="s2">"bonds"</span><span class="p">:</span> <span class="mf">0.04</span><span class="p">,</span> <span class="s2">"credit"</span><span class="p">:</span> <span class="mf">0.06</span><span class="p">})</span>
+<span class="n">covariance</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+    <span class="p">[[</span><span class="mf">0.040</span><span class="p">,</span> <span class="mf">0.002</span><span class="p">,</span> <span class="mf">0.010</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.002</span><span class="p">,</span> <span class="mf">0.009</span><span class="p">,</span> <span class="mf">0.003</span><span class="p">],</span> <span class="p">[</span><span class="mf">0.010</span><span class="p">,</span> <span class="mf">0.003</span><span class="p">,</span> <span class="mf">0.025</span><span class="p">]],</span>
+    <span class="n">index</span><span class="o">=</span><span class="n">expected_returns</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+    <span class="n">columns</span><span class="o">=</span><span class="n">expected_returns</span><span class="o">.</span><span class="n">index</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">portfolio</span> <span class="o">=</span> <span class="n">PortfolioModel</span><span class="p">(</span><span class="n">expected_returns</span><span class="p">,</span> <span class="n">covariance</span><span class="p">,</span> <span class="n">horizon</span><span class="o">=</span><span class="s2">"one year"</span><span class="p">)</span>
+<span class="n">portfolio</span><span class="o">.</span><span class="n">maximize_utility</span><span class="p">(</span><span class="n">risk_aversion</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+</code></pre></div>
+<p>Returns are fractions. <code>0.08</code> means 8% over the declared year. The covariance uses squared-return units over that same year. The horizon string records the convention; it does not annualize either input. Default portfolio bounds are long-only, from zero to one. See <a href="data.html">data conventions</a> and <a href="portfolio.html">portfolio parameters</a>.</p>
+<h2 id="select-and-inspect-a-binary-portfolio">Select and inspect a binary portfolio</h2>
+<p>For a portfolio with exactly two equal-weight holdings:</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">qpiai_finance</span><span class="w"> </span><span class="kn">import</span> <span class="n">inspect</span><span class="p">,</span> <span class="n">validate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qpiai_finance.quantum</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_portfolio</span>
+
+<span class="n">portfolio</span><span class="o">.</span><span class="n">select_assets</span><span class="p">(</span><span class="n">count</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">equal_weight</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">encoding</span> <span class="o">=</span> <span class="n">compile_portfolio</span><span class="p">(</span><span class="n">portfolio</span><span class="p">,</span> <span class="n">representation</span><span class="o">=</span><span class="s2">"hubo"</span><span class="p">)</span>
+<span class="n">problem_class</span> <span class="o">=</span> <span class="n">validate</span><span class="p">(</span><span class="n">encoding</span><span class="p">)</span>
+<span class="n">report</span> <span class="o">=</span> <span class="n">inspect</span><span class="p">(</span><span class="n">encoding</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">problem_class</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">encoding</span><span class="o">.</span><span class="n">variable_mapping</span><span class="p">)</span>
+</code></pre></div>
+<p>The two selected assets each receive weight <code>0.5</code>. The encoding retains the objective, cardinality restriction, asset mapping, and original financial model. <code>hubo</code> retains higher-order polynomial terms when present. <code>qubo</code> and <code>ising</code> select pairwise representations, with recorded auxiliary conversions when required. See <a href="quantum.html">quantum-inspired and gate-based quantum optimization</a> for supported objectives, constraints, penalties, and execution controls.</p>
+<p>Validation and inspection do not solve, authenticate, or prove feasibility. Inspection can include full financial inputs. Handle the report accordingly.</p>
+<h2 id="authenticate-and-solve">Authenticate and solve</h2>
+<p>Register for an Opt API key at <a href="https://opt.qpiai.tech/">QpiAI Opt</a> and place it in the application's environment or secret store. Every Finance solve verifies an Opt client, including local computation and external solvers.</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">qpiai_opt.opt_solvers</span><span class="w"> </span><span class="kn">import</span> <span class="n">Client</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qpiai_finance</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve</span>
+
+<span class="n">client</span> <span class="o">=</span> <span class="n">Client</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"QPIAI_OPT_API_KEY"</span><span class="p">])</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">solve</span><span class="p">(</span><span class="n">encoding</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">)</span>
+</code></pre></div>
+<p>This selects the local Opt route. Key verification requires connectivity. Platform work is selected explicitly and can consume credits. Gate-based quantum optimization additionally requires QCloud authentication and an explicitly selected Opt algorithm and execution settings. <a href="solving.html">Solving</a> defines the full execution contract.</p>
+<h2 id="check-the-financial-outcome">Check the financial outcome</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">status</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">feasible</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">optimality_proven</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">feasible</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">weights</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">objective</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">objective_unit</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">metrics</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">constraints</span><span class="p">)</span>
+</code></pre></div>
+<p>The objective is recalculated in financial units. <code>feasible</code> reports the original financial checks; <code>optimality_proven</code> is a separate guarantee. Do not treat the smallest observed polynomial energy or a completed job as proof of a financial optimum. See <a href="results.html">results</a>.</p>
+<h2 id="use-another-financial-formulation">Use another financial formulation</h2>
+<p>For continuous allocation, create a portfolio without <code>select_assets</code> and solve it directly. Add weight, exposure, return, leverage, turnover, or other documented restrictions through the model methods. For actual rebalancing, supply holdings, prices, cash, and currency; results then include proposed quantities and cash accounting.</p>
+<p>For a custom financial model, reuse risk, cash-flow, scenario, and cost calculations with an explicit Opt or supported external formulation. Supported Finance models expose detached formulations and labeled financial expressions. Changes to those exports do not modify the original Finance model. <a href="custom-models.html">Custom models</a> explains compilation and result recovery.</p>
+<p>Use the <a href="manual.html">manual</a> to select trading, treasury, credit, hedging, reinsurance, collateral, or settlement workflows. <a href="automation.html">automation.md</a> provides discovery and procedural guidance for automated use.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="manual.html"><span>Previous</span><strong>User manual</strong></a><a class="pager-card next" href="data.html"><span>Next</span><strong>Financial data and conventions</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#install-and-check-the-environment">Install and check the environment</a><a class="toc-level-2" href="#prepare-financial-inputs">Prepare financial inputs</a><a class="toc-level-2" href="#select-and-inspect-a-binary-portfolio">Select and inspect a binary portfolio</a><a class="toc-level-2" href="#authenticate-and-solve">Authenticate and solve</a><a class="toc-level-2" href="#check-the-financial-outcome">Check the financial outcome</a><a class="toc-level-2" href="#use-another-financial-formulation">Use another financial formulation</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

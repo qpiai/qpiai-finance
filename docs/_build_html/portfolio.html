@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Portfolios and rebalancing">
+<title>Portfolios and rebalancing | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/portfolio.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="portfolio">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="active" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Financial models</span><span aria-hidden="true">&gt;</span><span>Portfolios and rebalancing</span></div><article class="doc-content"><h1 id="portfolio-construction-and-rebalancing">Portfolio construction and rebalancing</h1>
+<p><code>PortfolioModel</code> describes a single-period allocation or a rebalance of supplied holdings and cash. Choose the financial objective and investment restrictions first. Solve the supported formulation directly, or compile an eligible equal-weight selection for quantum-inspired or gate-based optimization. The financial model remains the reference for recovered weights, costs, and feasibility.</p>
+<p>Import <code>PortfolioModel</code> and <code>FrontierResult</code> from <code>qpiai_finance.portfolio</code>. Common execution is described in <a href="solving.html">solving</a>; binary representations and algorithm controls are described in <a href="quantum.html">quantum optimization</a>.</p>
+<h2 id="construct-the-model">Construct the model</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">PortfolioModel</span><span class="p">(</span>
+    <span class="n">expected_returns</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">covariance</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">horizon</span><span class="p">,</span> <span class="n">asset_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">net_weight</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">holdings</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">prices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cash</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">currency</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">bid_prices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ask_prices</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cash_return</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>expected_returns</code></td>
+<td>Optional finite arithmetic-return vector, Series, or mapping, one value per asset. Required for utility, return targets, and robust forecasts.</td>
+</tr>
+<tr>
+<td><code>covariance</code></td>
+<td>Optional aligned square covariance DataFrame, column mapping, dense/sparse matrix, or <code>FactorRisk</code>. Required for variance-based objectives or limits and risk construction.</td>
+</tr>
+<tr>
+<td><code>horizon</code></td>
+<td>Required nonblank string describing the common forecast and risk horizon. It does not rescale inputs.</td>
+</tr>
+<tr>
+<td><code>asset_ids</code></td>
+<td>Optional unique string/integer asset identifiers. Labeled expected returns define the default order. When expected returns are omitted, factor-risk or labeled covariance identifiers define it. Unlabeled expected returns use positional integers unless <code>asset_ids</code> is supplied, even when covariance is labeled. Explicit identifiers define array order.</td>
+</tr>
+<tr>
+<td><code>net_weight</code></td>
+<td>Finite real target for the sum of asset weights in allocation-only models; default <code>1.0</code>. A rebalancing account requires exactly <code>1.0</code> and uses its self-financing equation instead.</td>
+</tr>
+<tr>
+<td><code>holdings</code></td>
+<td>Starting signed share/quantity vector. Supplying any account input requires all of <code>holdings</code>, <code>prices</code>, <code>cash</code>, and <code>currency</code>.</td>
+</tr>
+<tr>
+<td><code>prices</code></td>
+<td>Finite valuation-price vector, one positive price per asset, in account currency per share/quantity unit.</td>
+</tr>
+<tr>
+<td><code>cash</code></td>
+<td>Finite starting cash amount in account currency. Initial cash plus marked holdings must have strictly positive finite value.</td>
+</tr>
+<tr>
+<td><code>currency</code></td>
+<td>Uppercase three-letter account currency code. No FX conversion is inferred.</td>
+</tr>
+<tr>
+<td><code>bid_prices</code>, <code>ask_prices</code></td>
+<td>Optional aligned vectors; each defaults to <code>prices</code>. Must satisfy <code>0 &lt; bid_prices &lt;= prices &lt;= ask_prices</code>.</td>
+</tr>
+<tr>
+<td><code>cash_return</code></td>
+<td>Finite cash return fraction over the model horizon, at least <code>-1</code>; default zero. Requires an account when nonzero.</td>
+</tr>
+</tbody>
+</table>
+<p>At least one of expected returns and covariance must be supplied. All arrays and labeled inputs follow <a href="data.html">data conventions</a>. Default asset bounds are <code>0 &lt;= w_i &lt;= 1</code>; the default objective minimizes variance. A return-only model therefore needs an appropriate configured objective before validation or solving.</p>
+<p>Read-only properties are <code>asset_ids</code> (detached pandas Index), <code>expected_returns</code> (detached Series named <code>expected_return</code>, or <code>None</code>), <code>horizon</code> (string), and <code>tax_lots</code> (detached acquisition-lot DataFrame, or <code>None</code>).</p>
+<p>Objective and constraint configuration methods below modify the model and return <code>self</code>. Selecting another objective retains existing financial constraints unless a method explicitly replaces their settings. Setting an objective clears the previous benchmark; <code>minimize_tracking_error</code> supplies its own benchmark. Repeated calls to an ordinary limit setter replace that limit; exposure groups accumulate under unique identifiers.</p>
+<h2 id="weight-and-cash-conventions">Weight and cash conventions</h2>
+<p>Without an account, asset weights use the declared investment basis and satisfy <span class="arithmatex">\(\sum_iw_i=\texttt{net\_weight}\)</span>. With an account, define <span class="arithmatex">\(V_0=C_0+\sum_ip_iq_i^0\)</span>. Then <span class="arithmatex">\(w_i=p_iq_i^+/V_0\)</span>. These weights use initial value. The result separately reports <code>post_trade_weights</code>, whose denominator is the positive marked account value after trades, <code>portfolio_value = cash_after + sum(prices * holdings)</code>. Deferred recognized tax remains outside that denominator; <code>net_value_after_tax</code> additionally deducts unpaid recognized tax. <code>post_trade_weights</code> is absent when <code>portfolio_value &lt;= 0</code>.</p>
+<p>For buys <span class="arithmatex">\(b_i\geq0\)</span> and sells <span class="arithmatex">\(s_i\geq0\)</span>, quantities satisfy <span class="arithmatex">\(q_i^+=q_i^0+b_i-s_i\)</span>. Cash uses actual ask and bid prices, fees, and immediately settled tax:</p>
+<div class="arithmatex">\[
+C^+=C_0-\sum_i\operatorname{ask}_i b_i+\sum_i\operatorname{bid}_i s_i-\operatorname{fees}-\operatorname{tax}_{\mathrm{paid}}.
+\]</div>
+<p>The self-financing equation includes the resulting cash, spread costs, fees, and immediately settled tax. Default final cash lies between zero and initial portfolio value. Recognized deferred tax affects economic return but is not paid from current cash.</p>
+<p>Net forecast return is <span class="arithmatex">\(\mu^\top w+r_cC^+/V_0-(\operatorname{spread}+\operatorname{fees}+\operatorname{recognized\ tax})/V_0\)</span>. The account metric <code>gross_expected_return</code> is the asset contribution <span class="arithmatex">\(\mu^\top w\)</span>. The input <code>cash_return</code> is the rate <span class="arithmatex">\(r_c\)</span>; the result metric of that name is its return contribution <span class="arithmatex">\(r_cC^+/V_0\)</span>. <code>expected_return</code> is the net forecast above. Variance is calculated on the asset weights at the supplied horizon. Cash return is deterministic in this model.</p>
+<h2 id="objectives">Objectives</h2>
+<h3 id="variance-utility-and-benchmark-risk">Variance, utility, and benchmark risk</h3>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">minimize_variance</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">maximize_utility</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">risk_aversion</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">minimize_tracking_error</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">benchmark</span><span class="p">)</span>
+</code></pre></div>
+<p><code>minimize_variance</code> minimizes <span class="arithmatex">\(w^\top\Sigma w\)</span>. <code>maximize_utility</code> maximizes net forecast return minus <code>risk_aversion * variance / 2</code>; aversion must be a finite nonnegative real scalar. Zero aversion maximizes return alone and does not require covariance unless another setting needs it. If robust forecasts are active, utility uses their specified worst-case return.</p>
+<p><code>benchmark</code> is a complete finite weight vector, Series, or mapping aligned by asset. Tracking-error minimization minimizes active variance <span class="arithmatex">\((w-b)^\top\Sigma(w-b)\)</span>; the reported tracking error is its square root. The benchmark is not normalized. The result also reports covariance-implied beta; beta is NaN if benchmark variance is zero.</p>
+<h3 id="scenario-risk">Scenario risk</h3>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">minimize_expected_shortfall</span><span class="p">(</span><span class="n">scenarios</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">minimize_mean_absolute_deviation</span><span class="p">(</span><span class="n">scenarios</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">minimize_downside_risk</span><span class="p">(</span><span class="n">scenarios</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+</code></pre></div>
+<p><code>scenarios</code> must be a <code>Scenarios</code> instance with exactly the model's assets, <code>unit="simple_return"</code>, matching <code>horizon</code>, and explicit probabilities. Finance takes a detached copy and aligns its asset columns. Use <a href="scenarios.html">scenario contracts</a> for construction.</p>
+<p>Expected shortfall minimizes the upper tail of losses equal to negative net scenario returns. <code>confidence</code> is strictly between zero and one; fractional boundary probability is included. Mean absolute deviation minimizes expected absolute deviation from the scenario-weighted mean; deterministic cash income and transaction costs cancel in this deviation. Downside risk minimizes the first lower partial moment <span class="arithmatex">\(E[(\texttt{target}-r_s)_+]\)</span>, where <code>target</code> is a finite return fraction. It is not a pathwise drawdown measure.</p>
+<h3 id="higher-moment-utility">Higher-moment utility</h3>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">maximize_moment_utility</span><span class="p">(</span>
+    <span class="n">scenarios</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">variance_aversion</span><span class="p">,</span> <span class="n">skewness_preference</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">kurtosis_aversion</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>The scenario requirements above apply. All three coefficients are finite nonnegative real scalars. The objective is forecast mean minus <code>variance_aversion</code> times the second central scenario moment, plus <code>skewness_preference</code> times the third, minus <code>kurtosis_aversion</code> times the fourth. The mean comes from <code>expected_returns</code>; central moments come from the supplied scenario distribution.</p>
+<p>These are raw central moments, without sample corrections or standardization by volatility. Choose coefficient units so each contribution has return-fraction units. The variance coefficient has no extra factor of one-half. This formulation requires equal-weight selection for binary optimization; use <a href="quantum.html">portfolio compilation</a>. Direct <code>solve(model, ...)</code> uses native HUBO. <code>to_model</code> and <code>to_cvxpy</code> reject this nonconvex polynomial objective.</p>
+<h3 id="risk-budgets">Risk budgets</h3>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">allocate_risk</span><span class="p">(</span><span class="n">budgets</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">polish</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">polish_maxiter</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+</code></pre></div>
+<p><code>budgets</code> is a positive complete vector, Series, or mapping summing to one within absolute <code>1e-12</code>; omitted means equal budgets. <code>polish</code> is a Python boolean. <code>polish_maxiter</code> is a positive integer excluding booleans.</p>
+<p>The construction minimizes <span class="arithmatex">\(\frac12x^\top\Sigma x-\sum_ib_i\log x_i\)</span> for positive risk positions, then scales them to <code>net_weight</code>. It requires covariance with positive asset variances, positive <code>net_weight</code>, and no rebalancing account. The default solver is Clarabel. Optional refinement uses a SciPy root calculation on the risk-budget equations and accepts a finite candidate only when it reduces the residual. Refinement settings and outcomes appear in <code>solver_info["refinement"]</code>.</p>
+<p>Refinement runs when <code>polish=True</code> and the solver returns a candidate. Its record contains:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>method</code></td>
+<td>String <code>"scipy-root-krylov"</code>; the equations are <span class="arithmatex">\(x_i(\Sigma x)_i-b_i=0\)</span>.</td>
+</tr>
+<tr>
+<td><code>residual_before</code>, <code>residual_after</code></td>
+<td>Floats giving the maximum absolute equation residual before and after accepted refinement.</td>
+</tr>
+<tr>
+<td><code>accepted</code></td>
+<td>Boolean; true only for a finite candidate with a strictly smaller residual.</td>
+</tr>
+<tr>
+<td><code>function_evaluations</code></td>
+<td>Integer count, zero when refinement was unnecessary, or <code>None</code> when the root routine supplies no count.</td>
+</tr>
+<tr>
+<td><code>settings</code></td>
+<td>Dictionary with <code>maxiter=polish_maxiter</code>, <code>fatol=max(2**-52, min(tolerance/10, 1e-12))</code>, and <code>line_search="armijo"</code>.</td>
+</tr>
+<tr>
+<td><code>message</code></td>
+<td>Root-routine message string, present only if that routine ran.</td>
+</tr>
+<tr>
+<td><code>runtime_s</code></td>
+<td>Float elapsed refinement time in seconds, included in the overall solve duration.</td>
+</tr>
+</tbody>
+</table>
+<p>If the initial residual already meets <code>fatol</code>, the root routine is skipped and <code>accepted=False</code>. A rejected proposal retains the original positions and <code>residual_after=residual_before</code>. The returned allocation still undergoes Finance's financial and risk-budget checks.</p>
+<p>Financial restrictions are checked on the normalized weights; they are not imposed in the logarithmic construction program. A construction can therefore fail a requested weight, return, exposure, or other financial limit. Check <code>result.feasible</code> and the risk-budget residuals.</p>
+<h3 id="hierarchical-risk-parity">Hierarchical risk parity</h3>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">hierarchical_risk_parity</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">linkage_method</span><span class="o">=</span><span class="s2">"single"</span><span class="p">)</span>
+</code></pre></div>
+<p><code>linkage_method</code> is one of <code>"single"</code>, <code>"complete"</code>, <code>"average"</code>, <code>"weighted"</code>, <code>"centroid"</code>, <code>"median"</code>, or <code>"ward"</code>. The method clusters correlation distances and recursively allocates inverse cluster-risk shares. Zero-risk sibling clusters split equally.</p>
+<p>HRP requires positive asset variances, positive <code>net_weight</code>, and no account. Its implementation materializes asset covariance, including for factor inputs. This is a long-only construction heuristic, not a minimum-variance solution or a guarantee of equal risk contributions. Financial constraints remain checked on the resulting weights. The default solver selection is <code>"hrp"</code>; authentication is still required. HRP has no numerical optimization objective or optimality proof, and no Opt or CVXPY program export.</p>
+<h2 id="return-and-risk-limits">Return and risk limits</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">require_return</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">minimum</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_leverage</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">maximum</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_volatility</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">maximum</span><span class="p">)</span>
+</code></pre></div>
+<p><code>minimum</code> is a finite net arithmetic-return fraction over the model horizon. It requires expected returns, includes account cash income and recognized transaction/tax costs, and uses worst-case expected return when configured. <code>limit_leverage</code> bounds <span class="arithmatex">\(\sum_i|w_i|\)</span> by its finite nonnegative <code>maximum</code>. <code>limit_volatility</code> bounds <span class="arithmatex">\(\sqrt{w^\top\Sigma w}\)</span> by a finite nonnegative horizon return fraction and requires covariance.</p>
+<p>A volatility constraint is a conic/quadratically constrained formulation, not an ordinary QP with linear constraints. It uses a supported external route, with SCIP for integer variants.</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">robust_returns</span><span class="p">(</span><span class="n">uncertainty</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">uncertainty_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</code></pre></div>
+<p><code>uncertainty</code> is an asset × uncertainty-coordinate matrix <span class="arithmatex">\(U\)</span>: DataFrame, column mapping, dense array, or sparse matrix. <code>uncertainty_ids</code> are optional unique string/integer column identifiers, inferred from labeled columns or positional integers. <code>radius</code> is a finite nonnegative real scalar.</p>
+<p>Under <span class="arithmatex">\(\mu=\mu_0+Uu\)</span> with <span class="arithmatex">\(\lVert u\rVert_2\leq\rho\)</span>, worst-case return is <span class="arithmatex">\(\mu_0^\top w-\rho\lVert U^\top w\rVert_2\)</span>. This affects utility and the return floor; it does not change covariance. No statistical confidence or out-of-sample guarantee is inferred from the radius. A positive radius with an active utility/return constraint requires a conic route; zero radius removes its effect on the formulation.</p>
+<h2 id="holdings-and-exposure-limits">Holdings and exposure limits</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">limit_weights</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_exposures</span><span class="p">(</span><span class="n">exposures</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">,</span> <span class="n">exposure_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_turnover</span><span class="p">(</span><span class="n">current_weights</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">maximum</span><span class="p">)</span>
+</code></pre></div>
+<p><code>limit_weights</code> accepts finite scalar bounds that broadcast to all assets, or complete vectors, Series, or mappings. Every lower bound must be at most its upper bound. Negative bounds permit short weights; rebalancing additionally requires borrow availability.</p>
+<p><code>exposures</code> is an exposure × asset matrix; DataFrames and column mappings align by both axes, while dense/sparse arrays use <code>exposure_ids</code> and model asset order. Exposure identifiers are inferred from row labels or positional integers if omitted. <code>lower</code> and <code>upper</code> are finite scalars or complete exposure vectors. Each lower bound must not exceed its upper bound. Constraints are <code>lower &lt;= exposures @ weights &lt;= upper</code>, in the supplied exposure units. Identifiers must be unique across all exposure groups, including repeated calls.</p>
+<p>Turnover is <span class="arithmatex">\(\sum_i|w_i-w_i^0|\)</span>, without a factor of one-half. <code>current_weights</code> is a complete finite asset vector; omitted means account initial weights and otherwise raises without an account. <code>maximum</code> is a finite nonnegative investment-basis fraction. Supplying current weights changes this turnover reference, not the account's actual initial holdings.</p>
+<h2 id="rebalancing-controls">Rebalancing controls</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">limit_cash</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">minimum</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">maximum</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">set_trading_costs</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span> <span class="n">buy_bps</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">sell_bps</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">buy_fixed</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+    <span class="n">sell_fixed</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">minimum_trade</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">trade_in_lots</span><span class="p">(</span><span class="n">lot_sizes</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_short_positions</span><span class="p">(</span><span class="n">maximum</span><span class="p">)</span>
+</code></pre></div>
+<p>All four require a starting account. Cash limits are finite amounts in account currency; <code>maximum=None</code> means initial portfolio value, not an unbounded upper side. <code>minimum</code> must not exceed the effective maximum. A negative lower cash bound explicitly permits borrowing under the model's declared cash-return convention.</p>
+<p>Each cost parameter accepts a finite nonnegative scalar or complete asset vector, Series, or mapping. Basis-point fees apply to actual ask/bid transaction values, in addition to spread. Fixed fees are amounts in account currency. <code>minimum_trade</code> is a share/quantity threshold. A positive fixed fee requires a positive minimum trade or configured lot size. Buy/sell direction indicators prevent simultaneous opposing trades. Even proportional fees or spreads can introduce integer direction decisions in this formulation; inspect the resulting class.</p>
+<p><code>lot_sizes</code> is a positive finite scalar or complete asset vector. Each signed trade must be an integer multiple of its lot size; initial holdings need not themselves be whole lots. <code>limit_short_positions</code> supplies a finite nonnegative scalar or complete vector of available borrow quantities in shares. Rebalancing with negative weight bounds requires this setting. It does not itself change weight bounds.</p>
+<h2 id="tax-lot-decisions">Tax-lot decisions</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">set_tax_lots</span><span class="p">(</span><span class="n">lots</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">as_of</span><span class="p">,</span> <span class="n">settlement</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_tax</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">minimum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">maximum</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</code></pre></div>
+<p><code>lots</code> is a DataFrame indexed by unique acquisition-lot identifiers. An empty table is allowed when no shares are owned. Required and optional columns are:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>asset</code></td>
+<td>Model asset identifier; an asset may have multiple lots.</td>
+</tr>
+<tr>
+<td><code>quantity</code></td>
+<td>Positive owned quantity. Supplied lots must cover all starting owned holdings within relative <code>1e-12</code>.</td>
+</tr>
+<tr>
+<td><code>cost_basis</code></td>
+<td>Finite nonnegative basis per share/quantity unit in account currency.</td>
+</tr>
+<tr>
+<td><code>acquired</code></td>
+<td>Calendar acquisition date, no later than <code>as_of</code>.</td>
+</tr>
+<tr>
+<td><code>tax_rate</code></td>
+<td>Gain tax rate fraction in <code>[0, 1]</code>.</td>
+</tr>
+<tr>
+<td><code>loss_credit_rate</code></td>
+<td>Optional loss credit fraction in <code>[0, 1]</code>; default zero.</td>
+</tr>
+<tr>
+<td><code>eligible</code></td>
+<td>Optional boolean disposal eligibility; default <code>True</code>.</td>
+</tr>
+<tr>
+<td><code>quantity_step</code></td>
+<td>Optional nonnegative disposal step; zero means divisible, positive values require whole step counts.</td>
+</tr>
+<tr>
+<td><code>taxable_proceeds_per_unit</code></td>
+<td>Optional finite supplied taxable proceeds adjustment; defaults to the asset's actual bid price.</td>
+</tr>
+</tbody>
+</table>
+<p><code>as_of</code> is a calendar date: ISO <code>YYYY-MM-DD</code>, <code>datetime.date</code>, or supported midnight timezone-naive date-like value. <code>settlement</code> is exactly <code>"immediate"</code> or <code>"deferred"</code>. Tax-lot accounting requires nonnegative owned holdings and nonnegative weight bounds. Each share belongs to the supplied acquisition inventory; no lot identity is inferred after solving.</p>
+<p>For each disposal, taxable gain is <code>(taxable proceeds - cost basis) * quantity sold</code>. Positive gains use <code>tax_rate</code>; negative gains use <code>loss_credit_rate</code>. Fees are not automatically deducted from proceeds or basis. Both settlement choices recognize tax in economic return; immediate settlement also changes current cash. Holding-period rates, wash-sale eligibility, tax netting, and jurisdiction-specific rules must be supplied externally.</p>
+<p><code>limit_tax</code> bounds net recognized tax in account currency. Each side is a finite scalar or <code>None</code> for no bound. A negative minimum limits net credits; this is not a gross-gain budget. Replacing the lot table preserves existing tax limits. In evaluation, supply the actual <code>tax_lot_sales</code> vector; weights alone do not identify which acquisition lots were sold.</p>
+<h2 id="asset-selection-and-conditional-allocation">Asset selection and conditional allocation</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">select_assets</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span> <span class="n">count</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">maximum</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">minimum_weight</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">equal_weight</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">fix_selection</span><span class="p">(</span><span class="n">selected</span><span class="p">)</span>
+</code></pre></div>
+<p>Supply exactly one of <code>count</code> or <code>maximum</code>: an integer from zero to the number of assets, excluding booleans. <code>count</code> specifies exactly that many selected names; <code>maximum</code> specifies an upper limit. <code>minimum_weight</code> is a finite nonnegative minimum absolute weight for a selected position. A positive exact count requires positive <code>minimum_weight</code> or <code>equal_weight=True</code>.</p>
+<p><code>equal_weight</code> is a Python boolean. Equal weighting requires a positive exact count, positive <code>net_weight</code>, no cash account, and <code>minimum_weight &lt;= net_weight/count</code>. Weights are nonnegative and each selected name receives <code>net_weight/count</code>. This direct selection meaning supports <a href="quantum.html">binary portfolio compilation</a>.</p>
+<p>For unequal allocation, selection indicators link signed positions to the configured finite weight bounds. With only a maximum and zero minimum weight, an activated position may remain zero. Other financial limits remain effective.</p>
+<p><code>fix_selection</code> requires configured selection when supplying a mask. It accepts a complete Series/mapping or positional vector with <code>1</code> for a selected long, <code>-1</code> for a selected short, and <code>0</code> for exclusion. Boolean masks select longs. The mask must match the exact count or maximum; equal weighting rejects shorts. <code>None</code> clears any fixed mask and is also accepted before selection is configured. Replacement validates before changing the stored mask.</p>
+<p>Fixing selection retains sizing constraints, costs, and other discrete trading/tax rules. An optimum is conditional on that mask; results record <code>optimality_scope="fixed_asset_selection"</code>. The method rejects risk-budgeting, HRP, and moment objectives at model checking. For a hybrid sizing stage, use a separate unequal-allocation model with a positive minimum weight and apply the proposed selection; verify the complete resulting decision.</p>
+<h2 id="export-and-evaluate">Export and evaluate</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">to_model</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">return_variables</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">to_cvxpy</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tax_lot_sales</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">)</span>
+</code></pre></div>
+<p><code>to_model</code> returns a detached Opt <code>Model</code> for its supported LP/MILP/QP formulation. <code>return_variables</code> must be a Python boolean; <code>True</code> returns <code>(model, expressions)</code>. The expression dictionary has asset-indexed <code>weights</code>; an account also provides <code>holdings</code>, <code>trades</code>, and account-currency <code>cash_after</code>, plus lot-indexed <code>tax_lot_sales</code> when configured. Export rejects formulations requiring conic or mixed-integer quadratic backends, moment utility, and HRP.</p>
+<p><code>to_cvxpy</code> returns <code>(problem, expressions)</code> with a CVXPY Problem and the same financial expression meanings. It supports eligible convex and mixed-integer formulations and rejects HRP or moment utility. Risk budgeting additionally exposes <code>unnormalized_weights</code>; normalized weights are generally non-affine expressions, so adding constraints to them can violate CVXPY's DCP rules. Finance's original model is unchanged by mutations to either exported representation.</p>
+<p><code>evaluate</code> accepts a complete finite weight vector, Series, or mapping. <code>tax_lot_sales</code> is required when acquisition lots are configured, including an empty disposal vector for an empty lot table; otherwise it must be <code>None</code>. For risk-budgeting models, supplied weights and evaluated variance must be strictly positive, or evaluation raises <code>ValueError</code>. <code>tolerance</code> is a finite nonnegative absolute scalar. It returns a dictionary with <code>objective</code>, <code>metrics</code>, <code>constraints</code>, <code>tables</code>, and <code>feasible</code>, plus <code>decision</code> and <code>costs</code> for accounts. This operation does not solve or authenticate. It evaluates the supplied decision without optimizing missing tax-lot quantities or repairing a selection.</p>
+<p>Constraint rows contain <code>value</code>, <code>lower</code>, <code>upper</code>, <code>violation</code>, and <code>satisfied</code>. Weight, leverage, turnover, and account cash-balance checks use investment-basis fractions; lot residuals use lot units, exposures use supplied exposure units, and tax rows declare their units. Solver reconstruction residuals are added during solving and are separate from direct weight evaluation. See <a href="results.html">results</a> for common guarantee and reconciliation rules.</p>
+<h2 id="portfolio-result-data">Portfolio result data</h2>
+<p><code>FinanceResult.weights</code> is the source-weight Series. Account results additionally expose <code>holdings</code>, <code>trades</code>, <code>cash_after</code>, <code>post_trade_weights</code>, and configured <code>tax_lot_sales</code>. Costs contain <code>spread</code>, <code>fees</code>, optional <code>tax</code>, and <code>total</code> in account currency. Ordinary variance/benchmark objectives have <code>objective_unit="return_fraction_squared"</code>; utility, moment, and scenario-risk objectives use <code>"return_fraction"</code>; risk-budget construction uses <code>"dimensionless"</code>; HRP has no objective unit.</p>
+<p>Available metrics follow the configured inputs and objective:</p>
+<table>
+<thead>
+<tr>
+<th>Group</th>
+<th>Metrics and tables</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>All evaluated allocations</td>
+<td><code>gross_exposure</code>, <code>net_exposure</code>; weight and financial constraint rows.</td>
+</tr>
+<tr>
+<td>Forecasts</td>
+<td><code>expected_return</code>; account <code>gross_expected_return</code>; robust <code>worst_case_expected_return</code>.</td>
+</tr>
+<tr>
+<td>Covariance</td>
+<td><code>variance</code>, <code>volatility</code>; <code>tables["risk_contributions"]</code> with asset variance/volatility contributions.</td>
+</tr>
+<tr>
+<td>Factor risk</td>
+<td><code>factor_exposures</code> table and <code>factor_risk_contributions</code> table.</td>
+</tr>
+<tr>
+<td>Tracking error</td>
+<td><code>tracking_error</code>, optional <code>active_return</code>, <code>beta</code>; <code>active_weights</code> table with <code>weight</code>, <code>benchmark</code>, <code>active</code>.</td>
+</tr>
+<tr>
+<td>Scenario objectives</td>
+<td><code>scenario_expected_return</code>; <code>scenarios</code> table with <code>return</code>, <code>loss</code>, <code>probability</code>; relevant <code>expected_shortfall</code>/<code>confidence</code>, <code>mean_absolute_deviation</code>, or <code>downside_risk</code>/<code>downside_target</code>.</td>
+</tr>
+<tr>
+<td>Moment utility</td>
+<td><code>moment_variance</code>, <code>third_central_moment</code>, <code>fourth_central_moment</code>; <code>objective_terms</code> table of weighted contributions.</td>
+</tr>
+<tr>
+<td>Risk budgets</td>
+<td><code>risk_budget_error</code>; <code>risk_budgets</code> table with <code>budget</code>, <code>contribution</code>, <code>difference</code>.</td>
+</tr>
+<tr>
+<td>HRP</td>
+<td><code>hierarchy</code> table with <code>left</code>, <code>right</code>, <code>distance</code>, <code>size</code>; <code>cluster_order</code> table with <code>asset_id</code>.</td>
+</tr>
+<tr>
+<td>Account</td>
+<td><code>initial_value</code>, <code>portfolio_value</code>, <code>cash_after</code>, <code>cash_weight</code>, <code>cash_return</code>, <code>transaction_cost</code>, <code>turnover</code>, <code>post_trade_variance</code>, <code>post_trade_volatility</code> where covariance is supplied; <code>trades</code> table with <code>before</code>, <code>after</code>, <code>trade</code>, <code>buy</code>, <code>sell</code>, <code>spread_cost</code>, <code>fees</code>.</td>
+</tr>
+<tr>
+<td>Tax lots</td>
+<td><code>tax_liability</code>, <code>tax_paid</code>, <code>unpaid_tax_liability</code>, <code>realized_taxable_gain</code>, <code>net_value_after_tax</code>; <code>tax_lots</code> table retaining inputs and <code>holding_days</code>, <code>sold</code>, <code>remaining</code>, <code>taxable_gain</code>, <code>tax_liability</code>.</td>
+</tr>
+<tr>
+<td>Fixed selection</td>
+<td><code>asset_selection</code> table with <code>selection</code>, <code>weight</code>; recorded conditional proof scope.</td>
+</tr>
+</tbody>
+</table>
+<p>Undefined volatility contributions and zero-variance benchmark beta are NaN. A result without a primary incumbent does not acquire these financial tables. Use <a href="plotting.html">plotting</a> for portfolio, frontier, trade, tax-lot, factor, and tail-risk figures.</p>
+<h2 id="efficient-frontier">Efficient frontier</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">efficient_frontier</span><span class="p">(</span>
+    <span class="n">target_returns</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"local"</span><span class="p">,</span>
+    <span class="n">allow_platform</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><code>target_returns</code> is a nonempty finite vector, Series, or mapping. Series/mapping keys are unique target identifiers; arrays receive positional integers. The operation copies the portfolio, selects minimum variance, retains existing constraints, and solves each target in supplied order. A previously configured return floor remains effective: each target is replaced by the greater of the requested target and that floor.</p>
+<p>Execution arguments follow <a href="solving.html">solve</a>. Each solve requires Opt authentication. Stable Opt constraints or CVXPY parameters are reused where supported. Infeasible targets remain in the returned result sequence; the original model is unchanged.</p>
+<p>The return type is <code>FrontierResult</code>:</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">FrontierResult</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span> <span class="n">results</span><span class="p">,</span> <span class="n">horizon</span><span class="p">)</span>
+</code></pre></div>
+<p><code>targets</code> is the requested-return Series; <code>results</code> is a tuple of <code>FinanceResult</code> records in the same order; <code>horizon</code> is the portfolio horizon string. The frozen dataclass's <code>table</code> property creates a DataFrame indexed by target identifier with <code>target_return</code>, <code>effective_target</code>, <code>status</code>, <code>feasible</code>, <code>optimality_proven</code>, <code>objective</code>, and each result's financial metrics. Its <code>attrs["horizon"]</code> records the horizon.</p>
+<p>The constructor stores its arguments without validation; records returned by <code>efficient_frontier</code> have consistent target/result ordering. The <code>table</code> property expects every result to retain <code>provenance["inputs"]["minimum_return"]</code> for its effective target. Freezing the dataclass prevents field reassignment; contained Series and financial result objects remain mutable.</p>
+<p><code>to_dict()</code> returns a dictionary; <code>to_json()</code> returns a JSON string. These numeric reports contain schema version one, type <code>efficient_frontier</code>, horizon, targets, and result reports. Use <a href="interchange.html">io interchange</a> to preserve reversible pandas and result structures. Plot with <code>plot.efficient_frontier</code>.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="trading-costs.html"><span>Previous</span><strong>Trading cost functions</strong></a><a class="pager-card next" href="trading.html"><span>Next</span><strong>Multi-period investment planning</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#construct-the-model">Construct the model</a><a class="toc-level-2" href="#weight-and-cash-conventions">Weight and cash conventions</a><a class="toc-level-2" href="#objectives">Objectives</a><a class="toc-level-3" href="#variance-utility-and-benchmark-risk">Variance, utility, and benchmark risk</a><a class="toc-level-3" href="#scenario-risk">Scenario risk</a><a class="toc-level-3" href="#higher-moment-utility">Higher-moment utility</a><a class="toc-level-3" href="#risk-budgets">Risk budgets</a><a class="toc-level-3" href="#hierarchical-risk-parity">Hierarchical risk parity</a><a class="toc-level-2" href="#return-and-risk-limits">Return and risk limits</a><a class="toc-level-2" href="#holdings-and-exposure-limits">Holdings and exposure limits</a><a class="toc-level-2" href="#rebalancing-controls">Rebalancing controls</a><a class="toc-level-2" href="#tax-lot-decisions">Tax-lot decisions</a><a class="toc-level-2" href="#asset-selection-and-conditional-allocation">Asset selection and conditional allocation</a><a class="toc-level-2" href="#export-and-evaluate">Export and evaluate</a><a class="toc-level-2" href="#portfolio-result-data">Portfolio result data</a><a class="toc-level-2" href="#efficient-frontier">Efficient frontier</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

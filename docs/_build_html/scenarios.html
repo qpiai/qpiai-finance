@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Scenarios and information trees">
+<title>Scenarios and information trees | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/scenarios.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="scenarios">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="active" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Foundations</span><span aria-hidden="true">&gt;</span><span>Scenarios and information trees</span></div><article class="doc-content"><h1 id="scenarios-paths-and-information-trees">Scenarios, paths, and information trees</h1>
+<p>Import <code>Scenarios</code>, <code>ScenarioPaths</code>, and <code>ScenarioTree</code> from <code>qpiai_finance.scenarios</code>. Use <code>Scenarios</code> for one outcome vector per case, <code>ScenarioPaths</code> for ordered realizations, and <code>ScenarioTree</code> for information available when decisions are made. Construction and evaluation require no authentication.</p>
+<h2 id="common-conventions">Common conventions</h2>
+<p>Values are finite real numbers. Asset and scenario identifiers are nonempty unique strings or integers. Labeled inputs align by identifier; arrays follow declared axis order. Horizon and unit descriptions are nonblank strings and do not rescale values.</p>
+<p>Supply probabilities to describe a distribution. Omit them for deterministic stress cases; Finance does not infer equal weights. Explicit probabilities must be nonnegative and sum to one within absolute <code>1e-12</code>, and matching labeled inputs align by scenario. Accepted probabilities retain their normalized relative meaning. Zero-probability cases remain available for hard stress and policy checks.</p>
+<p><code>origin</code> is optional nonblank descriptive text. <code>metadata</code> is an optional dictionary of finite JSON-compatible data with string keys; default empty. It is normalized through JSON, so tuples become lists. It records supplied construction information, not executable behavior. Descriptive fields such as <code>horizon</code>, <code>unit</code>, and <code>origin</code> are ordinary attributes initialized from the constructor arguments. Copies of metadata and property tables are detached. Dates and instants follow <a href="data.html">data conventions</a>.</p>
+<h2 id="scenarios"><code>Scenarios</code></h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">Scenarios</span><span class="p">(</span>
+    <span class="n">values</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">horizon</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">probabilities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">asset_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">scenario_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><code>values</code> is a nonempty scenario × asset DataFrame, supported column mapping, dense array, or sparse matrix. <code>asset_ids</code> and <code>scenario_ids</code> are optional axis identifiers, inferred from a DataFrame or assigned positional integers otherwise. Explicit identifiers must match the supplied dimensions and labeled sets.</p>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>asset_ids</code>, <code>scenario_ids</code></td>
+<td>Detached pandas Indices defining axis order.</td>
+</tr>
+<tr>
+<td><code>values</code></td>
+<td>Detached DataFrame indexed by scenario and asset; retains sparse columns for sparse storage.</td>
+</tr>
+<tr>
+<td><code>probabilities</code></td>
+<td>Detached Series named <code>probability</code>, or <code>None</code>.</td>
+</tr>
+<tr>
+<td><code>metadata</code></td>
+<td>Detached dictionary.</td>
+</tr>
+<tr>
+<td><code>horizon</code>, <code>unit</code></td>
+<td>String attributes holding the declared financial horizon and unit.</td>
+</tr>
+<tr>
+<td><code>origin</code></td>
+<td>String attribute or <code>None</code>, holding the declared origin.</td>
+</tr>
+</tbody>
+</table>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">scenarios</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">quantities</span><span class="p">)</span>
+<span class="n">scenarios</span><span class="o">.</span><span class="n">expected</span><span class="p">(</span><span class="n">quantities</span><span class="p">)</span>
+</code></pre></div>
+<p><code>quantities</code> is a complete finite asset vector, Series, or mapping. <code>evaluate</code> returns the linear aggregate <code>values @ quantities</code> as a scenario-indexed Series named after <code>unit</code>. <code>expected</code> requires explicit probabilities and returns a float equal to the probability-weighted aggregate. The output units are the supplied value unit multiplied by quantity units; no portfolio normalization, currency conversion, or annualization is inferred.</p>
+<p>For portfolio scenario objectives, use <code>unit="simple_return"</code> and a horizon equal to the portfolio's horizon. Other consumers specify their own required financial coordinate. A generic <code>Scenarios</code> unit string does not automatically validate every domain-specific bound.</p>
+<h2 id="scenariopaths"><code>ScenarioPaths</code></h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">ScenarioPaths</span><span class="p">(</span>
+    <span class="n">values</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">horizon</span><span class="p">,</span> <span class="n">step_horizon</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">probabilities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">asset_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scenario_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">step_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">origin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><code>values</code> is a nonempty three-dimensional scenario × step × asset array, or a DataFrame with a two-level <code>(scenario, period)</code> index and asset columns. A path table must contain every scenario/period pair exactly once and the same assets for every pair. Sparse three-dimensional storage is not a supported path input.</p>
+<p><code>horizon</code> describes the full path and <code>step_horizon</code> each row's observation interval. <code>step_ids</code> defines the common step order; infer it from table labels or positional integers when omitted. String/integer labels use their declared order. Actual date-like labels must be unique and strictly increasing; calendar dates have no time/timezone, while aware instants normalize to UTC. ISO strings used as step identifiers are identifiers unless the relevant operation explicitly parses them as dates.</p>
+<p><code>unit="simple_return"</code> additionally requires each input return to be at least <code>-1</code>. Probabilities and other arguments follow the common conventions.</p>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>asset_ids</code>, <code>scenario_ids</code>, <code>step_ids</code></td>
+<td>Detached pandas Indices.</td>
+</tr>
+<tr>
+<td><code>values</code></td>
+<td>Detached DataFrame with index names <code>scenario</code>, <code>period</code> and asset columns.</td>
+</tr>
+<tr>
+<td><code>probabilities</code></td>
+<td>Scenario-indexed Series named <code>probability</code>, or <code>None</code>.</td>
+</tr>
+<tr>
+<td><code>metadata</code></td>
+<td>Detached construction dictionary.</td>
+</tr>
+<tr>
+<td><code>horizon</code>, <code>step_horizon</code>, <code>unit</code></td>
+<td>String attributes holding the full horizon, observation interval, and financial unit.</td>
+</tr>
+<tr>
+<td><code>origin</code></td>
+<td>String attribute or <code>None</code>, holding the declared origin.</td>
+</tr>
+</tbody>
+</table>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">paths</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">quantities</span><span class="p">)</span>
+<span class="n">paths</span><span class="o">.</span><span class="n">expected</span><span class="p">(</span><span class="n">quantities</span><span class="p">)</span>
+<span class="n">paths</span><span class="o">.</span><span class="n">aggregate</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+</code></pre></div>
+<p><code>quantities</code> is a complete fixed instrument vector, Series, or mapping. <code>evaluate</code> returns a scenario × step DataFrame of linear instrument aggregates, with <code>attrs["unit"]</code> and <code>attrs["horizon"]</code> describing the supplied unit and step horizon. <code>expected</code> requires probabilities and returns a step-indexed Series of weighted aggregates, named after <code>unit</code>, with the step horizon in attributes. Neither operation models changing holdings or compounded portfolio wealth.</p>
+<p><code>aggregate</code> returns terminal <code>Scenarios</code>. Choose <code>method</code> explicitly:</p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Accepted unit and calculation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"compound"</code></td>
+<td><code>simple_return</code>: compound each instrument's step returns. <code>log_return</code>: sum step log returns and convert with <code>expm1</code>. Output unit is <code>simple_return</code>. Other units are rejected.</td>
+</tr>
+<tr>
+<td><code>"sum"</code></td>
+<td>Sum declared additive values or log returns without interest or discounting. The unit is retained. Summing simple asset returns is rejected.</td>
+</tr>
+</tbody>
+</table>
+<p>The output retains scenario and asset identifiers, probabilities, full horizon, origin, and recorded aggregation settings. This represents instrument paths under the declared operation. Dynamic portfolio wealth requires its actual holdings and cash recursion; use <code>TradingModel</code> for that decision problem.</p>
+<h2 id="historical-windows">Historical windows</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">ScenarioPaths</span><span class="o">.</span><span class="n">historical</span><span class="p">(</span>
+    <span class="n">observations</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">as_of</span><span class="p">,</span> <span class="n">periods</span><span class="p">,</span> <span class="n">step_horizon</span><span class="p">,</span> <span class="n">horizon</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span>
+    <span class="n">probabilities</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">observed_at</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">available_at</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">asset_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scenario_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">step_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Returns <code>ScenarioPaths</code> made from consecutive known observations. <code>observations</code> is a one-dimensional history/Series or observation × asset array/DataFrame. A Series becomes one asset, using its name or identifier <code>0</code> when unnamed. DataFrame columns supply asset identifiers unless <code>asset_ids</code> is explicit.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>as_of</code></td>
+<td>Required decision date or aware instant.</td>
+</tr>
+<tr>
+<td><code>periods</code></td>
+<td>Positive integer window length, excluding booleans; cannot exceed available history.</td>
+</tr>
+<tr>
+<td><code>step_horizon</code>, <code>horizon</code>, <code>unit</code></td>
+<td>Required nonblank descriptions of observation interval, complete path, and financial values.</td>
+</tr>
+<tr>
+<td><code>probabilities</code></td>
+<td>Required choice: <code>"equal"</code> for an empirical distribution, <code>None</code> for stress paths, or explicit matching probabilities.</td>
+</tr>
+<tr>
+<td><code>stride</code></td>
+<td>Positive integer spacing of eligible starts measured in original input rows, anchored at the first available row; default one.</td>
+</tr>
+<tr>
+<td><code>observed_at</code></td>
+<td>One time per row, required for arrays; pandas DatetimeIndex can supply it.</td>
+</tr>
+<tr>
+<td><code>available_at</code></td>
+<td>Optional publication/availability times; defaults to observation time.</td>
+</tr>
+<tr>
+<td><code>asset_ids</code>, <code>scenario_ids</code>, <code>step_ids</code></td>
+<td>Optional identifiers matching the resulting axes.</td>
+</tr>
+</tbody>
+</table>
+<p>Observation times must be unique and increasing; availability cannot precede observation. Rows must be both observed and available by <code>as_of</code>. Unknown rows are excluded before numeric validation. Excluded interior rows break historical windows: the constructor does not join nonconsecutive source rows into a new window. Eligible starts also respect <code>stride</code> relative to original source positions. Missing complete windows raise.</p>
+<p>Metadata records the as-of basis, selected observation and availability times, original row positions, value fingerprint, stride, and sampled window indices. No calendar cadence, revisions, missing values, or future prices are inferred.</p>
+<h2 id="bootstrap-paths">Bootstrap paths</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">ScenarioPaths</span><span class="o">.</span><span class="n">bootstrap</span><span class="p">(</span>
+    <span class="n">observations</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">as_of</span><span class="p">,</span> <span class="n">periods</span><span class="p">,</span> <span class="n">samples</span><span class="p">,</span> <span class="n">step_horizon</span><span class="p">,</span> <span class="n">horizon</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span>
+    <span class="n">method</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">block_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">observed_at</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">available_at</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">asset_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scenario_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">step_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>The history and time arguments follow <code>historical</code>. <code>periods</code> and <code>samples</code> are positive integers; <code>seed</code> is a required nonnegative integer; booleans are rejected. Sampling with replacement permits paths longer than the available history. Resampling always retains the joint asset row, preserving the observed cross-asset pairing. The returned paths have equal empirical probabilities.</p>
+<table>
+<thead>
+<tr>
+<th><code>method</code></th>
+<th>Meaning and requirements</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"iid"</code></td>
+<td>Independently resample rows from the available empirical distribution. <code>block_size</code> must be <code>None</code>.</td>
+</tr>
+<tr>
+<td><code>"moving_block"</code></td>
+<td>Sample consecutive nonwrapping blocks. Requires a positive integer <code>block_size</code> no greater than available history.</td>
+</tr>
+<tr>
+<td><code>"circular_block"</code></td>
+<td>Sample consecutive blocks that may wrap at the history boundary. Same block-size requirement.</td>
+</tr>
+</tbody>
+</table>
+<p>Block methods require contiguous available source rows; gaps raise. The last block is truncated to the requested output length. IID sampling assumes suitable independent identically distributed observations; block methods require a suitable stationary time series. This is path generation, not a confidence interval, calibrated forecast, or decision policy.</p>
+<p>Sampling uses NumPy's PCG64 generator. Metadata retains the method, seed, block size, generator, NumPy version, and actual sampled indices, in addition to history metadata. Preserve those records when reproducing the sample.</p>
+<h2 id="construction-records">Construction records</h2>
+<p>Historical and bootstrap paths return the following fields in <code>metadata</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>as_of</code></td>
+<td>ISO string for the decision date or UTC instant.</td>
+</tr>
+<tr>
+<td><code>time_basis</code></td>
+<td><code>"calendar_date"</code> or <code>"aware_instant"</code>.</td>
+</tr>
+<tr>
+<td><code>availability</code></td>
+<td><code>"observation_time"</code> when <code>available_at</code> was omitted, otherwise <code>"supplied"</code>.</td>
+</tr>
+<tr>
+<td><code>observation_times</code>, <code>available_at</code></td>
+<td>Lists of ISO strings for the selected history rows, in source order.</td>
+</tr>
+<tr>
+<td><code>source_positions</code></td>
+<td>List of zero-based integer positions of those rows in the original input.</td>
+</tr>
+<tr>
+<td><code>source_values_sha256</code></td>
+<td>SHA-256 hex string for the selected observation × asset values encoded as a C-order little-endian float64 array.</td>
+</tr>
+<tr>
+<td><code>sample_indices</code></td>
+<td>Scenario × step nested integer lists indexing the selected history. <code>source_positions[sample_indices[s][t]]</code> gives the original input row used at scenario <code>s</code>, step <code>t</code>.</td>
+</tr>
+<tr>
+<td><code>method</code></td>
+<td><code>"historical"</code>, <code>"iid"</code>, <code>"moving_block"</code>, or <code>"circular_block"</code>.</td>
+</tr>
+<tr>
+<td><code>stride</code></td>
+<td>Integer start spacing; historical paths only.</td>
+</tr>
+<tr>
+<td><code>seed</code>, <code>block_size</code></td>
+<td>Bootstrap seed and block length as integers; <code>block_size=None</code> for IID sampling.</td>
+</tr>
+<tr>
+<td><code>bit_generator</code>, <code>numpy_version</code></td>
+<td>Bootstrap generator name <code>"PCG64"</code> and NumPy version string.</td>
+</tr>
+<tr>
+<td><code>probability_model</code></td>
+<td><code>"uniform_empirical"</code>; bootstrap paths only.</td>
+</tr>
+</tbody>
+</table>
+<p><code>aggregate</code> stores the preceding metadata under <code>source</code> and adds an <code>aggregation</code> dictionary. Its fields are <code>method</code>, <code>input_unit</code>, <code>step_horizon</code>, integer <code>periods</code>, and the ordered <code>step_ids</code> list. Date-like step identifiers become ISO strings; <code>step_time_basis</code> is <code>"calendar_date"</code>, <code>"aware_instant"</code>, or <code>None</code> for ordinary identifiers.</p>
+<h2 id="scenariotree"><code>ScenarioTree</code></h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">ScenarioTree</span><span class="p">(</span>
+    <span class="n">information</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">times</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">probabilities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scenario_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">stage_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">origin</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metadata</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><code>information</code> is a nonempty scenario × stage DataFrame or two-dimensional array of integer/string node identifiers. Cases sharing a node have the same information history at that stage. All cases start at one root; a node has exactly one stage and one parent. Node identifiers cannot be reused across stages or recombining histories. Distinct scenarios may share an entire path, including their terminal node.</p>
+<p><code>scenario_ids</code> and <code>stage_ids</code> optionally define axis order. <code>times</code> is one strictly increasing calendar date or aware instant per stage, supplied as a sequence or a Series aligned by stage identifier. Omit <code>times</code> only when stage labels are actual date-like values. No information tree or probabilities are inferred from numerical outcomes.</p>
+<table>
+<thead>
+<tr>
+<th>Member</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>scenario_ids</code>, <code>stage_ids</code>, <code>node_ids</code></td>
+<td>Detached pandas Indices. Nodes are ordered by stage, then first occurrence among cases.</td>
+</tr>
+<tr>
+<td><code>root</code></td>
+<td>Common root node identifier.</td>
+</tr>
+<tr>
+<td><code>information</code></td>
+<td>Detached scenario × stage node DataFrame.</td>
+</tr>
+<tr>
+<td><code>times</code></td>
+<td>Stage-indexed Series named <code>time</code>; aware instants use UTC.</td>
+</tr>
+<tr>
+<td><code>probabilities</code></td>
+<td>Case probability Series or <code>None</code>.</td>
+</tr>
+<tr>
+<td><code>metadata</code></td>
+<td>Detached dictionary.</td>
+</tr>
+<tr>
+<td><code>nodes</code></td>
+<td>Node-indexed DataFrame with <code>parent</code>, <code>stage</code>, <code>time</code>, <code>probability</code>, and <code>conditional_probability</code>.</td>
+</tr>
+<tr>
+<td><code>origin</code></td>
+<td>String attribute or <code>None</code>, holding the declared origin.</td>
+</tr>
+</tbody>
+</table>
+<p>Node probability is unconditional case mass passing through the node. Conditional probability is relative to its parent; the probabilistic root has conditional probability one. Conditioning on a zero-mass parent is undefined and reported as NaN. Both probability columns are NaN for probability-free stress trees. Zero-probability nodes are retained.</p>
+<p>In <code>nodes</code>, <code>parent</code> contains a node identifier or <code>None</code> for the root, <code>stage</code> contains the stage identifier, and <code>time</code> contains pandas Timestamps. The two probability columns have float64 values.</p>
+<h3 id="tree-operations">Tree operations</h3>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">tree</span><span class="o">.</span><span class="n">children</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+<span class="n">tree</span><span class="o">.</span><span class="n">ancestors</span><span class="p">(</span><span class="n">node</span><span class="p">)</span>
+<span class="n">tree</span><span class="o">.</span><span class="n">expected</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">given</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">tree</span><span class="o">.</span><span class="n">paths</span><span class="p">(</span><span class="n">values</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">horizon</span><span class="p">,</span> <span class="n">step_horizon</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">asset_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</code></pre></div>
+<p><code>node</code> must be an existing valid node identifier. <code>children</code> returns its immediate child identifiers as an Index in tree order. <code>ancestors</code> returns an Index from root through the parent, excluding the node; the root has no ancestors.</p>
+<p>For <code>expected</code>, <code>values</code> is a complete finite scalar case vector, Series, or mapping. Returns the weighted mean as a float. <code>given</code> optionally selects a known node and conditions on cases passing through it. Stress trees and zero-probability conditioning events raise instead of inventing weights.</p>
+<p>For <code>paths</code>, <code>values</code> is a node × instrument DataFrame, dense array, or sparse matrix. <code>asset_ids</code> optionally defines instrument order, inferred from columns or positional integers otherwise. The method expands node values into a <code>ScenarioPaths</code> object over every stage, including the root. <code>horizon</code>, <code>step_horizon</code>, and <code>unit</code> are required descriptions. Shared-node cases receive identical supplied values. The caller must define root-period values and economic meaning; no return or cash-flow value is inferred. Expansion creates a dense path array.</p>
+<p>The expanded paths' metadata contains <code>source</code> (the tree's metadata), <code>information</code> (a scenario × stage nested list of node identifiers), and <code>stage_times</code> (ISO timestamp strings in stage order).</p>
+<h3 id="policy-information-timing">Policy information timing</h3>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">tree</span><span class="o">.</span><span class="n">validate_policy</span><span class="p">(</span>
+    <span class="n">decisions</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">timing</span><span class="o">=</span><span class="s2">"after_observation"</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><code>decisions</code> is a <code>ScenarioPaths</code> object aligned by case/stage, or a finite scenario × stage × control array with at least one control. <code>timing</code> is <code>"after_observation"</code>, allowing decisions to depend on the current node, or <code>"before_observation"</code>, allowing only the preceding stage's information (the root at stage zero). <code>tolerance</code> is a finite nonnegative absolute scalar in decision units.</p>
+<p>Returns a DataFrame indexed by <code>(stage, information_node, control)</code> with <code>minimum</code>, <code>maximum</code>, <code>violation</code>, and <code>satisfied</code>. Violation is the maximum minus minimum decision within the allowed information group. Attributes record <code>unit</code>, <code>timing</code>, and <code>tolerance</code>. ScenarioPaths provide the control identifiers and unit; raw arrays use positional controls and <code>decision_units</code>.</p>
+<p>All cases participate, including stress and zero-probability cases. Decisions are not averaged or repaired. This operation checks nonanticipativity, not financial feasibility, forecasting validity, or optimality. Use the relevant financial model's evaluation for those checks.</p>
+<h2 id="errors-and-interchange">Errors and interchange</h2>
+<p>Invalid dimensions, incomplete path grids, incompatible labels or times, invalid probabilities, nonrecombining-tree violations, unsupported sampling choices, and unrepresentable outputs raise <code>TypeError</code> or <code>ValueError</code>. Save and restore all three scenario types with <a href="interchange.html">io interchange</a>; loading restores recorded values without running a sampler again.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="risk.html"><span>Previous</span><strong>Risk analytics</strong></a><a class="pager-card next" href="cashflows.html"><span>Next</span><strong>Cash-flow calculations</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#common-conventions">Common conventions</a><a class="toc-level-2" href="#scenarios">Scenarios</a><a class="toc-level-2" href="#scenariopaths">ScenarioPaths</a><a class="toc-level-2" href="#historical-windows">Historical windows</a><a class="toc-level-2" href="#bootstrap-paths">Bootstrap paths</a><a class="toc-level-2" href="#construction-records">Construction records</a><a class="toc-level-2" href="#scenariotree">ScenarioTree</a><a class="toc-level-3" href="#tree-operations">Tree operations</a><a class="toc-level-3" href="#policy-information-timing">Policy information timing</a><a class="toc-level-2" href="#errors-and-interchange">Errors and interchange</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

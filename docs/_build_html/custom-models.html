@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Custom models and compilation">
+<title>Custom models and compilation | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/custom-models.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="custom-models">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="active" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Optimization</span><span aria-hidden="true">&gt;</span><span>Custom models and compilation</span></div><article class="doc-content"><h1 id="custom-financial-models-and-compilation">Custom financial models and compilation</h1>
+<p>Use shared financial calculations and supported model exports to express a decision beyond a predefined workflow. Keep the financial inputs, objective, constraints, and verification explicit. QpiAI Opt supplies algebra and computational representations; Finance supplies reusable financial mathematics and interpretation.</p>
+<p>For quantum-inspired and gate-based research, begin with a financial model whose variables have a defined economic meaning. Select a representation that retains those meanings through decoding. The direct <a href="quantum.html">portfolio compiler</a> provides one such workflow; exported Opt models support additional explicit compilation under Opt's domain and encoding rules.</p>
+<h2 id="reuse-financial-mathematics">Reuse financial mathematics</h2>
+<p>The following operations can support a custom formulation or its independent evaluation:</p>
+<table>
+<thead>
+<tr>
+<th>Financial calculation</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Return conversion, compounding, as-of data filtering, explicit moment scaling</td>
+<td><a href="data.html">Data</a></td>
+</tr>
+<tr>
+<td>Weighted upper-loss-tail risk and an expected-shortfall epigraph for Opt/CVXPY</td>
+<td><a href="risk.html">Risk</a></td>
+</tr>
+<tr>
+<td>Factor covariance products, exposures, and risk contributions</td>
+<td><a href="risk.html">Risk</a></td>
+</tr>
+<tr>
+<td>Supplied scenarios, path aggregation, conditional expectations, nonanticipativity checks</td>
+<td><a href="scenarios.html">Scenarios</a></td>
+</tr>
+<tr>
+<td>Bullet-loan cash flows, supplied-factor discounting, currency valuation</td>
+<td><a href="cashflows.html">Cash flows</a></td>
+</tr>
+<tr>
+<td>Per-ticket fees and numeric or convex CVXPY impact costs</td>
+<td><a href="trading-costs.html">Trading costs</a></td>
+</tr>
+<tr>
+<td>Quota-share or excess-of-loss recovery calculations</td>
+<td><a href="insurance.html">Reinsurance</a></td>
+</tr>
+<tr>
+<td>Supplied haircut and FX valuation</td>
+<td><a href="collateral.html">Collateral</a></td>
+</tr>
+</tbody>
+</table>
+<p>For a custom expected-shortfall objective, add all constraints returned by <code>expected_shortfall_epigraph</code>; its expression is an upper bound that becomes the requested risk term in the documented minimization or upper-limit use. Recalculate the actual scenario losses and expected shortfall from the resulting primary decision. Costs, covariance uncertainty, and cash terms need their stated units and valid curvature.</p>
+<h2 id="export-a-financial-formulation">Export a financial formulation</h2>
+<p>Every supported financial model provides:</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">to_model</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">return_variables</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">to_cvxpy</span><span class="p">()</span>
+</code></pre></div>
+<p>These operations require no authentication and do not solve. Availability depends on the configured mathematical formulation, as defined by the individual model reference.</p>
+<p><code>to_model</code> returns an independent Opt <code>Model</code> for a supported Opt formulation. With the Python boolean <code>return_variables=True</code>, it returns <code>(opt_model, financial_expressions)</code>. The expression dictionary uses labeled domain coordinates: weights, quantities, allocations, cash, schedules, or other expressions documented for that model. Use these expressions rather than depending on private generated variable names when adding a financial rule.</p>
+<p><code>to_cvxpy</code> returns <code>(problem, financial_expressions)</code> for its supported CVXPY formulation. The expressions belong to that returned problem. Their curvature still governs which constraints or objectives can be added. A normalized risk-budget weight, for instance, need not be affine or suitable for an added DCP constraint.</p>
+<p>Exports are detached. Adding a constraint, replacing an objective, or changing a bound on the export does not modify the original Finance model. Calling Finance <code>solve</code> on the original model therefore solves the original financial specification. To execute an edited export, use its actual computational API and verify the added financial rules in addition to Finance's original evaluation.</p>
+<h2 id="linear-matrix-exports">Linear matrix exports</h2>
+<p><code>ExecutionModel</code>, <code>TradingModel</code>, <code>LiabilityMatchingModel</code>, <code>ReinsuranceModel</code>, <code>CollateralAllocationModel</code>, and <code>SettlementModel</code> expose <code>to_matrix()</code> for their supported linear formulations. The dictionary uses the Opt matrix contract: objective coefficients and offset, sense, variable names and bounds, integrality, sparse constraint matrix, constraint names, and lower/upper row bounds. Domain references define restrictions on when this export is available.</p>
+<p>For <code>n</code> variables and <code>m</code> constraint rows, the fields are:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>String identifying the financial formulation.</td>
+</tr>
+<tr>
+<td><code>problem_type</code></td>
+<td>String <code>"LP"</code> or <code>"MILP"</code>.</td>
+</tr>
+<tr>
+<td><code>format</code></td>
+<td>String <code>"matrix"</code>.</td>
+</tr>
+<tr>
+<td><code>sense</code></td>
+<td>String <code>"min"</code> or <code>"max"</code>.</td>
+</tr>
+<tr>
+<td><code>variable_names</code></td>
+<td>List of <code>n</code> strings defining column order.</td>
+</tr>
+<tr>
+<td><code>objective</code></td>
+<td>Finite floating NumPy array of shape <code>(n,)</code>; objective is <code>objective @ x + objective_offset</code>.</td>
+</tr>
+<tr>
+<td><code>objective_offset</code></td>
+<td>Finite float constant in objective units.</td>
+</tr>
+<tr>
+<td><code>constraint_matrix</code></td>
+<td>SciPy CSR matrix of shape <code>(m,n)</code> with finite floating coefficients.</td>
+</tr>
+<tr>
+<td><code>constraint_names</code></td>
+<td>List of <code>m</code> strings defining row order.</td>
+</tr>
+<tr>
+<td><code>row_lower</code>, <code>row_upper</code></td>
+<td>Floating NumPy arrays of shape <code>(m,)</code>; infinite bounds denote an absent side. Equal endpoints define equality rows.</td>
+</tr>
+<tr>
+<td><code>lower_bounds</code>, <code>upper_bounds</code></td>
+<td>Floating NumPy arrays of shape <code>(n,)</code> in exported coordinate units; infinite bounds denote an absent side.</td>
+</tr>
+<tr>
+<td><code>integrality</code></td>
+<td>Integral NumPy array of shape <code>(n,)</code>; <code>0</code> means continuous and <code>1</code> means integer. Binary domains combine <code>1</code> with bounds <code>[0,1]</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Rows encode <code>row_lower &lt;= constraint_matrix @ x &lt;= row_upper</code>. Variable integrality and quantity units must be retained. An external solver translation must preserve objective offsets, minimization/maximization sense, and source coordinates; matching matrix dimensions alone is insufficient. The <a href="https://github.com/qpiai/qpiai-opt/blob/main/docs/api-solvers.md">Opt matrix reference</a> defines the supported native dictionary fields.</p>
+<p><code>TradingModel.to_scip()</code> additionally exposes its supported exact SCIP formulation and labeled financial expressions. It is distinct from a CVXPY conic representation. Its model reference explains nonlinear cost and cash-reconstruction conditions.</p>
+<h2 id="explicit-opt-compilation">Explicit Opt compilation</h2>
+<p>An exported Opt <code>Model</code> supports <code>opt_model.compile(target=None, **options)</code>. Compilation selects a mathematical representation without authentication or execution. <code>target=None</code> uses the detected class, normalizing detected <code>MIP</code> to <code>MILP</code>. Explicit case-insensitive targets are exactly <code>"LP"</code>, <code>"MILP"</code>, <code>"QP"</code>, <code>"QUBO"</code>, <code>"HUBO"</code>, and <code>"ISING"</code>; explicit <code>"MIP"</code> is rejected. Finance does not add a second generic compilation interface.</p>
+<table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Return type</th>
+<th>Accepted options and restrictions</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>LP</code>, <code>MILP</code></td>
+<td>Opt <code>MILPProblem</code> with independent source snapshot</td>
+<td>Only <code>config=None</code>, a <code>MILPSolverConfig</code> or validated field dictionary; fields are in the <a href="solver-options.html#platform-lpmilp-configuration">solver reference</a>. Explicit LP rejects retained integer decisions.</td>
+</tr>
+<tr>
+<td><code>QP</code></td>
+<td>Independent Opt <code>Model</code></td>
+<td>No options. Continuous quadratic matrix export and curvature checks must succeed.</td>
+</tr>
+<tr>
+<td><code>QUBO</code></td>
+<td>Opt <code>QUBOProblem</code></td>
+<td>Encoding/penalty controls below, plus positive non-Boolean integer <code>max_evaluations=10000</code> for the platform container and optional <code>solver_config=None</code>. Objective/constraint compilation must produce degree at most two.</td>
+</tr>
+<tr>
+<td><code>HUBO</code></td>
+<td>Opt <code>HUBOProblem</code></td>
+<td>Encoding/penalty controls below and optional <code>solver_config=None</code>. Higher source polynomial degree is retained.</td>
+</tr>
+<tr>
+<td><code>ISING</code></td>
+<td>Opt <code>IsingProblem</code></td>
+<td>Encoding/penalty controls below for supported binary/nonbinary sources. Native all-spin sources accept no options. Pairwise source degree is required.</td>
+</tr>
+</tbody>
+</table>
+<p>Unknown targets raise Opt <code>ModelValidationError</code>; unknown options raise <code>TypeError</code>. Unsupported financial exports still fail at <code>to_model</code> before generic compilation. Successful compilation retains an independent source decoder; a failed compilation restores the preceding compilation state rather than publishing a partial mapping.</p>
+<h3 id="encoding-and-penalty-controls">Encoding and penalty controls</h3>
+<p>For QUBO/HUBO and non-spin Ising targets, the complete shared controls are:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Type, allowed values, default, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>continuous_bits</code></td>
+<td>Positive non-Boolean integral count or <code>None</code> (default). A nonfixed continuous variable on <code>[lower, upper]</code> receives <code>2**bits</code> uniformly spaced levels, including endpoints; step is <code>(upper-lower)/(2**bits-1)</code>. Cannot combine with precision.</td>
+</tr>
+<tr>
+<td><code>continuous_precision</code></td>
+<td>Nonnegative non-Boolean integral decimal-place count or <code>None</code> (default). Step is <code>10**(-precision)</code> from the declared lower bound. The interval width must be a whole number of steps; the lower bound need not itself be a step multiple. Cannot combine with bits.</td>
+</tr>
+<tr>
+<td><code>max_bits</code></td>
+<td>Non-Boolean integral value in <code>[1,53]</code>, default <code>20</code>. Per-continuous-variable bit ceiling; a requested/generated resolution above it raises.</td>
+</tr>
+<tr>
+<td><code>strict_penalties</code></td>
+<td>Python boolean, default <code>False</code>. An explicitly configured hard-constraint weight below Opt's sufficient threshold emits <code>UserWarning</code>; true instead raises <code>ConstraintValidationError</code>. Omitted weights use automatic sufficient selection in either mode.</td>
+</tr>
+</tbody>
+</table>
+<p>Finite variable bounds are required for integer/continuous binary encodings. A continuous resolution is never inferred by <code>compile</code>; omitted bits and precision raise when a continuous variable requires encoding. Fixed continuous variables still require the explicit resolution setting at this interface but introduce no free bits. Integers use exact bounded binary weights; fixed-point variables use their declared decimal grid. Binary variables need no domain encoding. Semi-continuous, semi-integer, mixed, and spin/non-spin mixtures are not generic binary compilation domains. Indicators and SOS are not converted by the polynomial path.</p>
+<p>QUBO's packaged matrix is symmetric: mirrored off-diagonal entries share the direct polynomial coefficient. <code>compile(target="QUBO")</code> does not accept <code>matrix_format</code>; for raw upper/symmetric export use <code>opt_model.to_qubo_dict(matrix_format="symmetric", **encoding_options) -&gt; (dict[tuple[int, int], float], float)</code>. The second tuple item is the constant offset. Canonical formats are <code>"symmetric"</code> and <code>"upper"</code>; aliases are <code>"fully_symmetric"</code> and <code>"upper_triangular"</code>. Names are stripped, lowercased, and hyphens become underscores before validation.</p>
+<p><code>to_hubo_dict(**encoding_options)</code> returns <code>dict[tuple[str, ...], float]</code>, a minimization polynomial whose empty-tuple key is the constant. <code>to_ising_dict(**encoding_options)</code> returns a dictionary with <code>problem_type="ISING"</code>, <code>num_variables: int</code>, source <code>sense: str</code> (<code>"MIN"</code> or <code>"MAX"</code>), <code>offset: float</code>, <code>variable_names: tuple[str, ...]</code>, <code>linear: dict[int, float]</code>, and <code>quadratic: dict[tuple[int, int], float]</code>. Its coefficients and offset use the stated source sense; spins are <code>-1/+1</code>. These methods update the retained export's decoding maps and do not solve.</p>
+<p>QUBO <code>solver_config</code> accepts <code>dict[str, Any] | None</code> at the Opt container boundary. It is opaque platform configuration rather than an encoding control: the SDK defines no public platform key allowlist or per-key defaults, and acceptance by the container does not establish acceptance by a particular server resource. Local execution accepts only stored <code>num_reads</code>, <code>num_sweeps</code>, and <code>seed</code> with the <a href="solver-options.html#opt-local-options">local domains</a>. HUBO <code>solver_config</code> has exactly the <a href="solver-options.html#platform-polynomial-controls">platform HUBO keys</a>; local execution again accepts only the read/sweep/seed subset. Ising compilation has no solver-configuration argument. Container configuration does not authorize a platform route.</p>
+<p>Hard equalities receive nonnegative residual penalties; inequalities use supported exact binary identities or bounded slack on the expression's rational coefficient lattice. Automatic weights separate the infeasible energy from the complete unconstrained objective range. Weights belong to configured Opt constraints, not a generic <code>penalty=</code> compile keyword. For a custom exported rule, <code>opt_model.add_constraint(constraint, penalty_weight=None, label=None)</code> returns the supplied constraint and uses automatic weighting by default; explicit weights are finite positive non-Boolean reals. An explicit <code>label</code> is a nonempty, unique single-line string without NUL characters; <code>None</code> uses the constraint's effective or generated name. <code>opt_model.estimate_penalty_weight(constraint, **encoding_options) -&gt; float</code> estimates on a snapshot after the objective is set. The selector is a constraint object, effective label, or zero-based non-Boolean integer index; a redundant constraint returns zero. Custom soft penalties are not hard-feasibility conditions and have no automatic hard weight.</p>
+<p>QUBO/Ising compilation does not silently reduce a higher-degree objective. For a higher-order source, retain <code>HUBO</code>, or use Opt's explicit recorded HUBO-to-QUBO conversion with product mapping and sufficient strength. The direct <a href="quantum.html#objective-and-penalty-meaning">portfolio compiler</a> performs that recorded conversion for its supported financial selection workflow.</p>
+<p>For a valid Opt export, binary compilation may require finite variable bounds, a continuous grid, and constraint penalty controls. Exact bounded integer encodings and explicit discretization of a continuous decision are different operations. A continuous grid restricts the set of admissible positions and can change the attainable financial optimum. Record its resolution and assess its effect on the required financial quantities.</p>
+<p>HUBO retains supported higher-order polynomial terms. Pairwise QUBO and Ising have their own degree/conversion requirements. Indicators, SOS, unsupported variable domains, curvature, coefficient ranges, and downstream solver capacity follow Opt's actual compilation contract; the existence of <code>to_model</code> does not imply every target accepts every exported formulation.</p>
+<p>Use these Opt references for precise controls and failure conditions:</p>
+<ul>
+<li><a href="https://github.com/qpiai/qpiai-opt/blob/main/docs/api-modeller.md">Modeller API</a>: targets, bounds, source evaluation, and compilation methods.</li>
+<li><a href="https://github.com/qpiai/qpiai-opt/blob/main/docs/qubo-modeller.md">QUBO modeling</a>: variable grids, constraints, penalties, and decoding.</li>
+<li><a href="https://github.com/qpiai/qpiai-opt/blob/main/docs/hubo-modeller.md">HUBO modeling</a>: higher-order polynomial representation and supported encodings.</li>
+<li><a href="https://github.com/qpiai/qpiai-opt/blob/main/docs/ising-modeller.md">Ising modeling</a>: spin convention, offsets, and source conversion.</li>
+<li><a href="https://github.com/qpiai/qpiai-opt/blob/main/docs/transformations.md">Transformation inspection</a>: retained maps and sample decoding.</li>
+</ul>
+<h2 id="execute-and-restore-the-decision">Execute and restore the decision</h2>
+<p>For unchanged supported Finance models, root <code>solve</code> provides automatic financial reconstruction and checks. For an explicitly compiled or edited Opt export, execute through <code>qpiai_opt.opt_solvers.solve</code> with its actual authentication and execution configuration. Gate-based execution uses Opt algorithms and <code>QuantumRun</code>. Read <a href="solving.html">execution boundaries</a> before selecting local or paid platform work.</p>
+<p>Retain the original Finance model, the exact exported Opt model after compilation, its transformations and variable order, and the typed Opt result. For supported records, <code>qpiai_finance.results.from_opt</code> restores financial coordinates and recalculates the original Finance constraints and objective. General polynomial/gate recovery requires the retained <code>opt_model</code> decoder; a bare coefficient dictionary is insufficient.</p>
+<p>Recovery checks complete coordinates and original financial feasibility. It does not bind a historical proof to the exact model that was executed, and therefore does not establish a new financial optimality proof. General retained-model recovery also has a narrower encoded verification scope than the direct <code>PortfolioEncoding</code>: read <a href="results.html">result recovery</a> for the energy, auxiliary, and source checks.</p>
+<p>If an export contains additional financial constraints, independently verify them as well. If its objective has changed, Finance's original objective remains an evaluation of the original financial model and may correctly disagree with the edited solver objective. Do not relabel the edited model's optimum as a verified optimum of an unchanged Finance specification.</p>
+<h2 id="solver-interoperability">Solver interoperability</h2>
+<p>Finance's root <code>solve</code> accepts only its documented solver names. A CVXPY export can be used with another separately installed compatible solver through CVXPY's API; this does not create a new Finance <code>solver</code> option or package that solver's license. Use the <a href="https://www.cvxpy.org/tutorial/solvers/index.html">CVXPY solver capability reference</a> to match integer domains and required cones. Preserve source feasibility, cash accounting, objective units, and proof scope when restoring such a result in the application.</p>
+<p>Custom models and edits on detached exports are not serialized by Finance's model interchange. Save their specifications using the owning modeling system and retain the financial inputs needed for independent verification. The standard Finance <a href="interchange.html">interchange</a> applies to its exact supported models, scenarios, and result types.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="solving.html"><span>Previous</span><strong>Solvers and execution</strong></a><a class="pager-card next" href="results.html"><span>Next</span><strong>Results and verification</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#reuse-financial-mathematics">Reuse financial mathematics</a><a class="toc-level-2" href="#export-a-financial-formulation">Export a financial formulation</a><a class="toc-level-2" href="#linear-matrix-exports">Linear matrix exports</a><a class="toc-level-2" href="#explicit-opt-compilation">Explicit Opt compilation</a><a class="toc-level-3" href="#encoding-and-penalty-controls">Encoding and penalty controls</a><a class="toc-level-2" href="#execute-and-restore-the-decision">Execute and restore the decision</a><a class="toc-level-2" href="#solver-interoperability">Solver interoperability</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

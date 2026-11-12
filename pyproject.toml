@@ -1,0 +1,77 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qpiai-finance"
+version = "1.0.3"
+description = "Financial modeling, risk analysis, quantum-inspired and gate-based optimization"
+readme = "README.md"
+requires-python = ">=3.10,<3.15"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{name = "QpiAI"}]
+keywords = [
+    "finance", "financial-optimization", "portfolio-optimization",
+    "risk-management", "cash-flow", "treasury", "trading", "hedging",
+    "credit", "collateral", "reinsurance", "quantum-optimization",
+    "qubo", "ising", "hubo",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Scientific/Engineering :: Quantum Computing",
+    "Topic :: Office/Business :: Financial",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "qpiai-opt[quantum]==0.0.9",
+    "numpy>=1.26,<3",
+    "scipy>=1.15,<2",
+    "pandas>=2.2,<4",
+    "cvxpy>=1.7.5,<2",
+    "clarabel>=0.11.1,<0.12",
+    "pyscipopt>=6.3,<7",
+    "matplotlib>=3.8,<4",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.12", "build>=1.2"]
+
+[project.urls]
+Homepage = "https://github.com/qpiai/qpiai-finance"
+Documentation = "https://github.com/qpiai/qpiai-finance/blob/main/docs/index.md"
+Repository = "https://github.com/qpiai/qpiai-finance"
+Issues = "https://github.com/qpiai/qpiai-finance/issues"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["qpiai_finance*"]
+
+[tool.setuptools.data-files]
+"share/doc/qpiai-finance" = [
+    "automation.md", "README.md", "LICENSE", "CITATION.cff",
+    "CONTRIBUTING.md", "REPORTING_BUGS.md", "FEATURE_REQUESTS.md",
+]
+"share/doc/qpiai-finance/docs" = ["docs/*.md"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["ut_*.py", "st_*.py", "rt_*.py"]
+markers = [
+    "live: authenticated execution against installed Opt and Quantum runtimes",
+    "platform: paid Opt Platform jobs, requiring --platform and --live",
+    "qcloud: paid QCloud jobs, requiring --qcloud-device and --live",
+]
+
+[tool.ruff]
+line-length = 79
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]

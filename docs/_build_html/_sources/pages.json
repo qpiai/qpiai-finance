@@ -1,0 +1,268 @@
+[
+  {
+    "slug": "index",
+    "title": "QpiAI Finance",
+    "category": "Overview",
+    "sources": [
+      "README.md"
+    ]
+  },
+  {
+    "slug": "manual",
+    "title": "User manual",
+    "category": "Overview",
+    "sources": [
+      "docs/index.md"
+    ]
+  },
+  {
+    "slug": "getting-started",
+    "title": "Getting started",
+    "category": "Overview",
+    "sources": [
+      "docs/getting-started.md"
+    ]
+  },
+  {
+    "slug": "data",
+    "title": "Financial data and conventions",
+    "category": "Foundations",
+    "sources": [
+      "docs/data.md"
+    ]
+  },
+  {
+    "slug": "risk",
+    "title": "Risk analytics",
+    "category": "Foundations",
+    "sources": [
+      "docs/risk.md"
+    ]
+  },
+  {
+    "slug": "scenarios",
+    "title": "Scenarios and information trees",
+    "category": "Foundations",
+    "sources": [
+      "docs/scenarios.md"
+    ]
+  },
+  {
+    "slug": "cashflows",
+    "title": "Cash-flow calculations",
+    "category": "Foundations",
+    "sources": [
+      "docs/cashflows.md"
+    ]
+  },
+  {
+    "slug": "trading-costs",
+    "title": "Trading cost functions",
+    "category": "Foundations",
+    "sources": [
+      "docs/trading-costs.md"
+    ]
+  },
+  {
+    "slug": "portfolio",
+    "title": "Portfolios and rebalancing",
+    "category": "Financial models",
+    "sources": [
+      "docs/portfolio.md"
+    ]
+  },
+  {
+    "slug": "trading",
+    "title": "Multi-period investment planning",
+    "category": "Financial models",
+    "sources": [
+      "docs/trading.md"
+    ]
+  },
+  {
+    "slug": "execution",
+    "title": "Execution scheduling",
+    "category": "Financial models",
+    "sources": [
+      "docs/execution.md"
+    ]
+  },
+  {
+    "slug": "hedging",
+    "title": "Hedging",
+    "category": "Financial models",
+    "sources": [
+      "docs/hedging.md"
+    ]
+  },
+  {
+    "slug": "credit",
+    "title": "Credit allocation",
+    "category": "Financial models",
+    "sources": [
+      "docs/credit.md"
+    ]
+  },
+  {
+    "slug": "funding",
+    "title": "Funding and liquidity",
+    "category": "Financial models",
+    "sources": [
+      "docs/funding.md"
+    ]
+  },
+  {
+    "slug": "liability-matching",
+    "title": "Liability matching",
+    "category": "Financial models",
+    "sources": [
+      "docs/liability-matching.md"
+    ]
+  },
+  {
+    "slug": "insurance",
+    "title": "Insurance and reinsurance",
+    "category": "Financial models",
+    "sources": [
+      "docs/insurance.md"
+    ]
+  },
+  {
+    "slug": "collateral",
+    "title": "Collateral allocation",
+    "category": "Financial models",
+    "sources": [
+      "docs/collateral.md"
+    ]
+  },
+  {
+    "slug": "settlement",
+    "title": "Payment settlement",
+    "category": "Financial models",
+    "sources": [
+      "docs/settlement.md"
+    ]
+  },
+  {
+    "slug": "quantum",
+    "title": "Quantum-inspired and gate-based optimization",
+    "category": "Optimization",
+    "sources": [
+      "docs/quantum.md"
+    ]
+  },
+  {
+    "slug": "solving",
+    "title": "Solvers and execution",
+    "category": "Optimization",
+    "sources": [
+      "docs/solving.md"
+    ]
+  },
+  {
+    "slug": "custom-models",
+    "title": "Custom models and compilation",
+    "category": "Optimization",
+    "sources": [
+      "docs/custom-models.md"
+    ]
+  },
+  {
+    "slug": "results",
+    "title": "Results and verification",
+    "category": "Analysis and integration",
+    "sources": [
+      "docs/results.md"
+    ]
+  },
+  {
+    "slug": "plotting",
+    "title": "Plotting",
+    "category": "Analysis and integration",
+    "sources": [
+      "docs/plotting.md"
+    ]
+  },
+  {
+    "slug": "interchange",
+    "title": "Interchange",
+    "category": "Analysis and integration",
+    "sources": [
+      "docs/interchange.md"
+    ]
+  },
+  {
+    "slug": "algorithm-controls",
+    "title": "Gate-based algorithm controls",
+    "category": "Reference",
+    "sources": ["docs/algorithm-controls.md"]
+  },
+  {
+    "slug": "solver-options",
+    "title": "Solver option reference",
+    "category": "Reference",
+    "sources": ["docs/solver-options.md"]
+  },
+  {
+    "slug": "scip-parameters",
+    "title": "SCIP parameter catalogue",
+    "category": "Reference",
+    "sources": ["docs/scip-parameters.md"]
+  },
+  {
+    "slug": "public-api",
+    "title": "Public Python API",
+    "category": "Reference",
+    "sources": [
+      "docs/public-api.md"
+    ]
+  },
+  {
+    "slug": "automation",
+    "title": "Automation and agent workflows",
+    "category": "Reference",
+    "sources": [
+      "automation.md"
+    ]
+  },
+  {
+    "slug": "contributing",
+    "title": "Contributing",
+    "category": "Project",
+    "sources": [
+      "CONTRIBUTING.md"
+    ]
+  },
+  {
+    "slug": "reporting-bugs",
+    "title": "Reporting bugs and security issues",
+    "category": "Project",
+    "sources": [
+      "REPORTING_BUGS.md"
+    ]
+  },
+  {
+    "slug": "feature-requests",
+    "title": "Feature requests",
+    "category": "Project",
+    "sources": [
+      "FEATURE_REQUESTS.md"
+    ]
+  },
+  {
+    "slug": "citation",
+    "title": "Citation",
+    "category": "Project",
+    "sources": [
+      "docs/citation.md"
+    ]
+  },
+  {
+    "slug": "license",
+    "title": "Apache License 2.0",
+    "category": "Project",
+    "sources": [
+      "LICENSE"
+    ]
+  }
+]

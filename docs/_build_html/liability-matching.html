@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Liability matching">
+<title>Liability matching | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/liability-matching.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="liability-matching">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="active" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Financial models</span><span aria-hidden="true">&gt;</span><span>Liability matching</span></div><article class="doc-content"><h1 id="liability-cash-flow-matching">Liability cash-flow matching</h1>
+<p><code>LiabilityMatchingModel</code> chooses nonnegative asset purchases and an initial reserve to meet dated liabilities in one currency. It minimizes the required initial capital. Later asset proceeds cannot fund the original purchase; cash is conserved at every planning date.</p>
+<p>Import the class from <code>qpiai_finance.treasury</code>. Use <a href="funding.html">funding</a> when the decision also includes funding sources, debt, investments, or explicit multi-currency account transfers. Supplied sensitivity matching is an additional local-risk constraint, not a substitute for dated payment coverage.</p>
+<h2 id="constructor">Constructor</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">LiabilityMatchingModel</span><span class="p">(</span>
+    <span class="n">prices</span><span class="p">,</span> <span class="n">cash_flows</span><span class="p">,</span> <span class="n">liabilities</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">currency</span><span class="p">,</span> <span class="n">as_of</span><span class="p">,</span> <span class="n">dates</span><span class="p">,</span>
+    <span class="n">asset_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">deposit_returns</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>prices</code></td>
+<td>Strictly positive finite purchase-price vector, Series, or mapping, in declared currency per instrument unit.</td>
+</tr>
+<tr>
+<td><code>cash_flows</code></td>
+<td>Planning-date × asset matrix of signed per-unit cash receipts: aligned DataFrame, supported column mapping, dense array, or sparse matrix. All entries at <code>as_of</code> must be zero.</td>
+</tr>
+<tr>
+<td><code>liabilities</code></td>
+<td>Complete nonnegative finite payment vector, Series, or mapping over planning dates.</td>
+</tr>
+<tr>
+<td><code>currency</code></td>
+<td>Uppercase three-letter currency code for prices, cash flows, liabilities, capital, and cash.</td>
+</tr>
+<tr>
+<td><code>as_of</code></td>
+<td>Calendar purchase/valuation date.</td>
+</tr>
+<tr>
+<td><code>dates</code></td>
+<td>Nonempty unique strictly increasing calendar dates; the first must equal <code>as_of</code>.</td>
+</tr>
+<tr>
+<td><code>asset_ids</code></td>
+<td>Optional unique string/integer asset identifiers; inferred from labeled prices or assigned positional integers.</td>
+</tr>
+<tr>
+<td><code>deposit_returns</code></td>
+<td>Finite interval return fractions, scalar or complete dated vector, Series, or mapping. Values must be at least <code>-1</code>; the first date's return must be zero. A scalar is broadcast and its first entry set to zero.</td>
+</tr>
+</tbody>
+</table>
+<p>Date-indexed inputs align to the complete planning grid; array rows follow <code>dates</code> and columns follow <code>asset_ids</code>. Dated payment, return, and cash-bound inputs accept Series or mappings for labels; DataFrames are accepted for the asset cash-flow matrix. The model does not price instruments, interpolate omitted cash-flow dates, infer interest accrual, or convert currencies. See <a href="data.html">data</a> and <a href="cashflows.html">cash flows</a> for the numeric and date conventions.</p>
+<p>Read-only properties are <code>asset_ids</code> (detached Index), <code>dates</code> (detached DatetimeIndex), and <code>currency</code> (string).</p>
+<h2 id="cash-and-initial-capital-equations">Cash and initial-capital equations</h2>
+<p>For holdings <span class="arithmatex">\(q_i\geq0\)</span>, capital <span class="arithmatex">\(K\)</span>, prices <span class="arithmatex">\(p_i\)</span>, per-unit receipts <span class="arithmatex">\(A_{ti}\)</span>, liabilities <span class="arithmatex">\(L_t\)</span>, and deposit returns <span class="arithmatex">\(r_t\)</span>:</p>
+<div class="arithmatex">\[
+C_0=K-p^\top q-L_0,\qquad C_t=(1+r_t)C_{t-1}+A_tq-L_t\quad(t&gt;0).
+\]</div>
+<p>Minimize <span class="arithmatex">\(K\)</span> while satisfying all holdings, cash, capital, lot, and configured sensitivity constraints. Cash cannot be negative by default. The linear formulation eliminates <span class="arithmatex">\(K\)</span> using purchase outlay plus <code>cash_0</code> plus the as-of liability; the source objective and results restore the initial capital.</p>
+<h2 id="configure-holdings-and-liquidity">Configure holdings and liquidity</h2>
+<p>All configuration methods modify the model and return <code>self</code>.</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">limit_holdings</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">buy_in_lots</span><span class="p">(</span><span class="n">lot_sizes</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_cash</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">minimum</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">maximum</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_initial_capital</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">maximum</span><span class="p">)</span>
+</code></pre></div>
+<p><code>limit_holdings</code> uses instrument quantities. Bounds are finite scalars or complete asset vectors, Series, or mappings. <code>lower</code> must be nonnegative and must not exceed <code>upper</code>; <code>upper=None</code> leaves the upper side unbounded. Default holdings range from zero to infinity.</p>
+<p><code>buy_in_lots</code> accepts a strictly positive finite scalar or complete asset vector and requires holdings to be integer multiples of those quantities. It changes the class from LP to MILP. Quantities, not lot counts, are returned in financial results.</p>
+<p><code>limit_cash</code> accepts nonnegative finite scalar or complete dated bounds using the same dated formats as <code>deposit_returns</code>. The minimum must not exceed the maximum; <code>maximum=None</code> leaves the upper side unbounded. Default cash has a zero floor and no upper bound at every date. <code>limit_initial_capital</code> sets a finite nonnegative amount cap. The capital cap is imposed on purchase outlay, initial retained cash, and the as-of liability together.</p>
+<h2 id="match-supplied-sensitivities">Match supplied sensitivities</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">match_sensitivities</span><span class="p">(</span>
+    <span class="n">sensitivities</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">risk_units</span><span class="p">,</span> <span class="n">risk_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Requires <code>sensitivities @ holdings == target</code>. <code>sensitivities</code> is a risk × asset matrix: DataFrame, supported column mapping, dense array, or sparse matrix. <code>risk_ids</code> optionally supplies unique row identifiers; labeled rows or positional integers are used otherwise. <code>target</code> is a complete finite risk vector, Series, or mapping of total signed liability sensitivities.</p>
+<p><code>risk_units</code> is a nonblank string applied to all rows, or one nonblank string per risk row as a sequence/Series/mapping. A target is a total economic sensitivity in those units; an unweighted duration or percentage is not automatically the correct target. Repeated calls replace the complete matching matrix. Prices and liability Greeks are not inferred from cash flows.</p>
+<h2 id="solve-and-inspect">Solve and inspect</h2>
+<p>Use root <code>validate</code>, <code>inspect</code>, and <code>solve</code> with the <a href="solving.html">execution contract</a>. The mathematical class is LP without lots and MILP with lots. Default execution uses Opt locally; supported explicit platform execution and external solver selection follow their normal capability rules. Every Finance solve requires an Opt client.</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">to_model</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">return_variables</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">to_cvxpy</span><span class="p">()</span>
+</code></pre></div>
+<p><code>to_matrix</code> returns a sparse Opt matrix-input dictionary for the complete equivalent LP/MILP. <code>holding_i</code> columns are quantities, or integer lot counts when lots are configured; <code>cash_t</code> columns are currency amounts. The objective includes the initial liability as its constant offset.</p>
+<p><code>to_model</code> returns a detached Opt model. With a Python boolean <code>return_variables=True</code>, it returns <code>(model, expressions)</code>. <code>to_cvxpy</code> returns <code>(problem, expressions)</code>. Both expression dictionaries contain asset-indexed <code>holdings</code> in actual instrument units, dated <code>cash_balances</code>, and scalar <code>initial_capital</code> in currency units. Mutating an export does not alter the source Finance model. See <a href="custom-models.html">custom models</a> for explicit Opt compilation and recovery.</p>
+<h2 id="evaluate-a-proposed-reserve">Evaluate a proposed reserve</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">holdings</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">initial_capital</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">)</span>
+</code></pre></div>
+<p><code>holdings</code> is a complete finite vector, Series, or mapping of instrument quantities. <code>initial_capital</code> is a finite real amount supplied explicitly; negative amounts fail the financial constraint check. <code>tolerance</code> is a finite nonnegative absolute scalar, default <code>1e-7</code>.</p>
+<p>Returns <code>objective</code>, <code>feasible</code>, <code>constraints</code>, <code>metrics</code>, <code>tables</code>, <code>decision</code>, and <code>costs</code>. It recalculates purchase cost, every dated cash balance, holdings/lot limits, initial capital, and supplied sensitivity equalities. Cash and sensitivity residuals use original products before reported rounding. Units are included in constraint rows. Evaluation requires no authentication and does not optimize an omitted reserve.</p>
+<h2 id="result-contract">Result contract</h2>
+<p>The objective and <code>objective_unit</code> are initial capital and the declared currency. <code>decision["holdings"]</code> is an asset-indexed Series named <code>quantity</code>; <code>decision["cash_balances"]</code> is a dated Series named <code>cash</code>. Convenience properties expose both.</p>
+<table>
+<thead>
+<tr>
+<th>Location</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>metrics</code></td>
+<td><code>initial_capital</code>, <code>purchase_cost</code>, <code>initial_uninvested_cash</code>, <code>final_cash</code>. Initial uninvested cash is capital minus purchases, before paying the as-of liability.</td>
+</tr>
+<tr>
+<td><code>costs</code></td>
+<td><code>initial_capital</code>, <code>purchase_cost</code>, <code>currency</code>.</td>
+</tr>
+<tr>
+<td><code>tables["liability_coverage"]</code></td>
+<td>Date-indexed <code>opening_cash</code>, <code>deposit_interest</code>, <code>asset_cash_flow</code>, <code>liability</code>, <code>purchase_outlay</code>, <code>closing_cash</code>, <code>cash_buffer</code>, <code>currency</code>.</td>
+</tr>
+<tr>
+<td><code>tables["holdings"]</code></td>
+<td>Asset-indexed <code>quantity</code>, <code>price</code>, <code>purchase_value</code>, <code>currency</code>.</td>
+</tr>
+<tr>
+<td><code>tables["sensitivity_matching"]</code></td>
+<td>When configured: risk-indexed <code>actual</code>, <code>target</code>, <code>residual</code>, <code>unit</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Solving additionally checks lot reconstruction and reconciles solver cash columns with independently calculated balances. The variable-elimination transformation records how capital was restored. Check financial feasibility and proof scope as described in <a href="results.html">results</a>. For replay, the result's recorded initial capital is a primary input alongside its holdings.</p>
+<p>Numeric decision entries, metrics, and monetary table columns are floats. On the first date, <code>opening_cash</code> is the supplied initial capital; thereafter it is the previous closing cash. <code>purchase_outlay</code> is charged only on the first date. <code>cash_buffer</code> is the configured minimum closing balance. Sensitivity <code>residual</code> is actual minus target in the declared risk unit. Holding-bound constraints use <code>instrument_units</code>, lot residuals use <code>lots</code>, cash/capital constraints use currency, and sensitivity equalities use their declared risk units.</p>
+<p>Invalid prices, labels, dates, first-date cash flows, deposit returns, bounds, or sensitivity dimensions raise <code>TypeError</code> or <code>ValueError</code>. Contradictory but structurally valid liabilities and limits can produce an infeasible optimization result. Plot the dated outcome with <code>plot.liability_coverage</code>.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="funding.html"><span>Previous</span><strong>Funding and liquidity</strong></a><a class="pager-card next" href="insurance.html"><span>Next</span><strong>Insurance and reinsurance</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#constructor">Constructor</a><a class="toc-level-2" href="#cash-and-initial-capital-equations">Cash and initial-capital equations</a><a class="toc-level-2" href="#configure-holdings-and-liquidity">Configure holdings and liquidity</a><a class="toc-level-2" href="#match-supplied-sensitivities">Match supplied sensitivities</a><a class="toc-level-2" href="#solve-and-inspect">Solve and inspect</a><a class="toc-level-2" href="#evaluate-a-proposed-reserve">Evaluate a proposed reserve</a><a class="toc-level-2" href="#result-contract">Result contract</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

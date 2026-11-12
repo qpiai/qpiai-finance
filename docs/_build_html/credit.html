@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Credit allocation">
+<title>Credit allocation | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/credit.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="credit">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="active" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Financial models</span><span aria-hidden="true">&gt;</span><span>Credit allocation</span></div><article class="doc-content"><h1 id="credit-allocation">Credit allocation</h1>
+<p><code>CreditAllocationModel</code> chooses final facility amounts within approved capacity, funding, capital, exposure, and loss limits. Existing allocations and supplied increase/reduction costs support changes to a credit book. Decisions are final amounts, not cash-flow schedules or individual underwriting approvals.</p>
+<p>Import from <code>qpiai_finance.credit</code>. Inputs use one currency and declared horizon. Allocation economics, expected loss, capital consumption, and exposure attribution remain separate supplied quantities.</p>
+<h2 id="constructor">Constructor</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">CreditAllocationModel</span><span class="p">(</span>
+    <span class="n">income_rates</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">funding_costs</span><span class="p">,</span> <span class="n">expected_loss_rates</span><span class="p">,</span>
+    <span class="n">capital_requirements</span><span class="p">,</span> <span class="n">capacity</span><span class="p">,</span> <span class="n">currency</span><span class="p">,</span> <span class="n">horizon</span><span class="p">,</span> <span class="n">as_of</span><span class="p">,</span>
+    <span class="n">facility_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">funding_requirements</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">exposure_per_unit</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">current_allocations</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type, default, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>income_rates</code></td>
+<td>Required finite facility vector, Series, or mapping of expected income per allocated currency unit, before separately supplied costs and losses.</td>
+</tr>
+<tr>
+<td><code>funding_costs</code></td>
+<td>Required finite scalar or complete facility vector of funding cost per allocated unit; signed values are allowed.</td>
+</tr>
+<tr>
+<td><code>expected_loss_rates</code></td>
+<td>Required nonnegative finite scalar or complete vector of expected credit loss per allocated unit.</td>
+</tr>
+<tr>
+<td><code>capital_requirements</code></td>
+<td>Required nonnegative finite scalar or complete vector of capital currency consumed per allocated currency unit.</td>
+</tr>
+<tr>
+<td><code>capacity</code></td>
+<td>Required nonnegative finite scalar or complete vector of approved maximum amounts. Zero forbids allocation.</td>
+</tr>
+<tr>
+<td><code>currency</code></td>
+<td>Required uppercase three-letter code for amounts.</td>
+</tr>
+<tr>
+<td><code>horizon</code></td>
+<td>Required nonblank common forecast/loss horizon description.</td>
+</tr>
+<tr>
+<td><code>as_of</code></td>
+<td>Required calendar decision date.</td>
+</tr>
+<tr>
+<td><code>facility_ids</code></td>
+<td>Optional unique string/integer identifiers; infer from labeled income or use positional integers.</td>
+</tr>
+<tr>
+<td><code>funding_requirements</code></td>
+<td>Nonnegative finite scalar or complete vector; default <code>1.0</code> currency of final funding use per allocated unit.</td>
+</tr>
+<tr>
+<td><code>exposure_per_unit</code></td>
+<td>Nonnegative finite scalar or complete vector; default <code>1.0</code>, the policy exposure attributed per allocated unit.</td>
+</tr>
+<tr>
+<td><code>current_allocations</code></td>
+<td>Nonnegative finite scalar or complete vector of existing amounts; default zero.</td>
+</tr>
+</tbody>
+</table>
+<p>Complete vectors accept arrays, Series, and mappings aligned by facility identifier; scalars broadcast for the parameters explicitly described above. Bounds initially allow zero through approved capacity; no aggregate funding or capital cap is imposed until configured. Current allocations are an economic reference, not automatically a lower bound. Read-only <code>facility_ids</code> returns a detached Index; <code>currency</code> returns the code. See <a href="data.html">data conventions</a>.</p>
+<h2 id="objective-and-expected-loss">Objective and expected loss</h2>
+<p>Configuration methods modify the model and return <code>self</code>.</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">maximize_risk_adjusted_income</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span> <span class="n">capital_charge</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">risk_aversion</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><code>capital_charge</code> and <code>risk_aversion</code> are finite nonnegative real scalars. <code>confidence</code> is strictly in <code>(0,1)</code>. The objective is expected income minus funding costs, expected credit losses, costs of changing the existing book, <code>capital_charge * capital_used</code>, and any <code>risk_aversion * ES(scenario_loss)</code> term. All terms use model currency over the declared horizon. Zero risk aversion is the default; a positive value requires probabilistic loss scenarios already configured.</p>
+<p>Expected-loss rates are not scenario tail risk or capital. An ES preference is an additional risk tradeoff and does not silently replace the supplied expected-loss estimate.</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">set_default_risk</span><span class="p">(</span>
+    <span class="n">probability_of_default</span><span class="p">,</span> <span class="n">loss_given_default</span><span class="p">,</span> <span class="n">exposure_at_default</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Each argument accepts a scalar or complete finite facility vector, Series, or mapping. PD and conditional mean LGD lie in <code>[0,1]</code>; EAD is nonnegative exposure currency per allocated currency unit. The method replaces expected-loss rates with the supplied <code>PD * LGD * EAD</code>, retaining the factors for financial calculation. It does not change the separate <code>exposure_per_unit</code> policy basis or estimate loss correlation, tail risk, capital, provisions, or jurisdictional rules.</p>
+<h2 id="amount-resource-and-discrete-limits">Amount, resource, and discrete limits</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">limit_allocations</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_funding</span><span class="p">(</span><span class="n">maximum</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_capital</span><span class="p">(</span><span class="n">maximum</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">allocate_in_lots</span><span class="p">(</span><span class="n">lot_sizes</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">select_facilities</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">minimum</span><span class="p">,</span> <span class="n">maximum_count</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">set_transaction_costs</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">increase</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">decrease</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Method parameter</th>
+<th>Type, default, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Allocation <code>lower</code>, <code>upper</code></td>
+<td>Nonnegative finite scalar or complete facility vector. Default lower zero; <code>upper=None</code> restores approved capacity. Require <code>lower &lt;= upper &lt;= capacity</code>.</td>
+</tr>
+<tr>
+<td>Funding <code>maximum</code></td>
+<td>Required finite nonnegative amount bounding <code>funding_requirements @ allocations</code>. It concerns the final book, not origination cash or sale proceeds.</td>
+</tr>
+<tr>
+<td>Capital <code>maximum</code></td>
+<td>Required finite nonnegative amount bounding <code>capital_requirements @ allocations</code>.</td>
+</tr>
+<tr>
+<td><code>lot_sizes</code></td>
+<td>Required positive finite scalar or complete facility vector of final-allocation currency steps.</td>
+</tr>
+<tr>
+<td>Selection <code>minimum</code></td>
+<td>Required strictly positive finite scalar or complete vector of amounts per active facility. Each facility must receive zero or at least that amount. Zero approved capacity remains ineligible.</td>
+</tr>
+<tr>
+<td><code>maximum_count</code></td>
+<td>Optional whole-valued finite real in <code>[0, number_of_facilities]</code>, excluding booleans; default all facilities.</td>
+</tr>
+<tr>
+<td><code>increase</code>, <code>decrease</code></td>
+<td>Nonnegative finite scalars or complete facility vectors of change cost per currency unit; default zero. Applied to positive increases and reductions from <code>current_allocations</code>, respectively.</td>
+</tr>
+</tbody>
+</table>
+<p>Lots and optional-facility activation introduce integer decisions. Reductions may represent permitted sales/runoffs under supplied economics; the model does not infer settlement proceeds, contractual sale prices, or legal permission. Allocation bounds define the permissible final book.</p>
+<h2 id="policy-exposures-and-concentrations">Policy exposures and concentrations</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">limit_exposures</span><span class="p">(</span>
+    <span class="n">coefficients</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">upper</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">exposure_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_concentration</span><span class="p">(</span><span class="n">groups</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">maximum_share</span><span class="p">)</span>
+</code></pre></div>
+<p>Exposure <code>coefficients</code> form a finite nonnegative exposure × facility matrix: aligned DataFrame, supported column mapping, dense array, or sparse matrix. <code>exposure_ids</code> optionally specifies unique row identifiers; otherwise use row labels or positional integers. <code>lower</code> and <code>upper</code> are finite scalar or complete exposure vectors, Series, or mappings, with <code>0 &lt;= lower &lt;= upper</code>. Every call adds a block of <code>lower &lt;= coefficients @ allocations &lt;= upper</code>. Coefficients express exposure currency per allocated currency unit. Rows may overlap, including connected-party exposure rules.</p>
+<p><code>groups</code> is a complete sequence, Series, or mapping assigning one nonblank string/integer classification per facility. <code>maximum_share</code> is a finite scalar or complete group-indexed vector in <code>[0,1]</code>; group order follows first occurrence. Each call adds a classification. Group exposure is <code>sum(exposure_per_unit[i] * allocation[i])</code>; its cap is the given fraction of total exposure. A zero-total book has zero group amounts and satisfies these constraints; its reported shares are NaN. Overlapping groups require explicit exposure rows rather than a single classification label per facility.</p>
+<h2 id="scenario-and-tail-loss">Scenario and tail loss</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">set_loss_scenarios</span><span class="p">(</span><span class="n">scenarios</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_scenario_loss</span><span class="p">(</span><span class="n">maximum</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_expected_shortfall</span><span class="p">(</span><span class="n">maximum</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)</span>
+</code></pre></div>
+<p><code>scenarios</code> is a <code>Scenarios</code> object with <code>unit="loss_fraction"</code>, matching model horizon, exactly the facility identifiers, and nonnegative loss per allocated currency unit. It is copied and aligned. Omitted probabilities describe stress cases; ES requires explicit probabilities. Scenario mean loss is reported separately and does not replace expected-loss rates.</p>
+<p><code>limit_scenario_loss</code> requires configured scenarios. Its <code>maximum</code> is a nonnegative finite scalar or complete scenario vector, Series, or mapping in currency. Replacing scenarios preserves these limits by scenario identifier; changing identifiers while such limits exist raises.</p>
+<p>The ES cap is one finite nonnegative currency amount, with confidence strictly in <code>(0,1)</code> and default <code>0.95</code>. It has its own confidence independent of objective risk aversion. Repeating this setter replaces the previous ES cap. It does not impose a per-scenario maximum. Replacing scenarios without probabilities is rejected while a probabilistic ES setting is active.</p>
+<h2 id="execution-export-and-evaluation">Execution, export, and evaluation</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">to_model</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">return_variables</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">to_cvxpy</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">allocations</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">)</span>
+</code></pre></div>
+<p>The class is LP without lots/activation and MILP otherwise; it uses the Opt route by default. Root <code>validate</code>, <code>inspect</code>, and <code>solve</code> follow <a href="solving.html">solving</a>. Every Finance solve requires Opt authentication.</p>
+<p><code>to_model</code> returns a detached Opt formulation; a Python boolean <code>return_variables=True</code> returns <code>(model, expressions)</code>. <code>to_cvxpy</code> returns <code>(problem, expressions)</code>. Both expose facility-indexed <code>allocations</code> and <code>allocation_changes</code> in actual currency amounts, including when solver variables count lots. Mutating an export does not change the financial specification. <a href="custom-models.html">Custom models</a> explains explicit representation compilation and source recovery.</p>
+<p><code>evaluate</code> accepts a complete finite allocation vector, Series, or mapping; <code>tolerance</code> is a finite nonnegative absolute scalar. It returns <code>objective</code>, <code>feasible</code>, <code>constraints</code>, <code>decision</code>, <code>metrics</code>, <code>tables</code>, and <code>costs</code>. It recalculates economics, amounts, lots/activation, resources, concentrations, and configured scenario limits without solving or authenticating. Negative or fractional-lot decisions are checked against the source constraints rather than repaired.</p>
+<h2 id="result-fields">Result fields</h2>
+<p><code>result.allocations</code> is a facility-indexed Series named <code>allocated_amount</code>; <code>allocation_changes</code> is a Series named <code>change</code>. Objective unit is model currency.</p>
+<table>
+<thead>
+<tr>
+<th>Location</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>metrics</code></td>
+<td><code>allocated_amount</code>, <code>expected_income</code>, <code>funding_cost</code>, <code>expected_credit_loss</code>, <code>transaction_cost</code>, <code>capital_cost</code>, <code>capital_used</code>, <code>funding_used</code>, <code>exposure_at_default</code>, <code>net_income</code>; optional <code>scenario_expected_loss</code>, <code>objective_expected_shortfall</code>, <code>tail_risk_cost</code>, <code>constrained_expected_shortfall</code>. <code>net_income</code> subtracts funding, expected loss, and change costs, before the separately reported capital and tail charges.</td>
+</tr>
+<tr>
+<td><code>costs</code></td>
+<td>Applicable <code>funding_cost</code>, <code>expected_credit_loss</code>, <code>transaction_cost</code>, <code>capital_cost</code>, and <code>tail_risk_cost</code>.</td>
+</tr>
+<tr>
+<td><code>allocations</code> table</td>
+<td><code>current_amount</code>, <code>allocated_amount</code>, <code>increase</code>, <code>reduction</code>, <code>capacity</code>, <code>expected_income</code>, <code>funding_cost</code>, <code>expected_credit_loss</code>, <code>transaction_cost</code>, <code>capital_cost</code>, <code>net_contribution</code>, <code>capital_used</code>, <code>funding_used</code>, <code>exposure_at_default</code>, <code>currency</code>.</td>
+</tr>
+<tr>
+<td><code>resources</code> table</td>
+<td>Funding/capital rows with <code>used</code>, <code>limit</code>, <code>currency</code>.</td>
+</tr>
+<tr>
+<td><code>exposures</code> table</td>
+<td>Configured <code>classification</code>, <code>exposure</code>, <code>amount</code>, <code>lower</code>, <code>upper</code>, <code>currency</code>.</td>
+</tr>
+<tr>
+<td><code>concentrations</code> table</td>
+<td><code>classification</code>, <code>group</code>, <code>amount</code>, <code>total_exposure</code>, <code>share</code>, <code>maximum_share</code>, <code>currency</code>.</td>
+</tr>
+<tr>
+<td><code>scenario_losses</code> table</td>
+<td>Scenario-indexed <code>loss</code>, <code>currency</code>, optional <code>probability</code> and configured <code>maximum</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Tables are under <code>result.tables</code>. Solving additionally checks integer/activation reconstruction and reconciles derived total exposure. <a href="results.html">Results</a> defines proof and feasibility acceptance; <a href="plotting.html">plotting</a> covers allocations, resources, and concentration figures.</p>
+<p>Amounts, income, losses, costs, and resource metrics are floats in model currency. In both metrics and tables, <code>exposure_at_default</code> means <code>exposure_per_unit * allocations</code> summed where appropriate; it retains that policy basis after <code>set_default_risk</code>. Expected credit loss separately uses the supplied PD, LGD, and EAD factors. The allocation table's <code>net_contribution</code> deducts funding, expected loss, change costs, and the capital charge; it excludes the portfolio-level tail-risk charge. The objective is <code>net_income - capital_cost - tail_risk_cost</code>, taking the last term as zero when inactive.</p>
+<p>Allocation and scenario tables retain their identifier indices. <code>resources</code> is indexed by <code>funding</code> and <code>capital</code>; <code>exposures</code> and <code>concentrations</code> use a positional row index, with zero-based <code>classification</code> numbers identifying the corresponding configuration calls. Concentration <code>share</code> and <code>maximum_share</code> are dimensionless floats. Constraint units are currency except <code>allocation_lots</code> residuals in lot counts and <code>facility_count</code> in facilities. Selection treats every strictly positive allocation as active, independently of the verification tolerance.</p>
+<p>Invalid dimensions, labels, rate domains, limits, scenario units, or unrepresentable calculations raise <code>TypeError</code> or <code>ValueError</code>. A structurally valid set of contradictory policy limits can produce an infeasible solve. Financial policy, capital rules, underwriting eligibility, and appropriate institution-specific treatment are supplied inputs.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="hedging.html"><span>Previous</span><strong>Hedging</strong></a><a class="pager-card next" href="funding.html"><span>Next</span><strong>Funding and liquidity</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#constructor">Constructor</a><a class="toc-level-2" href="#objective-and-expected-loss">Objective and expected loss</a><a class="toc-level-2" href="#amount-resource-and-discrete-limits">Amount, resource, and discrete limits</a><a class="toc-level-2" href="#policy-exposures-and-concentrations">Policy exposures and concentrations</a><a class="toc-level-2" href="#scenario-and-tail-loss">Scenario and tail loss</a><a class="toc-level-2" href="#execution-export-and-evaluation">Execution, export, and evaluation</a><a class="toc-level-2" href="#result-fields">Result fields</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

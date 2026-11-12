@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="User manual">
+<title>User manual | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/index.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="manual">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="active" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Overview</span><span aria-hidden="true">&gt;</span><span>User manual</span></div><article class="doc-content"><h1 id="qpiai-finance-user-manual">QpiAI Finance user manual</h1>
+<p>QpiAI Finance expresses optimization in financial terms and preserves those terms through quantum-inspired, gate-based, and standard numerical methods. Start with the decision and its constraints, select a supported representation, then inspect the recovered financial result.</p>
+<h2 id="start-using-the-library">Start using the library</h2>
+<p>Read <a href="getting-started.html">getting started</a> for installation, financial input preparation, authentication, and a first portfolio workflow. Use <a href="data.html">data conventions</a> to establish identifier order, units, horizons, dates, and covariance validity. <a href="solving.html">Solver selection and execution</a> explains route selection, options, limits, and verification.</p>
+<h2 id="financial-models">Financial models</h2>
+<p>Choose the model that owns the decision:</p>
+<table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Portfolio weights, asset selection, rebalancing, risk budgets, frontier</td>
+<td><a href="portfolio.html">Portfolios</a></td>
+</tr>
+<tr>
+<td>Adaptive investment, cash, funding, and terminal wealth</td>
+<td><a href="trading.html">Multi-period investment planning</a></td>
+</tr>
+<tr>
+<td>Order quantities across intervals and venues</td>
+<td><a href="execution.html">Execution scheduling</a></td>
+</tr>
+<tr>
+<td>Sensitivity or repriced scenario hedges</td>
+<td><a href="hedging.html">Hedging</a></td>
+</tr>
+<tr>
+<td>Loan/facility allocations and resource limits</td>
+<td><a href="credit.html">Credit allocation</a></td>
+</tr>
+<tr>
+<td>Funding draws, repayments, investments, and transfers</td>
+<td><a href="funding.html">Funding and liquidity</a></td>
+</tr>
+<tr>
+<td>Asset purchases against dated obligations</td>
+<td><a href="liability-matching.html">Liability matching</a></td>
+</tr>
+<tr>
+<td>Reinsurance contract or program selection</td>
+<td><a href="insurance.html">Reinsurance</a></td>
+</tr>
+<tr>
+<td>Dated eligible collateral assignments</td>
+<td><a href="collateral.html">Collateral</a></td>
+</tr>
+<tr>
+<td>Payment schedules, liquidity, and permitted atomic batches</td>
+<td><a href="settlement.html">Settlement</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="representations-and-research-controls">Representations and research controls</h2>
+<p><a href="quantum.html">Quantum-inspired and gate-based quantum optimization</a> covers portfolio polynomial compilation, native higher-order solving, QUBO and Ising, penalties, samples, algorithm configuration, execution, and recovery. <a href="custom-models.html">Custom financial models</a> explains reuse of financial calculations, detached model exports, explicit Opt compilation, and verification of added financial rules.</p>
+<p>The <a href="algorithm-controls.html">algorithm control reference</a> lists circuit, optimizer, mixer, initialization, and execution settings. The <a href="solver-options.html">solver option reference</a> defines local/platform numerical controls and links to the complete native SCIP parameter catalogue.</p>
+<h2 id="shared-calculations">Shared calculations</h2>
+<p><a href="risk.html">Risk analytics</a> covers estimates, factor covariance, risk contributions, Black–Litterman views, VaR, and expected shortfall. <a href="scenarios.html">Scenarios</a> defines weighted outcomes, paths, sampling, and information trees. <a href="cashflows.html">Cash flows</a> covers loan schedules, discounting, and present values. <a href="trading-costs.html">Trading costs</a> defines fee and market-impact calculations.</p>
+<h2 id="results-and-integration">Results and integration</h2>
+<p>Read <a href="results.html">results and verification</a> for financial decisions, metrics, tables, statuses, reconciliation, replay, and recorded Opt recovery. Use <a href="interchange.html">interchange</a> for supported model, scenario, and result JSON. <a href="plotting.html">Plotting</a> provides the Matplotlib API and required result data.</p>
+<p>The <a href="public-api.html">public API index</a> maps imports to their reference pages. <a href="automation.html">automation.md</a> supplies task selection and execution procedures for automated workflows. <a href="contributing.html">Contributing</a>, <a href="reporting-bugs.html">bug reporting</a>, and <a href="feature-requests.html">feature requests</a> describe project participation. Source is hosted at <a href="https://github.com/qpiai/qpiai-finance">qpiai/qpiai-finance</a>.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="index.html"><span>Previous</span><strong>QpiAI Finance</strong></a><a class="pager-card next" href="getting-started.html"><span>Next</span><strong>Getting started</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#start-using-the-library">Start using the library</a><a class="toc-level-2" href="#financial-models">Financial models</a><a class="toc-level-2" href="#representations-and-research-controls">Representations and research controls</a><a class="toc-level-2" href="#shared-calculations">Shared calculations</a><a class="toc-level-2" href="#results-and-integration">Results and integration</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

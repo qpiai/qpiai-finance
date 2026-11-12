@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Financial data and conventions">
+<title>Financial data and conventions | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/data.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="data">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="active" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Foundations</span><span aria-hidden="true">&gt;</span><span>Financial data and conventions</span></div><article class="doc-content"><h1 id="financial-data-and-numerical-conventions">Financial data and numerical conventions</h1>
+<p>Use consistent identifiers, units, currencies, and horizons before constructing a model. Finance aligns labeled inputs by identifier; unlabeled arrays follow the model's declared order. Calculations use binary64 floating point.</p>
+<h2 id="identifiers-and-alignment">Identifiers and alignment</h2>
+<p>Model identifiers are nonempty strings or integers. Boolean identifiers, blank strings, empty identifier collections, and duplicate identifiers are rejected. Labeled vectors accept pandas Series or mappings; matrices accept DataFrames, supported column mappings, arrays, or SciPy sparse matrices where the operation supports them. Each API specifies its axis order.</p>
+<p>A labeled input must contain exactly the expected identifiers. Finance reorders matching labels to the model's order and rejects missing or unexpected labels. An unlabeled vector must contain one value per identifier. Scalar broadcasting is available only for parameters that document it. Financial input tables require the documented columns and reject unknown columns.</p>
+<p>Dense numeric arrays must have a real integer, unsigned integer, or floating dtype. Complex, object, string, and boolean arrays are rejected. Lists and tuples containing booleans are also rejected. Values must be finite. Numeric scalar parameters accept Python or NumPy real numbers, excluding booleans. <code>Decimal</code> is not a supported numeric scalar. Quantities, rates, costs, and coefficients are converted to binary64; use compatible units when values exceed its range or precision.</p>
+<h2 id="financial-units">Financial units</h2>
+<p>Returns are fractions: <code>0.05</code> means 5%. One basis point is <code>0.0001</code>. Variance has squared-return units; volatility has return units. A portfolio's expected arithmetic returns, covariance, scenario returns, and financial constraints must use compatible horizons. The <code>horizon</code> description records that convention; it does not rescale inputs.</p>
+<p>Currency fields describe the amounts supplied. Finance does not infer exchange rates, convert currencies from their names, load market data, adjust prices for distributions, fill missing observations, or infer a market calendar. Models with explicit account transfers or FX inputs apply those supplied conversions. Supply adjusted prices when calculating total returns.</p>
+<p>Floating-point feasibility tolerances describe numerical acceptance. For operational use, reconcile proposed decisions with the institution's accounting and transaction systems.</p>
+<h2 id="covariance-validation">Covariance validation</h2>
+<p>Covariance inputs must be square, finite, and exactly symmetric in their supplied numeric representation. Finance does not silently symmetrize or repair them. Singular positive semidefinite covariance is accepted. For a nonzero matrix, validation scales it by its largest absolute entry and rejects a minimum eigenvalue below <code>-1e-12</code> times the scaled infinity norm. Sparse inputs retain a CSR representation after duplicate entries are combined and zeros removed.</p>
+<p>An accepted roundoff-sized negative eigenvalue is a numerical tolerance, not a request for covariance projection. Apply any intended correction explicitly before passing the matrix. <a href="risk.html">Risk analytics</a> provides explicit shrinkage and factor representations.</p>
+<h2 id="dates-and-information-availability">Dates and information availability</h2>
+<p>Use the date or instant convention required by the operation. Calendar dates accept ISO <code>YYYY-MM-DD</code> strings, <code>datetime.date</code>, or midnight <code>datetime.datetime</code>, <code>pandas.Timestamp</code>, and <code>numpy.datetime64</code> values without a timezone. They compare whole dates. Instants accept strings with an explicit timezone/UTC offset, timezone-aware <code>datetime.datetime</code>, or timezone-aware <code>pandas.Timestamp</code> values; they compare instants after conversion to UTC. A naive timestamp cannot substitute for an operation that requires an aware instant.</p>
+<p>As-of filtering checks both when an observation occurred and when it became available. It does not recover historical revisions or data vintages. Supply the values that were actually available at the decision time.</p>
+<h2 id="data-api">Data API</h2>
+<p>Import these functions from <code>qpiai_finance.data</code>. They require no authentication and perform no optimization or network requests.</p>
+<h3 id="history_as_of"><code>history_as_of</code></h3>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">history_as_of</span><span class="p">(</span><span class="n">observations</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">as_of</span><span class="p">,</span> <span class="n">observed_at</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">available_at</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</code></pre></div>
+<p>Select rows whose observation and availability times are both no later than <code>as_of</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>observations</code></td>
+<td>One-dimensional observations or a two-dimensional observation × asset array; pandas Series/DataFrame or an array-like input.</td>
+</tr>
+<tr>
+<td><code>as_of</code></td>
+<td>Decision date or timezone-aware instant. Use the same convention for the row times.</td>
+</tr>
+<tr>
+<td><code>observed_at</code></td>
+<td>One date/instant per row. Required for arrays; omitted for a pandas input with a DatetimeIndex. A Series of times aligns by input row labels.</td>
+</tr>
+<tr>
+<td><code>available_at</code></td>
+<td>One publication/availability date or instant per row; defaults to <code>observed_at</code>. Each availability must be at or after its observation.</td>
+</tr>
+</tbody>
+</table>
+<p>Returns a selected Series, DataFrame, or ndarray, preserving pandas labels and row order. Pandas and ndarray inputs retain their data dtypes; lists and tuples produce an object-dtype ndarray. An empty selection is possible. Observation times must be unique and strictly increasing. The function does not sort, fill, or validate the observation values; it filters rows by their times. Invalid dimensions, mismatched timestamp labels or lengths, and incompatible time conventions raise <code>TypeError</code> or <code>ValueError</code>.</p>
+<h3 id="returns_from_prices"><code>returns_from_prices</code></h3>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">returns_from_prices</span><span class="p">(</span><span class="n">prices</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"simple"</span><span class="p">)</span>
+</code></pre></div>
+<p><code>prices</code> is a one-dimensional price series or a time × asset matrix with at least two rows, at least one asset, and finite strictly positive prices. <code>kind</code> is <code>"simple"</code> or <code>"log"</code>.</p>
+<p>For consecutive prices <span class="arithmatex">\(P_{t-1}\)</span> and <span class="arithmatex">\(P_t\)</span>, simple return is <span class="arithmatex">\(P_t/P_{t-1}-1\)</span> and log return is <span class="arithmatex">\(\log(P_t/P_{t-1})\)</span>. The output has one fewer row. A Series or DataFrame retains its type, later observation labels, and name or asset columns; other inputs return an ndarray. Pandas time labels must be unique and increasing; DataFrame asset columns must be valid identifiers.</p>
+<p>The function performs no corporate-action adjustment, imputation, or annualization. Unsupported kinds, nonpositive prices, nonfinite values, incompatible dimensions or labels, and unrepresentable returns raise <code>ValueError</code>.</p>
+<h3 id="compound_returns"><code>compound_returns</code></h3>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">compound_returns</span><span class="p">(</span><span class="n">returns</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">"simple"</span><span class="p">)</span>
+</code></pre></div>
+<p><code>returns</code> is a nonempty one-dimensional return series or time × asset matrix. <code>kind="simple"</code> calculates <span class="arithmatex">\(\prod_t(1+r_t)-1\)</span>; values must be at least <code>-1</code>. <code>kind="log"</code> sums log returns and returns the aggregate log return, without converting it to a simple return.</p>
+<p>Returns a float for a one-dimensional input, a Series indexed by asset columns for a DataFrame, or an ndarray for other two-dimensional inputs. A DataFrame result is named <code>simple_return</code> or <code>log_return</code>. Missing or nonfinite data, unsupported dimensions or kinds, and output overflow raise <code>ValueError</code>.</p>
+<h3 id="rescale_moments"><code>rescale_moments</code></h3>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">rescale_moments</span><span class="p">(</span><span class="n">expected_returns</span><span class="p">,</span> <span class="n">covariance</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">periods</span><span class="p">,</span> <span class="n">assumption</span><span class="p">)</span>
+</code></pre></div>
+<p>Multiply the supplied mean vector and covariance by the positive scalar <code>periods</code>. <code>assumption</code> must explicitly equal <code>"iid_additive"</code>. This scaling applies to independent additive period P&amp;L or log-return moments. It is not exact compounding of simple-return moments.</p>
+<p><code>expected_returns</code> accepts a Series, mapping, or one-dimensional array. <code>covariance</code> accepts a matching DataFrame, column mapping, dense array, or sparse matrix and must satisfy the covariance validation above. A labeled mean defines asset order; otherwise the order is positional. Returns <code>(mean, covariance)</code>, where <code>mean</code> is a Series and covariance is a labeled DataFrame for dense inputs or a sparse matrix for sparse inputs. Invalid labels, nonpositive <code>periods</code>, unsupported assumptions, and overflow raise <code>TypeError</code> or <code>ValueError</code>.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="getting-started.html"><span>Previous</span><strong>Getting started</strong></a><a class="pager-card next" href="risk.html"><span>Next</span><strong>Risk analytics</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#identifiers-and-alignment">Identifiers and alignment</a><a class="toc-level-2" href="#financial-units">Financial units</a><a class="toc-level-2" href="#covariance-validation">Covariance validation</a><a class="toc-level-2" href="#dates-and-information-availability">Dates and information availability</a><a class="toc-level-2" href="#data-api">Data API</a><a class="toc-level-3" href="#history_as_of">history_as_of</a><a class="toc-level-3" href="#returns_from_prices">returns_from_prices</a><a class="toc-level-3" href="#compound_returns">compound_returns</a><a class="toc-level-3" href="#rescale_moments">rescale_moments</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

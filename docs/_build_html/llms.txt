@@ -1,0 +1,41 @@
+# QpiAI Finance
+
+> Financial modeling, risk analysis, quantum-inspired and gate-based optimization.
+
+Start with [automation.md](markdown/automation.md) for task selection, execution boundaries, and recovery procedures.
+
+## Documentation
+
+- [QpiAI Finance](markdown/README.md)
+- [User manual](markdown/docs/index.md)
+- [Getting started](markdown/docs/getting-started.md)
+- [Financial data and conventions](markdown/docs/data.md)
+- [Risk analytics](markdown/docs/risk.md)
+- [Scenarios and information trees](markdown/docs/scenarios.md)
+- [Cash-flow calculations](markdown/docs/cashflows.md)
+- [Trading cost functions](markdown/docs/trading-costs.md)
+- [Portfolios and rebalancing](markdown/docs/portfolio.md)
+- [Multi-period investment planning](markdown/docs/trading.md)
+- [Execution scheduling](markdown/docs/execution.md)
+- [Hedging](markdown/docs/hedging.md)
+- [Credit allocation](markdown/docs/credit.md)
+- [Funding and liquidity](markdown/docs/funding.md)
+- [Liability matching](markdown/docs/liability-matching.md)
+- [Insurance and reinsurance](markdown/docs/insurance.md)
+- [Collateral allocation](markdown/docs/collateral.md)
+- [Payment settlement](markdown/docs/settlement.md)
+- [Quantum-inspired and gate-based optimization](markdown/docs/quantum.md)
+- [Solvers and execution](markdown/docs/solving.md)
+- [Custom models and compilation](markdown/docs/custom-models.md)
+- [Results and verification](markdown/docs/results.md)
+- [Plotting](markdown/docs/plotting.md)
+- [Interchange](markdown/docs/interchange.md)
+- [Gate-based algorithm controls](markdown/docs/algorithm-controls.md)
+- [Solver option reference](markdown/docs/solver-options.md)
+- [SCIP parameter catalogue](markdown/docs/scip-parameters.md)
+- [Public Python API](markdown/docs/public-api.md)
+- [Automation and agent workflows](markdown/automation.md)
+- [Contributing](markdown/CONTRIBUTING.md)
+- [Reporting bugs and security issues](markdown/REPORTING_BUGS.md)
+- [Feature requests](markdown/FEATURE_REQUESTS.md)
+- [Citation](markdown/docs/citation.md)

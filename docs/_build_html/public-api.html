@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Public Python API">
+<title>Public Python API | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/public-api.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="public-api">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="active" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Reference</span><span aria-hidden="true">&gt;</span><span>Public Python API</span></div><article class="doc-content"><h1 id="public-python-api">Public Python API</h1>
+<p>Use the domain namespace that owns the financial operation. The references below define constructors, parameters, units, results, and failure behavior. Root-level imports contain only the common financial workflow operations.</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">qpiai_finance</span><span class="w"> </span><span class="kn">import</span> <span class="n">inspect</span><span class="p">,</span> <span class="n">solve</span><span class="p">,</span> <span class="n">validate</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qpiai_finance.portfolio</span><span class="w"> </span><span class="kn">import</span> <span class="n">PortfolioModel</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qpiai_finance.quantum</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_portfolio</span>
+</code></pre></div>
+<p>Gate-based algorithms and execution settings are imported from <code>qpiai_opt.quantum</code>. Finance-specific compilation and source mappings live in <code>qpiai_finance.quantum</code>. Private modules whose names begin with an underscore are implementation details.</p>
+<h2 id="common-workflow">Common workflow</h2>
+<p>Import from <code>qpiai_finance</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>solve</code></td>
+<td><a href="solving.html">Common workflow</a></td>
+</tr>
+<tr>
+<td><code>inspect</code></td>
+<td><a href="solving.html">Common workflow</a></td>
+</tr>
+<tr>
+<td><code>validate</code></td>
+<td><a href="solving.html">Common workflow</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="portfolios">Portfolios</h2>
+<p>Import from <code>qpiai_finance.portfolio</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PortfolioModel</code></td>
+<td><a href="portfolio.html">Portfolios</a></td>
+</tr>
+<tr>
+<td><code>FrontierResult</code></td>
+<td><a href="portfolio.html">Portfolios</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="portfoliomodel-members"><code>PortfolioModel</code> members</h3>
+<div class="code-shell"><div class="code-toolbar"><span>text</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-text">PortfolioModel(expected_returns=None, covariance=None, *, horizon, asset_ids=None, net_weight=1.0, holdings=None, prices=None, cash=None, currency=None, bid_prices=None, ask_prices=None, cash_return=0.0)
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>allocate_risk</code></td>
+<td><code>allocate_risk(budgets=None, *, polish=True, polish_maxiter=20)</code></td>
+</tr>
+<tr>
+<td><code>efficient_frontier</code></td>
+<td><code>efficient_frontier(target_returns, *, client=None, solver=None, mode='local', allow_platform=False, tolerance=1e-07, **options)</code></td>
+</tr>
+<tr>
+<td><code>evaluate</code></td>
+<td><code>evaluate(weights, *, tax_lot_sales=None, tolerance=1e-07)</code></td>
+</tr>
+<tr>
+<td><code>fix_selection</code></td>
+<td><code>fix_selection(selected)</code></td>
+</tr>
+<tr>
+<td><code>hierarchical_risk_parity</code></td>
+<td><code>hierarchical_risk_parity(*, linkage_method='single')</code></td>
+</tr>
+<tr>
+<td><code>limit_cash</code></td>
+<td><code>limit_cash(*, minimum=0.0, maximum=None)</code></td>
+</tr>
+<tr>
+<td><code>limit_exposures</code></td>
+<td><code>limit_exposures(exposures, *, lower, upper, exposure_ids=None)</code></td>
+</tr>
+<tr>
+<td><code>limit_leverage</code></td>
+<td><code>limit_leverage(*, maximum)</code></td>
+</tr>
+<tr>
+<td><code>limit_short_positions</code></td>
+<td><code>limit_short_positions(maximum)</code></td>
+</tr>
+<tr>
+<td><code>limit_tax</code></td>
+<td><code>limit_tax(*, minimum=None, maximum=None)</code></td>
+</tr>
+<tr>
+<td><code>limit_turnover</code></td>
+<td><code>limit_turnover(current_weights=None, *, maximum)</code></td>
+</tr>
+<tr>
+<td><code>limit_volatility</code></td>
+<td><code>limit_volatility(*, maximum)</code></td>
+</tr>
+<tr>
+<td><code>limit_weights</code></td>
+<td><code>limit_weights(*, lower=0.0, upper=1.0)</code></td>
+</tr>
+<tr>
+<td><code>maximize_moment_utility</code></td>
+<td><code>maximize_moment_utility(scenarios, *, variance_aversion, skewness_preference=0.0, kurtosis_aversion=0.0)</code></td>
+</tr>
+<tr>
+<td><code>maximize_utility</code></td>
+<td><code>maximize_utility(*, risk_aversion)</code></td>
+</tr>
+<tr>
+<td><code>minimize_downside_risk</code></td>
+<td><code>minimize_downside_risk(scenarios, *, target=0.0)</code></td>
+</tr>
+<tr>
+<td><code>minimize_expected_shortfall</code></td>
+<td><code>minimize_expected_shortfall(scenarios, *, confidence=0.95)</code></td>
+</tr>
+<tr>
+<td><code>minimize_mean_absolute_deviation</code></td>
+<td><code>minimize_mean_absolute_deviation(scenarios)</code></td>
+</tr>
+<tr>
+<td><code>minimize_tracking_error</code></td>
+<td><code>minimize_tracking_error(*, benchmark)</code></td>
+</tr>
+<tr>
+<td><code>minimize_variance</code></td>
+<td><code>minimize_variance()</code></td>
+</tr>
+<tr>
+<td><code>require_return</code></td>
+<td><code>require_return(*, minimum)</code></td>
+</tr>
+<tr>
+<td><code>robust_returns</code></td>
+<td><code>robust_returns(uncertainty, *, radius, uncertainty_ids=None)</code></td>
+</tr>
+<tr>
+<td><code>select_assets</code></td>
+<td><code>select_assets(*, count=None, maximum=None, minimum_weight=0.0, equal_weight=False)</code></td>
+</tr>
+<tr>
+<td><code>set_tax_lots</code></td>
+<td><code>set_tax_lots(lots, *, as_of, settlement)</code></td>
+</tr>
+<tr>
+<td><code>set_trading_costs</code></td>
+<td><code>set_trading_costs(*, buy_bps=0.0, sell_bps=0.0, buy_fixed=0.0, sell_fixed=0.0, minimum_trade=0.0)</code></td>
+</tr>
+<tr>
+<td><code>to_cvxpy</code></td>
+<td><code>to_cvxpy()</code></td>
+</tr>
+<tr>
+<td><code>to_model</code></td>
+<td><code>to_model(*, return_variables=False)</code></td>
+</tr>
+<tr>
+<td><code>trade_in_lots</code></td>
+<td><code>trade_in_lots(lot_sizes)</code></td>
+</tr>
+</tbody>
+</table>
+<p>Properties: <code>asset_ids</code>, <code>expected_returns</code>, <code>horizon</code>, <code>tax_lots</code>.</p>
+<h3 id="frontierresult-members"><code>FrontierResult</code> members</h3>
+<div class="code-shell"><div class="code-toolbar"><span>text</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-text">FrontierResult(targets: pandas.Series, results: tuple[qpiai_finance.results.FinanceResult, ...], horizon: str) -&gt; None
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>to_dict</code></td>
+<td><code>to_dict()</code></td>
+</tr>
+<tr>
+<td><code>to_json</code></td>
+<td><code>to_json()</code></td>
+</tr>
+</tbody>
+</table>
+<p>Properties: <code>table</code>.</p>
+<p>Record fields: <code>targets</code>, <code>results</code>, <code>horizon</code>.</p>
+<h2 id="quantum-inspired-and-gate-based-optimization">Quantum-inspired and gate-based optimization</h2>
+<p>Import from <code>qpiai_finance.quantum</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>compile_portfolio</code></td>
+<td><a href="quantum.html">Quantum-inspired and gate-based optimization</a></td>
+</tr>
+<tr>
+<td><code>PortfolioEncoding</code></td>
+<td><a href="quantum.html">Quantum-inspired and gate-based optimization</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="portfolioencoding-members"><code>PortfolioEncoding</code> members</h3>
+<div class="code-shell"><div class="code-toolbar"><span>text</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-text">PortfolioEncoding(portfolio, problem, names, objective, violations, details, conversion, build_time)
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>decode</code></td>
+<td><code>decode(sample)</code></td>
+</tr>
+<tr>
+<td><code>decode_result</code></td>
+<td><code>decode_result(result, *, tolerance=1e-07)</code></td>
+</tr>
+<tr>
+<td><code>encode_selection</code></td>
+<td><code>encode_selection(selected)</code></td>
+</tr>
+<tr>
+<td><code>energy</code></td>
+<td><code>energy(sample)</code></td>
+</tr>
+<tr>
+<td><code>evaluate</code></td>
+<td><code>evaluate(sample, *, tolerance=1e-07)</code></td>
+</tr>
+<tr>
+<td><code>evaluate_samples</code></td>
+<td><code>evaluate_samples(samples, *, tolerance=1e-07)</code></td>
+</tr>
+<tr>
+<td><code>inspect</code></td>
+<td><code>inspect(*, algorithm=None)</code></td>
+</tr>
+<tr>
+<td><code>solve</code></td>
+<td><code>solve(*, client=None, mode='local', algorithm=None, execution=None, allow_platform=False, tolerance=1e-07, **options)</code></td>
+</tr>
+</tbody>
+</table>
+<p>Properties: <code>compilation_settings</code>, <code>objective_polynomial</code>, <code>problem</code>, <code>transformations</code>, <code>variable_mapping</code>, <code>variable_names</code>.</p>
+<h2 id="investment-planning-and-execution">Investment planning and execution</h2>
+<p>Import from <code>qpiai_finance.trading</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ExecutionModel</code></td>
+<td><a href="execution.html">Investment planning and execution</a></td>
+</tr>
+<tr>
+<td><code>TradingModel</code></td>
+<td><a href="trading.html">Investment planning and execution</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="executionmodel-members"><code>ExecutionModel</code> members</h3>
+<div class="code-shell"><div class="code-toolbar"><span>text</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-text">ExecutionModel(orders, opportunities, *, arrival_prices, holdings, cash, currency, as_of, slots, cash_settlement, asset_ids=None, slot_ids=None, credit_limit=0.0, borrow_limits=0.0)
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>allow_underfill</code></td>
+<td><code>allow_underfill(penalty)</code></td>
+</tr>
+<tr>
+<td><code>evaluate</code></td>
+<td><code>evaluate(executions, *, tolerance=1e-07)</code></td>
+</tr>
+<tr>
+<td><code>limit_cash</code></td>
+<td><code>limit_cash(minimum)</code></td>
+</tr>
+<tr>
+<td><code>limit_exposures</code></td>
+<td><code>limit_exposures(coefficients, *, lower, upper, risk_units, exposure_ids=None)</code></td>
+</tr>
+<tr>
+<td><code>limit_gross_notional</code></td>
+<td><code>limit_gross_notional(maximum)</code></td>
+</tr>
+<tr>
+<td><code>limit_participation</code></td>
+<td><code>limit_participation(volumes, *, maximum_rate)</code></td>
+</tr>
+<tr>
+<td><code>limit_positions</code></td>
+<td><code>limit_positions(*, lower=None, upper=None)</code></td>
+</tr>
+<tr>
+<td><code>limit_turnover</code></td>
+<td><code>limit_turnover(maximum)</code></td>
+</tr>
+<tr>
+<td><code>limit_venue_notional</code></td>
+<td><code>limit_venue_notional(maximum)</code></td>
+</tr>
+<tr>
+<td><code>require_completion</code></td>
+<td><code>require_completion(asset_ids=None)</code></td>
+</tr>
+<tr>
+<td><code>set_borrow_limits</code></td>
+<td><code>set_borrow_limits(maximum)</code></td>
+</tr>
+<tr>
+<td><code>set_cash_flows</code></td>
+<td><code>set_cash_flows(flows)</code></td>
+</tr>
+<tr>
+<td><code>set_credit_limits</code></td>
+<td><code>set_credit_limits(maximum)</code></td>
+</tr>
+<tr>
+<td><code>set_execution_costs</code></td>
+<td><code>set_execution_costs(*, per_unit=0.0, fixed=0.0, minimum_trade=0.0)</code></td>
+</tr>
+<tr>
+<td><code>set_market_impact</code></td>
+<td><code>set_market_impact(*, quadratic=0.0, power_3_2=0.0, curves=None)</code></td>
+</tr>
+<tr>
+<td><code>set_order_windows</code></td>
+<td><code>set_order_windows(*, release=None, deadline=None)</code></td>
+</tr>
+<tr>
+<td><code>set_price_risk</code></td>
+<td><code>set_price_risk(covariance_rate, *, risk_aversion)</code></td>
+</tr>
+<tr>
+<td><code>to_cvxpy</code></td>
+<td><code>to_cvxpy()</code></td>
+</tr>
+<tr>
+<td><code>to_matrix</code></td>
+<td><code>to_matrix()</code></td>
+</tr>
+<tr>
+<td><code>to_model</code></td>
+<td><code>to_model(*, return_variables=False)</code></td>
+</tr>
+<tr>
+<td><code>trade_in_lots</code></td>
+<td><code>trade_in_lots(lot_sizes)</code></td>
+</tr>
+</tbody>
+</table>
+<p>Properties: <code>asset_ids</code>, <code>currency</code>, <code>opportunity_ids</code>, <code>slot_ids</code>, <code>slot_times</code>, <code>venue_ids</code>.</p>
+<h3 id="tradingmodel-members"><code>TradingModel</code> members</h3>
+<div class="code-shell"><div class="code-toolbar"><span>text</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-text">TradingModel(prices, *, tree, holdings, cash, currency, buy_limits, sell_limits, cash_settlement, asset_ids=None, credit_limits=0.0, borrow_limits=0.0)
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>add_existing_debt</code></td>
+<td><code>add_existing_debt(debt_id, *, principal, repayment_stage, interest=0.0)</code></td>
+</tr>
+<tr>
+<td><code>add_funding</code></td>
+<td><code>add_funding(funding_id, *, draw_node, repayment_stage, maximum, interest=0.0, fee=0.0, fixed_fee=0.0, minimum=0.0, lot_size=None)</code></td>
+</tr>
+<tr>
+<td><code>evaluate</code></td>
+<td><code>evaluate(trades, *, draws=None, tolerance=1e-07)</code></td>
+</tr>
+<tr>
+<td><code>limit_cash</code></td>
+<td><code>limit_cash(*, minimum=None, maximum=None)</code></td>
+</tr>
+<tr>
+<td><code>limit_debt</code></td>
+<td><code>limit_debt(*, maximum)</code></td>
+</tr>
+<tr>
+<td><code>limit_expected_shortfall</code></td>
+<td><code>limit_expected_shortfall(maximum, *, target, confidence=0.95)</code></td>
+</tr>
+<tr>
+<td><code>limit_exposures</code></td>
+<td><code>limit_exposures(coefficients, *, lower, upper, risk_units, exposure_ids=None)</code></td>
+</tr>
+<tr>
+<td><code>limit_facility</code></td>
+<td><code>limit_facility(facility_id, funding_ids, *, maximum, currency, fx_rates=None, reserved=0.0)</code></td>
+</tr>
+<tr>
+<td><code>limit_gross_notional</code></td>
+<td><code>limit_gross_notional(maximum)</code></td>
+</tr>
+<tr>
+<td><code>limit_participation</code></td>
+<td><code>limit_participation(volumes, *, maximum_rate)</code></td>
+</tr>
+<tr>
+<td><code>limit_positions</code></td>
+<td><code>limit_positions(*, lower=None, upper=None)</code></td>
+</tr>
+<tr>
+<td><code>limit_terminal_wealth</code></td>
+<td><code>limit_terminal_wealth(minimum)</code></td>
+</tr>
+<tr>
+<td><code>limit_turnover</code></td>
+<td><code>limit_turnover(maximum)</code></td>
+</tr>
+<tr>
+<td><code>maximize_expected_wealth</code></td>
+<td><code>maximize_expected_wealth()</code></td>
+</tr>
+<tr>
+<td><code>maximize_worst_case_wealth</code></td>
+<td><code>maximize_worst_case_wealth()</code></td>
+</tr>
+<tr>
+<td><code>minimize_expected_shortfall</code></td>
+<td><code>minimize_expected_shortfall(*, target, confidence=0.95)</code></td>
+</tr>
+<tr>
+<td><code>set_borrow_limits</code></td>
+<td><code>set_borrow_limits(maximum)</code></td>
+</tr>
+<tr>
+<td><code>set_carry</code></td>
+<td><code>set_carry(*, deposit_factors=1.0, borrowing_factors=1.0, dividends=0.0, share_factors=1.0, short_fees=0.0)</code></td>
+</tr>
+<tr>
+<td><code>set_cash_flows</code></td>
+<td><code>set_cash_flows(flows)</code></td>
+</tr>
+<tr>
+<td><code>set_credit_limits</code></td>
+<td><code>set_credit_limits(maximum)</code></td>
+</tr>
+<tr>
+<td><code>set_market_impact</code></td>
+<td><code>set_market_impact(*, quadratic=0.0, power_3_2=0.0, curves=None)</code></td>
+</tr>
+<tr>
+<td><code>set_trading_costs</code></td>
+<td><code>set_trading_costs(*, bid_prices=None, ask_prices=None, buy_per_unit=0.0, sell_per_unit=0.0, fixed=0.0, minimum_trade=0.0)</code></td>
+</tr>
+<tr>
+<td><code>to_cvxpy</code></td>
+<td><code>to_cvxpy()</code></td>
+</tr>
+<tr>
+<td><code>to_matrix</code></td>
+<td><code>to_matrix()</code></td>
+</tr>
+<tr>
+<td><code>to_model</code></td>
+<td><code>to_model(*, return_variables=False)</code></td>
+</tr>
+<tr>
+<td><code>to_scip</code></td>
+<td><code>to_scip()</code></td>
+</tr>
+<tr>
+<td><code>trade_in_lots</code></td>
+<td><code>trade_in_lots(lot_sizes)</code></td>
+</tr>
+</tbody>
+</table>
+<p>Properties: <code>asset_ids</code>, <code>currency</code>, <code>node_ids</code>, <code>tree</code>.</p>
+<h2 id="hedging">Hedging</h2>
+<p>Import from <code>qpiai_finance.hedging</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>HedgeModel</code></td>
+<td><a href="hedging.html">Hedging</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="hedgemodel-members"><code>HedgeModel</code> members</h3>
+<div class="code-shell"><div class="code-toolbar"><span>text</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-text">HedgeModel(current_exposures=None, sensitivities=None, *, risk_units=None, currency, as_of, instrument_ids=None, risk_ids=None, current_positions=0.0, current_pnl=None, pnl_scenarios=None, cost_factors=None)
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>evaluate</code></td>
+<td><code>evaluate(hedges, *, tolerance=1e-07)</code></td>
+</tr>
+<tr>
+<td><code>limit_capital</code></td>
+<td><code>limit_capital(capital_per_unit, *, maximum)</code></td>
+</tr>
+<tr>
+<td><code>limit_expected_shortfall</code></td>
+<td><code>limit_expected_shortfall(maximum, *, confidence=0.95)</code></td>
+</tr>
+<tr>
+<td><code>limit_exposures</code></td>
+<td><code>limit_exposures(*, lower, upper)</code></td>
+</tr>
+<tr>
+<td><code>limit_positions</code></td>
+<td><code>limit_positions(*, lower=None, upper=None)</code></td>
+</tr>
+<tr>
+<td><code>limit_scenario_loss</code></td>
+<td><code>limit_scenario_loss(maximum)</code></td>
+</tr>
+<tr>
+<td><code>limit_trades</code></td>
+<td><code>limit_trades(*, lower=None, upper=None)</code></td>
+</tr>
+<tr>
+<td><code>match_exposures</code></td>
+<td><code>match_exposures(target=0.0)</code></td>
+</tr>
+<tr>
+<td><code>minimize_expected_shortfall</code></td>
+<td><code>minimize_expected_shortfall(*, confidence=0.95)</code></td>
+</tr>
+<tr>
+<td><code>minimize_mismatch</code></td>
+<td><code>minimize_mismatch(weights, *, target=0.0, cost_weight=1.0)</code></td>
+</tr>
+<tr>
+<td><code>minimize_worst_case_loss</code></td>
+<td><code>minimize_worst_case_loss()</code></td>
+</tr>
+<tr>
+<td><code>set_cash_account</code></td>
+<td><code>set_cash_account(*, cash, prices, bid_prices=None, ask_prices=None)</code></td>
+</tr>
+<tr>
+<td><code>set_pnl_scenarios</code></td>
+<td><code>set_pnl_scenarios(scenarios, *, current_pnl, cost_factors=1.0)</code></td>
+</tr>
+<tr>
+<td><code>set_transaction_costs</code></td>
+<td><code>set_transaction_costs(*, buy=0.0, sell=0.0)</code></td>
+</tr>
+<tr>
+<td><code>to_cvxpy</code></td>
+<td><code>to_cvxpy()</code></td>
+</tr>
+<tr>
+<td><code>to_model</code></td>
+<td><code>to_model(*, return_variables=False)</code></td>
+</tr>
+<tr>
+<td><code>trade_in_lots</code></td>
+<td><code>trade_in_lots(lot_sizes)</code></td>
+</tr>
+</tbody>
+</table>
+<p>Properties: <code>currency</code>, <code>current_pnl</code>, <code>instrument_ids</code>, <code>pnl_scenarios</code>, <code>risk_ids</code>.</p>
+<h2 id="credit-allocation">Credit allocation</h2>
+<p>Import from <code>qpiai_finance.credit</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CreditAllocationModel</code></td>
+<td><a href="credit.html">Credit allocation</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="creditallocationmodel-members"><code>CreditAllocationModel</code> members</h3>
+<div class="code-shell"><div class="code-toolbar"><span>text</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-text">CreditAllocationModel(income_rates, *, funding_costs, expected_loss_rates, capital_requirements, capacity, currency, horizon, as_of, facility_ids=None, funding_requirements=1.0, exposure_per_unit=1.0, current_allocations=0.0)
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>allocate_in_lots</code></td>
+<td><code>allocate_in_lots(lot_sizes)</code></td>
+</tr>
+<tr>
+<td><code>evaluate</code></td>
+<td><code>evaluate(allocations, *, tolerance=1e-07)</code></td>
+</tr>
+<tr>
+<td><code>limit_allocations</code></td>
+<td><code>limit_allocations(*, lower=0.0, upper=None)</code></td>
+</tr>
+<tr>
+<td><code>limit_capital</code></td>
+<td><code>limit_capital(maximum)</code></td>
+</tr>
+<tr>
+<td><code>limit_concentration</code></td>
+<td><code>limit_concentration(groups, *, maximum_share)</code></td>
+</tr>
+<tr>
+<td><code>limit_expected_shortfall</code></td>
+<td><code>limit_expected_shortfall(maximum, *, confidence=0.95)</code></td>
+</tr>
+<tr>
+<td><code>limit_exposures</code></td>
+<td><code>limit_exposures(coefficients, *, upper, lower=0.0, exposure_ids=None)</code></td>
+</tr>
+<tr>
+<td><code>limit_funding</code></td>
+<td><code>limit_funding(maximum)</code></td>
+</tr>
+<tr>
+<td><code>limit_scenario_loss</code></td>
+<td><code>limit_scenario_loss(maximum)</code></td>
+</tr>
+<tr>
+<td><code>maximize_risk_adjusted_income</code></td>
+<td><code>maximize_risk_adjusted_income(*, capital_charge=0.0, risk_aversion=0.0, confidence=0.95)</code></td>
+</tr>
+<tr>
+<td><code>select_facilities</code></td>
+<td><code>select_facilities(*, minimum, maximum_count=None)</code></td>
+</tr>
+<tr>
+<td><code>set_default_risk</code></td>
+<td><code>set_default_risk(probability_of_default, loss_given_default, exposure_at_default)</code></td>
+</tr>
+<tr>
+<td><code>set_loss_scenarios</code></td>
+<td><code>set_loss_scenarios(scenarios)</code></td>
+</tr>
+<tr>
+<td><code>set_transaction_costs</code></td>
+<td><code>set_transaction_costs(*, increase=0.0, decrease=0.0)</code></td>
+</tr>
+<tr>
+<td><code>to_cvxpy</code></td>
+<td><code>to_cvxpy()</code></td>
+</tr>
+<tr>
+<td><code>to_model</code></td>
+<td><code>to_model(*, return_variables=False)</code></td>
+</tr>
+</tbody>
+</table>
+<p>Properties: <code>currency</code>, <code>facility_ids</code>.</p>
+<h2 id="funding-and-liability-matching">Funding and liability matching</h2>
+<p>Import from <code>qpiai_finance.treasury</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>FundingModel</code></td>
+<td><a href="funding.html">Funding and liability matching</a></td>
+</tr>
+<tr>
+<td><code>LiabilityMatchingModel</code></td>
+<td><a href="liability-matching.html">Funding and liability matching</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="fundingmodel-members"><code>FundingModel</code> members</h3>
+<div class="code-shell"><div class="code-toolbar"><span>text</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-text">FundingModel(cash_flows, *, balances, as_of, dates=None, tree=None, reporting_currency=None, fx_rates=None, deposit_returns=0.0, discount_factors=1.0)
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>add_existing_debt</code></td>
+<td><code>add_existing_debt(debt_id, *, account, principal, repayment_date=None, repayment_stage=None, interest=0.0)</code></td>
+</tr>
+<tr>
+<td><code>add_funding</code></td>
+<td><code>add_funding(funding_id, *, account, draw_date=None, repayment_date=None, draw_node=None, repayment_stage=None, maximum, interest=0.0, fee=0.0, fixed_fee=0.0, minimum=0.0, lot_size=None)</code></td>
+</tr>
+<tr>
+<td><code>add_investment</code></td>
+<td><code>add_investment(investment_id, *, account, price, cash_flows, upper, lower=0.0, lot_size=None, purchase_date=None, purchase_node=None)</code></td>
+</tr>
+<tr>
+<td><code>add_transfer</code></td>
+<td><code>add_transfer(transfer_id, *, from_account, to_account, date=None, node=None, maximum, exchange_rate=None, fee=0.0)</code></td>
+</tr>
+<tr>
+<td><code>evaluate</code></td>
+<td><code>evaluate(draws=None, transfers=None, *, investments=None, tolerance=1e-07)</code></td>
+</tr>
+<tr>
+<td><code>limit_cash</code></td>
+<td><code>limit_cash(*, minimum=0.0, maximum=None)</code></td>
+</tr>
+<tr>
+<td><code>limit_debt</code></td>
+<td><code>limit_debt(*, maximum)</code></td>
+</tr>
+<tr>
+<td><code>limit_expected_shortfall</code></td>
+<td><code>limit_expected_shortfall(maximum, *, confidence=0.95)</code></td>
+</tr>
+<tr>
+<td><code>limit_exposure</code></td>
+<td><code>limit_exposure(exposure_id, *, unit, investment_coefficients=None, funding_coefficients=None, cash_coefficients=None, external_exposure=0.0, lower=None, upper=None)</code></td>
+</tr>
+<tr>
+<td><code>limit_facility</code></td>
+<td><code>limit_facility(facility_id, funding_ids, *, maximum, currency, fx_rates=None, reserved=0.0)</code></td>
+</tr>
+<tr>
+<td><code>minimize_expected_cost</code></td>
+<td><code>minimize_expected_cost()</code></td>
+</tr>
+<tr>
+<td><code>minimize_expected_shortfall</code></td>
+<td><code>minimize_expected_shortfall(*, confidence=0.95)</code></td>
+</tr>
+<tr>
+<td><code>minimize_worst_case_cost</code></td>
+<td><code>minimize_worst_case_cost()</code></td>
+</tr>
+<tr>
+<td><code>to_cvxpy</code></td>
+<td><code>to_cvxpy()</code></td>
+</tr>
+<tr>
+<td><code>to_model</code></td>
+<td><code>to_model(*, return_variables=False)</code></td>
+</tr>
+</tbody>
+</table>
+<p>Properties: <code>account_ids</code>, <code>dates</code>, <code>funding_ids</code>, <code>investment_ids</code>, <code>node_ids</code>, <code>reporting_currency</code>, <code>tree</code>.</p>
+<h3 id="liabilitymatchingmodel-members"><code>LiabilityMatchingModel</code> members</h3>
+<div class="code-shell"><div class="code-toolbar"><span>text</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-text">LiabilityMatchingModel(prices, cash_flows, liabilities, *, currency, as_of, dates, asset_ids=None, deposit_returns=0.0)
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>buy_in_lots</code></td>
+<td><code>buy_in_lots(lot_sizes)</code></td>
+</tr>
+<tr>
+<td><code>evaluate</code></td>
+<td><code>evaluate(holdings, *, initial_capital, tolerance=1e-07)</code></td>
+</tr>
+<tr>
+<td><code>limit_cash</code></td>
+<td><code>limit_cash(*, minimum=0.0, maximum=None)</code></td>
+</tr>
+<tr>
+<td><code>limit_holdings</code></td>
+<td><code>limit_holdings(*, lower=0.0, upper=None)</code></td>
+</tr>
+<tr>
+<td><code>limit_initial_capital</code></td>
+<td><code>limit_initial_capital(*, maximum)</code></td>
+</tr>
+<tr>
+<td><code>match_sensitivities</code></td>
+<td><code>match_sensitivities(sensitivities, target, *, risk_units, risk_ids=None)</code></td>
+</tr>
+<tr>
+<td><code>to_cvxpy</code></td>
+<td><code>to_cvxpy()</code></td>
+</tr>
+<tr>
+<td><code>to_matrix</code></td>
+<td><code>to_matrix()</code></td>
+</tr>
+<tr>
+<td><code>to_model</code></td>
+<td><code>to_model(*, return_variables=False)</code></td>
+</tr>
+</tbody>
+</table>
+<p>Properties: <code>asset_ids</code>, <code>currency</code>, <code>dates</code>.</p>
+<h2 id="reinsurance">Reinsurance</h2>
+<p>Import from <code>qpiai_finance.insurance</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ReinsuranceModel</code></td>
+<td><a href="insurance.html">Reinsurance</a></td>
+</tr>
+<tr>
+<td><code>excess_of_loss</code></td>
+<td><a href="insurance.html">Reinsurance</a></td>
+</tr>
+<tr>
+<td><code>quota_share</code></td>
+<td><a href="insurance.html">Reinsurance</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="reinsurancemodel-members"><code>ReinsuranceModel</code> members</h3>
+<div class="code-shell"><div class="code-toolbar"><span>text</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-text">ReinsuranceModel(gross_losses, recoveries, premiums, *, recovery_composition, currency, horizon, as_of, probabilities=None, scenario_ids=None, contract_ids=None)
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>add_exclusive_group</code></td>
+<td><code>add_exclusive_group(contract_ids)</code></td>
+</tr>
+<tr>
+<td><code>evaluate</code></td>
+<td><code>evaluate(selections, *, tolerance=1e-07)</code></td>
+</tr>
+<tr>
+<td><code>limit_contract_count</code></td>
+<td><code>limit_contract_count(*, minimum=0, maximum=None)</code></td>
+</tr>
+<tr>
+<td><code>limit_counterparty_exposure</code></td>
+<td><code>limit_counterparty_exposure(coefficients, *, maximum, exposure_ids=None)</code></td>
+</tr>
+<tr>
+<td><code>limit_expected_shortfall</code></td>
+<td><code>limit_expected_shortfall(maximum, *, confidence=0.95, measure='total_cost')</code></td>
+</tr>
+<tr>
+<td><code>limit_premium</code></td>
+<td><code>limit_premium(maximum)</code></td>
+</tr>
+<tr>
+<td><code>limit_retained_loss</code></td>
+<td><code>limit_retained_loss(maximum)</code></td>
+</tr>
+<tr>
+<td><code>limit_selections</code></td>
+<td><code>limit_selections(*, lower=0.0, upper=1.0)</code></td>
+</tr>
+<tr>
+<td><code>limit_total_cost</code></td>
+<td><code>limit_total_cost(maximum)</code></td>
+</tr>
+<tr>
+<td><code>minimize_expected_cost</code></td>
+<td><code>minimize_expected_cost(*, tail_weight=0.0, confidence=0.95)</code></td>
+</tr>
+<tr>
+<td><code>minimize_expected_shortfall</code></td>
+<td><code>minimize_expected_shortfall(*, confidence=0.95)</code></td>
+</tr>
+<tr>
+<td><code>minimize_premium</code></td>
+<td><code>minimize_premium()</code></td>
+</tr>
+<tr>
+<td><code>require_surplus</code></td>
+<td><code>require_surplus(minimum=0.0)</code></td>
+</tr>
+<tr>
+<td><code>set_contingent_costs</code></td>
+<td><code>set_contingent_costs(costs)</code></td>
+</tr>
+<tr>
+<td><code>set_recoverability</code></td>
+<td><code>set_recoverability(factors)</code></td>
+</tr>
+<tr>
+<td><code>set_surplus_before_claims</code></td>
+<td><code>set_surplus_before_claims(surplus)</code></td>
+</tr>
+<tr>
+<td><code>to_cvxpy</code></td>
+<td><code>to_cvxpy()</code></td>
+</tr>
+<tr>
+<td><code>to_matrix</code></td>
+<td><code>to_matrix()</code></td>
+</tr>
+<tr>
+<td><code>to_model</code></td>
+<td><code>to_model(*, return_variables=False)</code></td>
+</tr>
+</tbody>
+</table>
+<p>Properties: <code>contract_ids</code>, <code>currency</code>, <code>scenario_ids</code>.</p>
+<h2 id="collateral">Collateral</h2>
+<p>Import from <code>qpiai_finance.collateral</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CollateralAllocationModel</code></td>
+<td><a href="collateral.html">Collateral</a></td>
+</tr>
+<tr>
+<td><code>haircut_adjusted_value</code></td>
+<td><a href="collateral.html">Collateral</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="collateralallocationmodel-members"><code>CollateralAllocationModel</code> members</h3>
+<div class="code-shell"><div class="code-toolbar"><span>text</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-text">CollateralAllocationModel(inventory, requirements, pledges, *, as_of, dates, reporting_currency)
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>evaluate</code></td>
+<td><code>evaluate(assignments, *, tolerance=1e-07)</code></td>
+</tr>
+<tr>
+<td><code>limit_assignments</code></td>
+<td><code>limit_assignments(*, lower=0.0, upper=None)</code></td>
+</tr>
+<tr>
+<td><code>limit_concentration</code></td>
+<td><code>limit_concentration(groups, *, maximum_share)</code></td>
+</tr>
+<tr>
+<td><code>limit_coverage</code></td>
+<td><code>limit_coverage(maximum)</code></td>
+</tr>
+<tr>
+<td><code>limit_movements</code></td>
+<td><code>limit_movements(*, pledged=None, returned=None)</code></td>
+</tr>
+<tr>
+<td><code>pledge_in_lots</code></td>
+<td><code>pledge_in_lots(lot_sizes)</code></td>
+</tr>
+<tr>
+<td><code>set_availability</code></td>
+<td><code>set_availability(quantities)</code></td>
+</tr>
+<tr>
+<td><code>set_fx_rates</code></td>
+<td><code>set_fx_rates(fx_rates)</code></td>
+</tr>
+<tr>
+<td><code>set_haircuts</code></td>
+<td><code>set_haircuts(haircuts)</code></td>
+</tr>
+<tr>
+<td><code>set_prices</code></td>
+<td><code>set_prices(prices)</code></td>
+</tr>
+<tr>
+<td><code>to_cvxpy</code></td>
+<td><code>to_cvxpy()</code></td>
+</tr>
+<tr>
+<td><code>to_matrix</code></td>
+<td><code>to_matrix()</code></td>
+</tr>
+<tr>
+<td><code>to_model</code></td>
+<td><code>to_model(*, return_variables=False)</code></td>
+</tr>
+</tbody>
+</table>
+<p>Properties: <code>asset_ids</code>, <code>dates</code>, <code>pledge_ids</code>, <code>reporting_currency</code>.</p>
+<h2 id="settlement">Settlement</h2>
+<p>Import from <code>qpiai_finance.settlement</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SettlementModel</code></td>
+<td><a href="settlement.html">Settlement</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="settlementmodel-members"><code>SettlementModel</code> members</h3>
+<div class="code-shell"><div class="code-toolbar"><span>text</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-text">SettlementModel(accounts, payments, *, as_of, slots, reporting_currency, settlement_method='rtgs', slot_ids=None)
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>add_atomic_batch</code></td>
+<td><code>add_atomic_batch(batch_id, payment_ids)</code></td>
+</tr>
+<tr>
+<td><code>add_precedence</code></td>
+<td><code>add_precedence(before, after, *, allow_same_batch=False)</code></td>
+</tr>
+<tr>
+<td><code>allow_prefunding</code></td>
+<td><code>allow_prefunding(maximum, *, cost_per_unit)</code></td>
+</tr>
+<tr>
+<td><code>evaluate</code></td>
+<td><code>evaluate(schedule, *, prefunding=0.0, tolerance=1e-07)</code></td>
+</tr>
+<tr>
+<td><code>limit_final_balances</code></td>
+<td><code>limit_final_balances(lower=0.0)</code></td>
+</tr>
+<tr>
+<td><code>require_payments</code></td>
+<td><code>require_payments(payment_ids)</code></td>
+</tr>
+<tr>
+<td><code>set_credit_costs</code></td>
+<td><code>set_credit_costs(cost_per_unit)</code></td>
+</tr>
+<tr>
+<td><code>set_credit_limits</code></td>
+<td><code>set_credit_limits(limits)</code></td>
+</tr>
+<tr>
+<td><code>set_external_flows</code></td>
+<td><code>set_external_flows(flows)</code></td>
+</tr>
+<tr>
+<td><code>to_cvxpy</code></td>
+<td><code>to_cvxpy()</code></td>
+</tr>
+<tr>
+<td><code>to_matrix</code></td>
+<td><code>to_matrix()</code></td>
+</tr>
+<tr>
+<td><code>to_model</code></td>
+<td><code>to_model(*, return_variables=False)</code></td>
+</tr>
+</tbody>
+</table>
+<p>Properties: <code>account_ids</code>, <code>execution_units</code>, <code>payment_ids</code>, <code>slot_ids</code>, <code>slot_times</code>.</p>
+<h2 id="financial-data">Financial data</h2>
+<p>Import from <code>qpiai_finance.data</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>returns_from_prices</code></td>
+<td><a href="data.html">Financial data</a></td>
+</tr>
+<tr>
+<td><code>compound_returns</code></td>
+<td><a href="data.html">Financial data</a></td>
+</tr>
+<tr>
+<td><code>rescale_moments</code></td>
+<td><a href="data.html">Financial data</a></td>
+</tr>
+<tr>
+<td><code>history_as_of</code></td>
+<td><a href="data.html">Financial data</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="risk-analytics">Risk analytics</h2>
+<p>Import from <code>qpiai_finance.risk</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>value_at_risk</code></td>
+<td><a href="risk.html">Risk analytics</a></td>
+</tr>
+<tr>
+<td><code>expected_shortfall</code></td>
+<td><a href="risk.html">Risk analytics</a></td>
+</tr>
+<tr>
+<td><code>expected_shortfall_epigraph</code></td>
+<td><a href="risk.html">Risk analytics</a></td>
+</tr>
+<tr>
+<td><code>sample_moments</code></td>
+<td><a href="risk.html">Risk analytics</a></td>
+</tr>
+<tr>
+<td><code>exponential_moments</code></td>
+<td><a href="risk.html">Risk analytics</a></td>
+</tr>
+<tr>
+<td><code>shrink_covariance</code></td>
+<td><a href="risk.html">Risk analytics</a></td>
+</tr>
+<tr>
+<td><code>portfolio_metrics</code></td>
+<td><a href="risk.html">Risk analytics</a></td>
+</tr>
+<tr>
+<td><code>risk_contributions</code></td>
+<td><a href="risk.html">Risk analytics</a></td>
+</tr>
+<tr>
+<td><code>FactorRisk</code></td>
+<td><a href="risk.html">Risk analytics</a></td>
+</tr>
+<tr>
+<td><code>black_litterman</code></td>
+<td><a href="risk.html">Risk analytics</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="factorrisk-members"><code>FactorRisk</code> members</h3>
+<div class="code-shell"><div class="code-toolbar"><span>text</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-text">FactorRisk(exposures, factor_covariance, specific_variance, *, asset_ids=None, factor_ids=None)
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>apply</code></td>
+<td><code>apply(weights)</code></td>
+</tr>
+<tr>
+<td><code>factor_exposures</code></td>
+<td><code>factor_exposures(weights)</code></td>
+</tr>
+<tr>
+<td><code>risk_contributions</code></td>
+<td><code>risk_contributions(weights)</code></td>
+</tr>
+</tbody>
+</table>
+<p>Properties: <code>asset_ids</code>.</p>
+<h2 id="scenarios">Scenarios</h2>
+<p>Import from <code>qpiai_finance.scenarios</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Scenarios</code></td>
+<td><a href="scenarios.html">Scenarios</a></td>
+</tr>
+<tr>
+<td><code>ScenarioPaths</code></td>
+<td><a href="scenarios.html">Scenarios</a></td>
+</tr>
+<tr>
+<td><code>ScenarioTree</code></td>
+<td><a href="scenarios.html">Scenarios</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="scenarios-members"><code>Scenarios</code> members</h3>
+<div class="code-shell"><div class="code-toolbar"><span>text</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-text">Scenarios(values, *, horizon, unit, probabilities=None, asset_ids=None, scenario_ids=None, origin=None, metadata=None)
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>evaluate</code></td>
+<td><code>evaluate(quantities)</code></td>
+</tr>
+<tr>
+<td><code>expected</code></td>
+<td><code>expected(quantities)</code></td>
+</tr>
+</tbody>
+</table>
+<p>Properties: <code>asset_ids</code>, <code>metadata</code>, <code>probabilities</code>, <code>scenario_ids</code>, <code>values</code>.</p>
+<p>Attributes: <code>horizon</code>, <code>origin</code>, <code>unit</code>.</p>
+<h3 id="scenariopaths-members"><code>ScenarioPaths</code> members</h3>
+<div class="code-shell"><div class="code-toolbar"><span>text</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-text">ScenarioPaths(values, *, horizon, step_horizon, unit, probabilities=None, asset_ids=None, scenario_ids=None, step_ids=None, origin=None, metadata=None)
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>aggregate</code></td>
+<td><code>aggregate(*, method)</code></td>
+</tr>
+<tr>
+<td><code>bootstrap</code></td>
+<td><code>bootstrap(observations, *, as_of, periods, samples, step_horizon, horizon, unit, method, seed, block_size=None, observed_at=None, available_at=None, asset_ids=None, scenario_ids=None, step_ids=None)</code></td>
+</tr>
+<tr>
+<td><code>evaluate</code></td>
+<td><code>evaluate(quantities)</code></td>
+</tr>
+<tr>
+<td><code>expected</code></td>
+<td><code>expected(quantities)</code></td>
+</tr>
+<tr>
+<td><code>historical</code></td>
+<td><code>historical(observations, *, as_of, periods, step_horizon, horizon, unit, probabilities, stride=1, observed_at=None, available_at=None, asset_ids=None, scenario_ids=None, step_ids=None)</code></td>
+</tr>
+</tbody>
+</table>
+<p>Properties: <code>asset_ids</code>, <code>metadata</code>, <code>probabilities</code>, <code>scenario_ids</code>, <code>step_ids</code>, <code>values</code>.</p>
+<p>Attributes: <code>horizon</code>, <code>origin</code>, <code>step_horizon</code>, <code>unit</code>.</p>
+<h3 id="scenariotree-members"><code>ScenarioTree</code> members</h3>
+<div class="code-shell"><div class="code-toolbar"><span>text</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-text">ScenarioTree(information, *, times=None, probabilities=None, scenario_ids=None, stage_ids=None, origin=None, metadata=None)
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ancestors</code></td>
+<td><code>ancestors(node)</code></td>
+</tr>
+<tr>
+<td><code>children</code></td>
+<td><code>children(node)</code></td>
+</tr>
+<tr>
+<td><code>expected</code></td>
+<td><code>expected(values, *, given=None)</code></td>
+</tr>
+<tr>
+<td><code>paths</code></td>
+<td><code>paths(values, *, horizon, step_horizon, unit, asset_ids=None)</code></td>
+</tr>
+<tr>
+<td><code>validate_policy</code></td>
+<td><code>validate_policy(decisions, *, timing='after_observation', tolerance=1e-07)</code></td>
+</tr>
+</tbody>
+</table>
+<p>Properties: <code>information</code>, <code>metadata</code>, <code>node_ids</code>, <code>nodes</code>, <code>probabilities</code>, <code>root</code>, <code>scenario_ids</code>, <code>stage_ids</code>, <code>times</code>.</p>
+<p>Attributes: <code>origin</code>.</p>
+<h2 id="cash-flow-calculations">Cash-flow calculations</h2>
+<p>Import from <code>qpiai_finance.cashflows</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bullet_loan_cash_flows</code></td>
+<td><a href="cashflows.html">Cash-flow calculations</a></td>
+</tr>
+<tr>
+<td><code>discount_cash_flows</code></td>
+<td><a href="cashflows.html">Cash-flow calculations</a></td>
+</tr>
+<tr>
+<td><code>present_value</code></td>
+<td><a href="cashflows.html">Cash-flow calculations</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="trading-costs">Trading costs</h2>
+<p>Import from <code>qpiai_finance.trading.costs</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>transaction_fees</code></td>
+<td><a href="trading-costs.html">Trading costs</a></td>
+</tr>
+<tr>
+<td><code>market_impact_cost</code></td>
+<td><a href="trading-costs.html">Trading costs</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="results-and-recovery">Results and recovery</h2>
+<p>Import from <code>qpiai_finance.results</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>FinanceResult</code></td>
+<td><a href="results.html">Results and recovery</a></td>
+</tr>
+<tr>
+<td><code>from_opt</code></td>
+<td><a href="results.html">Results and recovery</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="financeresult-members"><code>FinanceResult</code> members</h3>
+<div class="code-shell"><div class="code-toolbar"><span>text</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-text">FinanceResult(status: str, feasible: bool, optimality_proven: bool, decision: dict[str, pandas.Series | pandas.DataFrame], objective: float | None, objective_unit: str | None, metrics: dict, constraints: pandas.DataFrame, solver_info: dict, provenance: dict, tables: dict[str, pandas.DataFrame] = &lt;factory&gt;, transformations: list[dict] = &lt;factory&gt;, costs: dict = &lt;factory&gt;) -&gt; None
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Signature</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>evaluate</code></td>
+<td><code>evaluate(model, *, tolerance=1e-07)</code></td>
+</tr>
+<tr>
+<td><code>to_dict</code></td>
+<td><code>to_dict()</code></td>
+</tr>
+<tr>
+<td><code>to_json</code></td>
+<td><code>to_json()</code></td>
+</tr>
+</tbody>
+</table>
+<p>Properties: <code>allocation_changes</code>, <code>allocations</code>, <code>assignments</code>, <code>cash_after</code>, <code>cash_balances</code>, <code>draws</code>, <code>executions</code>, <code>hedges</code>, <code>holdings</code>, <code>investments</code>, <code>peak_credit</code>, <code>positions</code>, <code>post_trade_weights</code>, <code>prefunding</code>, <code>remaining_orders</code>, <code>risk_exposures</code>, <code>selections</code>, <code>settlement_schedule</code>, <code>tax_lot_sales</code>, <code>trades</code>, <code>transfers</code>, <code>unfilled</code>, <code>weights</code>.</p>
+<p>Record fields: <code>status</code>, <code>feasible</code>, <code>optimality_proven</code>, <code>decision</code>, <code>objective</code>, <code>objective_unit</code>, <code>metrics</code>, <code>constraints</code>, <code>solver_info</code>, <code>provenance</code>, <code>tables</code>, <code>transformations</code>, <code>costs</code>.</p>
+<h2 id="interchange">Interchange</h2>
+<p>Import from <code>qpiai_finance.io</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>to_dict</code></td>
+<td><a href="interchange.html">Interchange</a></td>
+</tr>
+<tr>
+<td><code>from_dict</code></td>
+<td><a href="interchange.html">Interchange</a></td>
+</tr>
+<tr>
+<td><code>dumps</code></td>
+<td><a href="interchange.html">Interchange</a></td>
+</tr>
+<tr>
+<td><code>loads</code></td>
+<td><a href="interchange.html">Interchange</a></td>
+</tr>
+<tr>
+<td><code>dump</code></td>
+<td><a href="interchange.html">Interchange</a></td>
+</tr>
+<tr>
+<td><code>load</code></td>
+<td><a href="interchange.html">Interchange</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="plotting">Plotting</h2>
+<p>Import from <code>qpiai_finance.plot</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>weights</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>holdings</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>trades</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>risk_contributions</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>loss_distribution</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>risk_budgets</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>efficient_frontier</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>cash_ladder</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>funding_schedule</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>facility_utilization</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>liability_coverage</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>hedge_exposure</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>hedge_losses</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>allocations</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>credit_resources</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>credit_concentration</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>collateral_coverage</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>collateral_inventory</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>reinsurance_losses</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>reinsurance_surplus</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>settlement_balances</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>payment_queue</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>execution_schedule</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>execution_costs</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>execution_balances</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>tax_lot_sales</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>tax_liability</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>investment_wealth</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>investment_trades</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>investment_funding</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>quantum_samples</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+<tr>
+<td><code>quantum_convergence</code></td>
+<td><a href="plotting.html">Plotting</a></td>
+</tr>
+</tbody>
+</table>
+<h2 id="automation-discovery">Automation discovery</h2>
+<p>Import from <code>qpiai_finance.automation</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>capabilities</code></td>
+<td><a href="automation.html">Automation discovery</a></td>
+</tr>
+<tr>
+<td><code>guide</code></td>
+<td><a href="automation.html">Automation discovery</a></td>
+</tr>
+</tbody>
+</table></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="scip-parameters.html"><span>Previous</span><strong>SCIP parameter catalogue</strong></a><a class="pager-card next" href="automation.html"><span>Next</span><strong>Automation and agent workflows</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#common-workflow">Common workflow</a><a class="toc-level-2" href="#portfolios">Portfolios</a><a class="toc-level-3" href="#portfoliomodel-members">PortfolioModel members</a><a class="toc-level-3" href="#frontierresult-members">FrontierResult members</a><a class="toc-level-2" href="#quantum-inspired-and-gate-based-optimization">Quantum-inspired and gate-based optimization</a><a class="toc-level-3" href="#portfolioencoding-members">PortfolioEncoding members</a><a class="toc-level-2" href="#investment-planning-and-execution">Investment planning and execution</a><a class="toc-level-3" href="#executionmodel-members">ExecutionModel members</a><a class="toc-level-3" href="#tradingmodel-members">TradingModel members</a><a class="toc-level-2" href="#hedging">Hedging</a><a class="toc-level-3" href="#hedgemodel-members">HedgeModel members</a><a class="toc-level-2" href="#credit-allocation">Credit allocation</a><a class="toc-level-3" href="#creditallocationmodel-members">CreditAllocationModel members</a><a class="toc-level-2" href="#funding-and-liability-matching">Funding and liability matching</a><a class="toc-level-3" href="#fundingmodel-members">FundingModel members</a><a class="toc-level-3" href="#liabilitymatchingmodel-members">LiabilityMatchingModel members</a><a class="toc-level-2" href="#reinsurance">Reinsurance</a><a class="toc-level-3" href="#reinsurancemodel-members">ReinsuranceModel members</a><a class="toc-level-2" href="#collateral">Collateral</a><a class="toc-level-3" href="#collateralallocationmodel-members">CollateralAllocationModel members</a><a class="toc-level-2" href="#settlement">Settlement</a><a class="toc-level-3" href="#settlementmodel-members">SettlementModel members</a><a class="toc-level-2" href="#financial-data">Financial data</a><a class="toc-level-2" href="#risk-analytics">Risk analytics</a><a class="toc-level-3" href="#factorrisk-members">FactorRisk members</a><a class="toc-level-2" href="#scenarios">Scenarios</a><a class="toc-level-3" href="#scenarios-members">Scenarios members</a><a class="toc-level-3" href="#scenariopaths-members">ScenarioPaths members</a><a class="toc-level-3" href="#scenariotree-members">ScenarioTree members</a><a class="toc-level-2" href="#cash-flow-calculations">Cash-flow calculations</a><a class="toc-level-2" href="#trading-costs">Trading costs</a><a class="toc-level-2" href="#results-and-recovery">Results and recovery</a><a class="toc-level-3" href="#financeresult-members">FinanceResult members</a><a class="toc-level-2" href="#interchange">Interchange</a><a class="toc-level-2" href="#plotting">Plotting</a><a class="toc-level-2" href="#automation-discovery">Automation discovery</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

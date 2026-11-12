@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Results and verification">
+<title>Results and verification | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/results.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="results">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="active" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Analysis and integration</span><span aria-hidden="true">&gt;</span><span>Results and verification</span></div><article class="doc-content"><h1 id="financial-results-and-verification">Financial results and verification</h1>
+<p>Finance returns proposed decisions in the original financial coordinates. A result separates the decision, recalculated economics, constraint checks, and the solver's evidence. Check these fields before passing quantities to another system.</p>
+<h2 id="financeresult"><code>FinanceResult</code></h2>
+<p>Import from <code>qpiai_finance.results</code>. Solving and recorded-result recovery create this dataclass:</p>
+<div class="code-shell"><div class="code-toolbar"><span>text</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-text">FinanceResult(
+    status, feasible, optimality_proven, decision, objective, objective_unit,
+    metrics, constraints, solver_info, provenance, tables=&lt;factory&gt;,
+    transformations=&lt;factory&gt;, costs=&lt;factory&gt;,
+)
+</code></pre></div>
+<p>The last three arguments receive independent empty dictionary/list factories: <code>tables={}</code>, <code>transformations=[]</code>, and <code>costs={}</code> in meaning, without shared mutable defaults. Direct dataclass construction assigns fields; it does not perform a solve or financial verification. Use the library's solve, recovery, or validated interchange operation to obtain their documented semantics.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>status</code></td>
+<td>String describing termination or a Finance verification outcome.</td>
+</tr>
+<tr>
+<td><code>feasible</code></td>
+<td>Boolean: original financial constraints and required primary-decision reconstruction checks pass.</td>
+</tr>
+<tr>
+<td><code>optimality_proven</code></td>
+<td>Boolean: Finance accepts the backend's proof claim after financial feasibility, objective reconciliation, and applicable solver reconstruction checks.</td>
+</tr>
+<tr>
+<td><code>decision</code></td>
+<td>Dictionary of string keys to pandas Series/DataFrames in financial coordinates.</td>
+</tr>
+<tr>
+<td><code>objective</code></td>
+<td>Recalculated source financial objective as a float, or <code>None</code> without an incumbent or for HRP.</td>
+</tr>
+<tr>
+<td><code>objective_unit</code></td>
+<td>Unit string for the configured objective, or <code>None</code> where no objective exists.</td>
+</tr>
+<tr>
+<td><code>metrics</code></td>
+<td>Dictionary of applicable financial measurements. Keys and units follow the model reference.</td>
+</tr>
+<tr>
+<td><code>constraints</code></td>
+<td>DataFrame with source checks and reconstruction checks.</td>
+</tr>
+<tr>
+<td><code>solver_info</code></td>
+<td>Dictionary of solver route, termination, settings, proof evidence, and available diagnostics.</td>
+</tr>
+<tr>
+<td><code>provenance</code></td>
+<td>Dictionary of source financial inputs, input fingerprint, versions, timestamp, verification settings, and timing.</td>
+</tr>
+<tr>
+<td><code>tables</code></td>
+<td>Dictionary of string keys to financial/diagnostic DataFrames; independent empty default.</td>
+</tr>
+<tr>
+<td><code>transformations</code></td>
+<td>List of transformation dictionaries; independent empty default.</td>
+</tr>
+<tr>
+<td><code>costs</code></td>
+<td>Dictionary of applicable cost components; independent empty default.</td>
+</tr>
+</tbody>
+</table>
+<p>Without a primary incumbent, ordinary solves return an empty decision, metrics, and financial evaluation tables, with <code>objective=None</code> and both flags false. Route-specific structural tables, such as encoded variable mappings or HRP hierarchy information, can still be present. A candidate that fails verification can retain its evaluated decision and diagnostics; presence alone does not establish feasibility.</p>
+<h2 id="status-and-proof-scope">Status and proof scope</h2>
+<p>Solver termination can indicate <code>optimal</code>, <code>completed</code>, <code>infeasible</code>, <code>unbounded</code>, <code>limit_reached</code>, <code>interrupted</code>, <code>failed</code>, or <code>unknown</code>, depending on the route. <code>failed</code> records a provider-reported failure; use the decision and verification flags to determine whether any candidate is usable. Preserve the backend status in <code>solver_info</code>; it can provide more detail than the common termination.</p>
+<p>Finance additionally reports:</p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>verification_failed</code></td>
+<td>A recovered decision failed original financial or required reconstruction checks.</td>
+</tr>
+<tr>
+<td><code>objective_mismatch</code></td>
+<td>A proof claim or recorded result objective disagrees with the recalculated financial objective under the applicable reconciliation rules.</td>
+</tr>
+<tr>
+<td><code>feasible</code></td>
+<td>Recovered/accepted feasible decision without a new global proof, or an ordinary candidate whose solver bookkeeping does not support retaining its proof claim.</td>
+</tr>
+<tr>
+<td><code>no_solution</code></td>
+<td>Recorded native Opt recovery has no primary candidate.</td>
+</tr>
+<tr>
+<td><code>no_feasible_sample</code></td>
+<td>Gate-based recovery found no financially feasible reported sample.</td>
+</tr>
+</tbody>
+</table>
+<p><code>feasible</code> and <code>optimality_proven</code> are separate from status. A resource limit may leave a usable incumbent. Gate-based samples and HRP do not establish global optimality. Fixing a portfolio selection restricts the proof to that selection, recorded as <code>solver_info["optimality_scope"]="fixed_asset_selection"</code>. A newly loaded historical record retains recorded flags; loading does not re-prove them.</p>
+<h2 id="constraint-and-reconciliation-tables">Constraint and reconciliation tables</h2>
+<p><code>constraints</code> has <code>value</code>, <code>lower</code>, <code>upper</code>, <code>violation</code>, and <code>satisfied</code> columns, indexed by constraint name. Some models add a <code>unit</code> column. Bounds can be infinite; rows can represent boolean or integer/lot residual checks as well as ordinary financial limits. Consult the domain reference for each row's units.</p>
+<p><code>tolerance</code> is an absolute Finance check tolerance, applied in those row units. Numeric objective reconciliation uses absolute <code>tolerance</code> and relative <code>1e-7</code>. A floating-point tolerance does not establish ledger-exact payment or accounting finality.</p>
+<p>Where applicable, <code>tables["solver_reconciliation"]</code> records derived solver bookkeeping separately. It has <code>residual</code>, <code>unit</code>, and <code>within_tolerance</code> columns indexed by reconciliation name; each residual is compared with the solve's Finance tolerance. <code>solver_info["solver_reconciled"]</code> summarizes these checks. Original financial feasibility and solver bookkeeping are not interchangeable: inconsistent derived values can remove a proof without invalidating an independently feasible primary decision.</p>
+<h2 id="decision-properties">Decision properties</h2>
+<p>The following properties return the indicated decision entry, or <code>None</code> when absent. Except <code>cash_after</code>, each is a financial Series/DataFrame defined by its model; axis order and units are documented on that model's page.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Decision key or source</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>weights</code></td>
+<td><code>weights</code></td>
+<td>Portfolio weights on the declared investment basis.</td>
+</tr>
+<tr>
+<td><code>holdings</code></td>
+<td><code>holdings</code></td>
+<td>Asset quantities.</td>
+</tr>
+<tr>
+<td><code>trades</code></td>
+<td><code>trades</code></td>
+<td>Signed asset trade quantities.</td>
+</tr>
+<tr>
+<td><code>cash_after</code></td>
+<td><code>metrics["cash_after"]</code></td>
+<td>Cash amount as a float, when supplied by the model's metrics.</td>
+</tr>
+<tr>
+<td><code>post_trade_weights</code></td>
+<td><code>post_trade_weights</code></td>
+<td>Asset weights relative to positive post-trade <code>portfolio_value</code>, before deducting unpaid deferred tax; see <a href="portfolio.html#weight-and-cash-conventions">portfolio value conventions</a>.</td>
+</tr>
+<tr>
+<td><code>tax_lot_sales</code></td>
+<td><code>tax_lot_sales</code></td>
+<td>Acquisition-lot disposal quantities.</td>
+</tr>
+<tr>
+<td><code>draws</code></td>
+<td><code>draws</code></td>
+<td>Funding draw quantities.</td>
+</tr>
+<tr>
+<td><code>transfers</code></td>
+<td><code>transfers</code></td>
+<td>Explicit account transfer decisions.</td>
+</tr>
+<tr>
+<td><code>investments</code></td>
+<td><code>investments</code></td>
+<td>Purchased investment-opportunity quantities.</td>
+</tr>
+<tr>
+<td><code>cash_balances</code></td>
+<td><code>cash_balances</code></td>
+<td>Dated/node/account cash balances.</td>
+</tr>
+<tr>
+<td><code>hedges</code></td>
+<td><code>hedges</code></td>
+<td>Hedge quantities.</td>
+</tr>
+<tr>
+<td><code>positions</code></td>
+<td><code>positions</code></td>
+<td>Resulting signed positions.</td>
+</tr>
+<tr>
+<td><code>risk_exposures</code></td>
+<td><code>risk_exposures</code></td>
+<td>Recomputed risk exposures.</td>
+</tr>
+<tr>
+<td><code>allocations</code></td>
+<td><code>allocations</code></td>
+<td>Final credit facility amounts.</td>
+</tr>
+<tr>
+<td><code>allocation_changes</code></td>
+<td><code>allocation_changes</code></td>
+<td>Changes from the supplied existing credit book.</td>
+</tr>
+<tr>
+<td><code>assignments</code></td>
+<td><code>assignments</code></td>
+<td>Collateral quantities by permitted pledge.</td>
+</tr>
+<tr>
+<td><code>selections</code></td>
+<td><code>selections</code></td>
+<td>Reinsurance contract/program indicators.</td>
+</tr>
+<tr>
+<td><code>settlement_schedule</code></td>
+<td><code>schedule</code></td>
+<td>Payment-to-slot assignment; <code>None</code> values identify unsettled payments.</td>
+</tr>
+<tr>
+<td><code>prefunding</code></td>
+<td><code>prefunding</code></td>
+<td>Outside prefunding by settlement account.</td>
+</tr>
+<tr>
+<td><code>peak_credit</code></td>
+<td><code>peak_credit</code></td>
+<td>Maximum actual settlement overdraft per account.</td>
+</tr>
+<tr>
+<td><code>executions</code></td>
+<td><code>executions</code></td>
+<td>Signed execution quantities by opportunity.</td>
+</tr>
+<tr>
+<td><code>remaining_orders</code></td>
+<td><code>remaining_orders</code></td>
+<td>Signed target quantities remaining after each execution slot.</td>
+</tr>
+<tr>
+<td><code>unfilled</code></td>
+<td><code>unfilled</code></td>
+<td>Nonnegative residual order quantities at the horizon.</td>
+</tr>
+</tbody>
+</table>
+<p>Additional domain entries are available through <code>decision</code>, metrics, costs, and tables. Their absence is not represented by fabricated zero values.</p>
+<h2 id="solver-and-input-records">Solver and input records</h2>
+<p><code>solver_info</code> retains the provider, solver/method, problem class, execution mode, termination, solution availability, guarantee, source objective, and settings where available. Native Opt records include solver/compute times and platform problem/job identifiers. External routes retain their supported versions, requested options, recorded settings, iteration statistics, duals, bounds, or gaps; unavailable evidence remains absent or <code>None</code>. The <a href="solver-options.html">solver option reference</a> defines which settings each interface records.</p>
+<p>The common solver fields are:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>problem_class</code></td>
+<td>String identifying the executed mathematical or construction class; see <a href="solving.html#validate">validated classes</a>.</td>
+</tr>
+<tr>
+<td><code>execution_mode</code></td>
+<td><code>"local"</code> or <code>"platform"</code>, identifying where execution actually ran. Opt's separate <code>requested_execution_mode</code> can be <code>"auto"</code>.</td>
+</tr>
+<tr>
+<td><code>provider</code></td>
+<td>String identifying the provider or integration that executed the computation.</td>
+</tr>
+<tr>
+<td><code>solver</code>, <code>method</code></td>
+<td>Solver and computational-method strings, or <code>None</code> when unidentified. HRP records its construction method with <code>solver=None</code>.</td>
+</tr>
+<tr>
+<td><code>termination</code></td>
+<td>Common termination string from the status list above. The separate backend <code>status</code> can use provider-specific names.</td>
+</tr>
+<tr>
+<td><code>has_usable_solution</code></td>
+<td>Boolean provider/recovery assessment of candidate availability.</td>
+</tr>
+<tr>
+<td><code>solution_feasible</code></td>
+<td>Boolean provider/recovery assessment, or <code>None</code> when not established at that layer.</td>
+</tr>
+<tr>
+<td><code>optimality_proven</code></td>
+<td>Boolean provider proof assessment, or <code>None</code> when unknown. Finance's accepted proof is the top-level result field.</td>
+</tr>
+<tr>
+<td><code>guarantee</code></td>
+<td>String from the guarantee table below.</td>
+</tr>
+<tr>
+<td><code>source_objective</code></td>
+<td>Float objective in source optimization coordinates, or <code>None</code> when unavailable.</td>
+</tr>
+<tr>
+<td><code>transformed</code></td>
+<td>Boolean indicating compilation or conversion, or <code>None</code> when unknown.</td>
+</tr>
+<tr>
+<td><code>settings</code></td>
+<td>Dictionary of setting-name strings to recorded scalar values (<code>bool</code>, <code>int</code>, <code>float</code>, or <code>str</code>). Route-specific recording limits are defined in the solver reference.</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th><code>guarantee</code></th>
+<th>Meaning of the recorded evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>"global_optimum"</code></td>
+<td>Provider claims a proven global optimum.</td>
+</tr>
+<tr>
+<td><code>"best_found"</code></td>
+<td>Best available sampled or heuristic candidate; no global proof.</td>
+</tr>
+<tr>
+<td><code>"best_bound"</code></td>
+<td>A bound is the strongest reported guarantee.</td>
+</tr>
+<tr>
+<td><code>"feasible_only"</code></td>
+<td>A feasible candidate is established without an optimum claim.</td>
+</tr>
+<tr>
+<td><code>"infeasibility_proven"</code></td>
+<td>Provider claims the executed problem is infeasible.</td>
+</tr>
+<tr>
+<td><code>"unboundedness_proven"</code></td>
+<td>Provider claims the executed objective is unbounded.</td>
+</tr>
+<tr>
+<td><code>"none"</code></td>
+<td>No guarantee is established by that record.</td>
+</tr>
+<tr>
+<td><code>"unknown"</code></td>
+<td>The guarantee could not be determined.</td>
+</tr>
+</tbody>
+</table>
+<p><code>solver_info["finance_objective"]</code> is the recalculated financial objective. <code>objective_reconciled</code> reports the comparison with the backend's source-coordinate objective. Conditional scopes, numerical scaling, risk-budget refinement, and quantum diagnostics remain explicitly recorded. The domain and <a href="solving.html">solver references</a> define route-specific fields.</p>
+<p>Nested solver fields describe the backend's evidence. Its <code>optimality_proven</code>, <code>has_usable_solution</code>, or <code>guarantee</code> can retain a claim that Finance's subsequent financial checks reject. The top-level <code>feasible</code> and <code>optimality_proven</code> fields report Finance's accepted conclusions. <code>objective_reconciled</code> is a boolean when a financial objective was evaluated and <code>None</code> when that comparison is inapplicable.</p>
+<p><code>provenance</code> includes <code>inputs</code>, their <code>input_sha256</code>, UTC <code>created_at</code>, relevant package <code>versions</code>, <code>verification_tolerance</code>, <code>probability_sum_tolerance</code>, and <code>timing_s</code>. Ordinary timing records measure <code>build</code>, <code>solve</code>, and <code>postprocess</code> in seconds. Recorded recovery uses its own recovery time and does not invent a new solve duration. Inputs and hashes support consistency checks; they do not authenticate a remote solver or prove historical model identity. Records can contain complete confidential financial inputs.</p>
+<p><code>transformations</code> records applicable encodings, fixed-selection scope, risk-budget normalization, numerical unit scaling, or integer reconstruction. Use these records when interpreting a result or restoring a separately executed model.</p>
+<h2 id="numeric-reports">Numeric reports</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">result</span><span class="o">.</span><span class="n">to_dict</span><span class="p">()</span>
+<span class="n">result</span><span class="o">.</span><span class="n">to_json</span><span class="p">()</span>
+</code></pre></div>
+<p><code>to_dict</code> returns a numeric report with <code>schema_version=1</code> and the result fields. Tables become objects containing <code>index</code>, <code>columns</code>, and row-wise <code>data</code>; Series use a one-column table form. Dates become ISO strings, arrays become lists, and sparse matrices become COO records. Mapping keys become strings; collisions raise <code>ValueError</code>. Nonfinite diagnostic values become JSON null, including unbounded sides and undefined metrics. <code>to_json</code> returns the corresponding strict JSON string.</p>
+<p>This report is not reversible typed interchange. Use <code>qpiai_finance.io</code> to preserve supported labeled structures, diagnostic bounds, and result metadata.</p>
+<h2 id="re-evaluate-a-financial-decision">Re-evaluate a financial decision</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">result</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">)</span>
+</code></pre></div>
+<p><code>model</code> must be an exact supported source Finance model type matching the recorded financial model. <code>tolerance</code> is a finite nonnegative real scalar. Missing primary decisions raise. The operation copies the source model, recomputes financial evaluation, and leaves both inputs unchanged. It requires no authentication, execution, or new optimization.</p>
+<p>The evaluation uses primary decisions rather than stored metric claims:</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Replayed inputs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Portfolio</td>
+<td>Weights and configured tax-lot disposals.</td>
+</tr>
+<tr>
+<td>Funding</td>
+<td>Draws, transfers, and configured investments.</td>
+</tr>
+<tr>
+<td>Liability matching</td>
+<td>Holdings and recorded <code>metrics["initial_capital"]</code>.</td>
+</tr>
+<tr>
+<td>Hedge</td>
+<td>Hedge quantities.</td>
+</tr>
+<tr>
+<td>Credit</td>
+<td>Final allocations.</td>
+</tr>
+<tr>
+<td>Collateral</td>
+<td>Assignments.</td>
+</tr>
+<tr>
+<td>Reinsurance</td>
+<td>Selection indicators.</td>
+</tr>
+<tr>
+<td>Settlement</td>
+<td>Schedule and prefunding.</td>
+</tr>
+<tr>
+<td>Execution</td>
+<td>Execution quantities.</td>
+</tr>
+<tr>
+<td>Trading</td>
+<td>Trades and configured funding draws.</td>
+</tr>
+</tbody>
+</table>
+<p>Returns the model's fresh evaluation dictionary plus <code>recorded_objective</code>, <code>objective_matches</code>, and <code>input_fingerprint_matches</code>. Objective comparison uses absolute tolerance plus relative <code>1e-7</code>. A matching fingerprint compares the supplied source specification with the recorded input hash; it does not authenticate historical evidence. Replay does not check every backend auxiliary or establish a new optimum.</p>
+<h2 id="recover-a-recorded-opt-result">Recover a recorded Opt result</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">from_opt</span><span class="p">(</span>
+    <span class="n">result</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">opt_model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">objective_scaling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Import <code>from_opt</code> from <code>qpiai_finance.results</code>. It returns a <code>FinanceResult</code> without authentication, solve, or submission.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type and contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>result</code></td>
+<td>Typed native Opt LP/MILP/QP, QUBO/HUBO/Ising, or supported <code>QuantumResult</code>. Restore JSON with its original Opt result class first.</td>
+</tr>
+<tr>
+<td><code>model</code></td>
+<td>Original supported source Finance model, or its retained <code>PortfolioEncoding</code> for direct financial binary compilation.</td>
+</tr>
+<tr>
+<td><code>opt_model</code></td>
+<td>Actual Opt <code>Model</code> retaining its explicit polynomial compilation and decoder, required for transformed polynomial/gate recovery outside a <code>PortfolioEncoding</code>. Rejected for ordinary LP/MILP/QP records.</td>
+</tr>
+<tr>
+<td><code>objective_scaling</code></td>
+<td>Optional retained exact power-of-two scaling metadata for conditioned raw LP/MILP records. Rejected for QP or polynomial/gate results.</td>
+</tr>
+<tr>
+<td><code>tolerance</code></td>
+<td>Finite nonnegative verification scalar, default <code>1e-7</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>For native LP/MILP/QP, class, objective sense, and complete variable names must match the restored financial formulation. For other transformed results, the retained Opt decoder checks the sample-to-source mapping; finite encoding bounds and any explicit continuous grid remain part of Opt's compilation contract.</p>
+<p>With a <code>PortfolioEncoding</code>, recovery checks encoded energy and product auxiliaries as described in <a href="quantum.html">quantum optimization</a>. General <code>opt_model</code> recovery checks decoded assignments, retained Opt source constraints, original Finance constraints, and source objectives. It does not independently verify encoded energy or every penalty/slack auxiliary; its verification scope is recorded in <code>solver_info</code>.</p>
+<p>For objective scaling, retain the record from Finance inspection or a Finance result rather than deriving a scale from observed costs. The record requires <code>base=2</code> and a Python integer exponent in <code>[0, 1073]</code>. Accepted additional fields are <code>type="objective_scaling"</code>, boolean <code>range_limited</code>, <code>exact</code>, and <code>source_units_restored</code>, plus a <code>provider_values</code> mapping. <code>exact=False</code>, unknown fields, invalid flag types, and incompatible source classes are rejected.</p>
+<p>Recorded native recovery always sets <code>optimality_proven=False</code>. Matching coordinates and objective do not establish which feasible set the recorded solver optimized. Historical solver evidence remains under <code>solver_info["recorded_solver"]</code>. Results report feasible-only or no guarantee, with <code>feasible</code>, <code>verification_failed</code>, <code>objective_mismatch</code>, or <code>no_solution</code> status as applicable. Gate-based recovery selects the best freshly feasible reported financial candidate and makes no global proof claim. Direct <code>PortfolioEncoding</code> recovery distinguishes measured and declared residual candidates as described in its <a href="quantum.html#candidate-table">candidate table</a>. General compiled-model recovery distinguishes measured candidates and the provider's reported primary candidate.</p>
+<h3 id="compiled-model-recovery-diagnostics">Compiled-model recovery diagnostics</h3>
+<p>Recovery through a retained <code>opt_model</code> adds the following <code>solver_info</code> fields:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>financial_problem_class</code></td>
+<td>String class of the source financial Opt formulation.</td>
+</tr>
+<tr>
+<td><code>verification_scope</code></td>
+<td>String <code>"decoded_source_decision_and_objective"</code>.</td>
+</tr>
+<tr>
+<td><code>sample_decoding_verified</code></td>
+<td>Boolean; at least one sample was decoded and checked.</td>
+</tr>
+<tr>
+<td><code>encoded_energy_verified</code></td>
+<td><code>False</code>; recovery does not recalculate the encoded energy.</td>
+</tr>
+<tr>
+<td><code>encoding_auxiliaries_verified</code></td>
+<td><code>False</code>; recovery does not independently check encoding penalty/slack auxiliaries.</td>
+</tr>
+<tr>
+<td><code>selected_bitstring</code></td>
+<td>MSB-first string identifying the selected decoded candidate; absent without a selection.</td>
+</tr>
+</tbody>
+</table>
+<p>For gate records, <code>tables["quantum_samples"]</code> has a separate schema from direct portfolio compilation:</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>count</code>, <code>probability</code></td>
+<td>Positive integer measured count and float candidate-distribution probability; missing for an unmeasured reported primary candidate.</td>
+</tr>
+<tr>
+<td><code>reported_count</code></td>
+<td>Integer from the provider's reported-count dictionary, or zero if absent.</td>
+</tr>
+<tr>
+<td><code>reported_objective</code></td>
+<td>Float source objective checked against the retained Opt model.</td>
+</tr>
+<tr>
+<td><code>objective</code></td>
+<td>Float recalculated Finance objective. A changed Opt objective can differ from Finance's original objective.</td>
+</tr>
+<tr>
+<td><code>feasible</code></td>
+<td>Boolean conjunction of Finance feasibility and retained Opt constraint feasibility.</td>
+</tr>
+<tr>
+<td><code>financial_feasible</code>, <code>opt_model_feasible</code></td>
+<td>Boolean component feasibility checks.</td>
+</tr>
+<tr>
+<td><code>reported_feasible</code></td>
+<td>Provider's candidate feasibility flag, or missing for an unmeasured primary candidate; retained as reported evidence.</td>
+</tr>
+<tr>
+<td><code>energy</code></td>
+<td>Reported encoded/internal energy for a measured candidate, or missing for an unmeasured primary candidate. This value is unverified.</td>
+</tr>
+<tr>
+<td><code>maximum_violation</code></td>
+<td>Float maximum residual in the Finance constraint table.</td>
+</tr>
+<tr>
+<td><code>reported_primary</code></td>
+<td>Boolean marking the provider's primary solution.</td>
+</tr>
+</tbody>
+</table>
+<p>The index is the MSB-first <code>bitstring</code>. Missing values can promote integer count columns to floating dtype. An empty candidate set produces an empty DataFrame without these columns. Attributes contain <code>encoded_energy_verified=False</code>, <code>encoding_auxiliaries_verified=False</code>, and the provider's <code>probability_scope</code>. The full provider diagnostics remain in <code>solver_info["quantum"]</code>; <code>candidate_observations</code> is the total measured count. <code>tables["quantum_history"]</code> contains <code>training_objective</code>, indexed by optimizer <code>evaluation</code>.</p>
+<h2 id="interchange-and-plotting">Interchange and plotting</h2>
+<p>Use <a href="interchange.html">interchange</a> for supported result and frontier round trips, format validation, and file/stream operations. Use <a href="plotting.html">plotting</a> to render the corresponding financial tables. Plotting does not replace the result acceptance checks above.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="custom-models.html"><span>Previous</span><strong>Custom models and compilation</strong></a><a class="pager-card next" href="plotting.html"><span>Next</span><strong>Plotting</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#financeresult">FinanceResult</a><a class="toc-level-2" href="#status-and-proof-scope">Status and proof scope</a><a class="toc-level-2" href="#constraint-and-reconciliation-tables">Constraint and reconciliation tables</a><a class="toc-level-2" href="#decision-properties">Decision properties</a><a class="toc-level-2" href="#solver-and-input-records">Solver and input records</a><a class="toc-level-2" href="#numeric-reports">Numeric reports</a><a class="toc-level-2" href="#re-evaluate-a-financial-decision">Re-evaluate a financial decision</a><a class="toc-level-2" href="#recover-a-recorded-opt-result">Recover a recorded Opt result</a><a class="toc-level-3" href="#compiled-model-recovery-diagnostics">Compiled-model recovery diagnostics</a><a class="toc-level-2" href="#interchange-and-plotting">Interchange and plotting</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

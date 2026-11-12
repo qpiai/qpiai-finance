@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Execution scheduling">
+<title>Execution scheduling | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/execution.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="execution">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="active" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Financial models</span><span aria-hidden="true">&gt;</span><span>Execution scheduling</span></div><article class="doc-content"><h1 id="execution-scheduling">Execution scheduling</h1>
+<p><code>ExecutionModel</code> distributes signed target orders across supplied time and venue opportunities. It combines predicted execution shortfall, optional underfill penalties, and the price risk of outstanding orders. Import it from <code>qpiai_finance.trading</code>.</p>
+<p>Orders remain in physical asset units. Positive quantities buy; negative quantities sell. Each asset trades only in its target direction, without overfill or round trips. The model proposes a schedule from supplied prices, capacities, and costs; it does not submit orders or guarantee fills. For investment decisions that determine the target book itself, use <a href="trading.html">multi-period investment planning</a>.</p>
+<h2 id="constructor">Constructor</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">ExecutionModel</span><span class="p">(</span>
+    <span class="n">orders</span><span class="p">,</span> <span class="n">opportunities</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">arrival_prices</span><span class="p">,</span> <span class="n">holdings</span><span class="p">,</span> <span class="n">cash</span><span class="p">,</span> <span class="n">currency</span><span class="p">,</span>
+    <span class="n">as_of</span><span class="p">,</span> <span class="n">slots</span><span class="p">,</span> <span class="n">cash_settlement</span><span class="p">,</span> <span class="n">asset_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">slot_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">credit_limit</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">borrow_limits</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>All numeric inputs are finite. Vectors follow model order or use complete Series/mappings aligned by IDs; incomplete, duplicate, or extra labels are rejected.</p>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Type, default, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>orders</code></td>
+<td>Required finite signed vector, Series, or mapping of target changes by asset. Zero orders are permitted. No scalar broadcasting.</td>
+</tr>
+<tr>
+<td><code>opportunities</code></td>
+<td>Required DataFrame of permitted execution alternatives, with columns below. May be empty with required columns retained.</td>
+</tr>
+<tr>
+<td><code>arrival_prices</code></td>
+<td>Required strictly positive asset vector, Series, or mapping of benchmark currency per asset unit; no scalar broadcasting.</td>
+</tr>
+<tr>
+<td><code>holdings</code></td>
+<td>Required signed scalar or complete asset vector of opening quantities.</td>
+</tr>
+<tr>
+<td><code>cash</code></td>
+<td>Required signed currency scalar, at least <code>-credit_limit</code>.</td>
+</tr>
+<tr>
+<td><code>currency</code></td>
+<td>Required uppercase three-letter code for all prices, fees, cash, and objective costs. No FX conversion is inferred.</td>
+</tr>
+<tr>
+<td><code>as_of</code></td>
+<td>Required timezone-aware timestamp.</td>
+</tr>
+<tr>
+<td><code>slots</code></td>
+<td>Required nonempty sequence of strictly increasing timezone-aware timestamps starting at <code>as_of</code>.</td>
+</tr>
+<tr>
+<td><code>cash_settlement</code></td>
+<td>Required <code>"net"</code> or <code>"prefunded"</code>. Net permits same-slot sale proceeds to fund purchases; prefunded requires purchases and all execution charges to be funded before sale proceeds.</td>
+</tr>
+<tr>
+<td><code>asset_ids</code></td>
+<td>Optional unique nonblank string/integer identifiers. Default order labels, otherwise positional integers.</td>
+</tr>
+<tr>
+<td><code>slot_ids</code></td>
+<td>Optional unique string/integer identifiers, one per timestamp. Default positional integers.</td>
+</tr>
+<tr>
+<td><code>credit_limit</code></td>
+<td>Nonnegative opening cash overdraft capacity; default zero. Initially applied to every slot.</td>
+</tr>
+<tr>
+<td><code>borrow_limits</code></td>
+<td>Nonnegative scalar or complete asset vector of approved opening short quantities; default zero. Opening holdings must respect these limits. Initially applied to every slot.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="execution-opportunities">Execution opportunities</h3>
+<p>Each row has a unique string/integer opportunity ID. Unknown or duplicate columns are rejected. Each <code>(asset, slot, venue)</code> triple must be unique; venues are nonblank string/integer IDs. An omitted asset/time/venue route is unavailable.</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type, default, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>asset</code></td>
+<td>Required supplied asset ID.</td>
+</tr>
+<tr>
+<td><code>slot</code></td>
+<td>Required supplied slot ID.</td>
+</tr>
+<tr>
+<td><code>venue</code></td>
+<td>Required venue identifier.</td>
+</tr>
+<tr>
+<td><code>price</code></td>
+<td>Required positive reference price in currency per asset unit.</td>
+</tr>
+<tr>
+<td><code>capacity</code></td>
+<td>Required nonnegative absolute executable quantity in that asset's units.</td>
+</tr>
+<tr>
+<td><code>bid_price</code>, <code>ask_price</code></td>
+<td>Optional positive execution quotes; default to <code>price</code>. Require <code>0 &lt; bid_price &lt;= price &lt;= ask_price</code>.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="properties-and-input-forms">Properties and input forms</h2>
+<p>Detached properties <code>asset_ids</code>, <code>opportunity_ids</code>, <code>slot_ids</code>, and <code>venue_ids</code> return pandas indices. Venues follow first occurrence in the opportunity table. <code>slot_times</code> is a timestamp Series named <code>time</code>, indexed by slot ID; <code>currency</code> is a string.</p>
+<p>Setters below mutate the specification and return <code>self</code>. A slot-by-asset grid accepts a finite DataFrame or two-dimensional array/sparse matrix, a complete asset vector/Series/mapping broadcast over slots, or a scalar broadcast over the grid. A slot-by-venue or slot-by-exposure grid follows the same convention using its column IDs. Two-dimensional inputs must have the full grid shape; labelled axes must match exactly. See <a href="data.html">data conventions</a>.</p>
+<h2 id="fees-lots-and-temporary-impact">Fees, lots, and temporary impact</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">set_execution_costs</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">per_unit</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">fixed</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">minimum_trade</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">trade_in_lots</span><span class="p">(</span><span class="n">lot_sizes</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">set_market_impact</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">quadratic</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">power_3_2</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">curves</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type, default, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>per_unit</code></td>
+<td>Nonnegative scalar or complete opportunity vector of currency fees per absolute unit; default zero. Additional to spread and impact.</td>
+</tr>
+<tr>
+<td><code>fixed</code></td>
+<td>Nonnegative scalar or complete opportunity vector of currency fees per active opportunity; default zero. Positive fixed fees require positive <code>minimum_trade</code> or configured lots. This condition is checked on export, evaluation, validation, and solve.</td>
+</tr>
+<tr>
+<td><code>minimum_trade</code></td>
+<td>Nonnegative scalar or complete opportunity vector of minimum quantity when active; default zero. Zero execution remains allowed. Positive minima introduce activation decisions.</td>
+</tr>
+<tr>
+<td><code>lot_sizes</code></td>
+<td>Required strictly positive scalar or complete asset vector of quantity steps. Every opportunity execution must be a whole asset lot; activation minimum is at least one lot.</td>
+</tr>
+<tr>
+<td><code>quadratic</code></td>
+<td>Nonnegative scalar or complete opportunity vector in currency/unit²; default zero. Cost is coefficient times absolute quantity squared.</td>
+</tr>
+<tr>
+<td><code>power_3_2</code></td>
+<td>Nonnegative scalar or complete opportunity vector in currency/unit^1.5; default zero. Cost is coefficient times absolute quantity^1.5.</td>
+</tr>
+<tr>
+<td><code>curves</code></td>
+<td>Optional mapping from supplied opportunity IDs to DataFrames containing exactly <code>quantity</code>, <code>cost</code>. Default <code>None</code> removes quoted curves. Quantities are physical units; costs are currency.</td>
+</tr>
+</tbody>
+</table>
+<p>Every call to <code>set_execution_costs</code> or <code>set_market_impact</code> replaces all of that method's components, including omitted components with their defaults. Quadratic, power, and quoted costs add together. No permanent impact, cross-impact, or calibration is inferred.</p>
+<p>Each quoted curve starts at <code>(0,0)</code>, has strictly increasing finite quantities, finite costs, and nonnegative nondecreasing segment slopes. Its linear interpolant is the specified cost function. Configure quantity restrictions and lots before curves: each curve must cover the largest permitted whole-lot execution, accounting for opportunity capacity, target size, order windows, and participation. Coverage is rechecked if controls later change. An execution outside a curve's domain is a violation. Temporary impact on a sale cannot exceed its quoted sale proceeds; the effective sale value must remain nonnegative before fees.</p>
+<p>For an out-of-domain proposal, replay extends the end segment to report its cost and marks the <code>impact_domain</code> constraint violated.</p>
+<p>For empty opportunity tables, opportunity controls accept a finite scalar or empty vector/Series/mapping and retain an empty setting.</p>
+<h2 id="completion-timing-and-capacity">Completion, timing, and capacity</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">allow_underfill</span><span class="p">(</span><span class="n">penalty</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">require_completion</span><span class="p">(</span><span class="n">asset_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">set_order_windows</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">release</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">deadline</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_participation</span><span class="p">(</span><span class="n">volumes</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">maximum_rate</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_venue_notional</span><span class="p">(</span><span class="n">maximum</span><span class="p">)</span>
+</code></pre></div>
+<p>All orders initially require full completion at the last slot. <code>allow_underfill</code> permits underfill for every asset and sets a nonnegative scalar or complete asset vector of currency penalties per unfilled unit. It resets all hard-completion flags. <code>require_completion</code> restores hard completion for a nonempty unique sequence of supplied asset IDs, or all assets with default <code>None</code>, while retaining other flags and penalties. Unfilled penalties apply only to orders whose completion is optional.</p>
+<p><code>release</code> and <code>deadline</code> accept timezone-aware scalar timestamp/string/datetime values or complete asset-indexed timestamp sequences, Series, or mappings. Defaults reset release to <code>as_of</code> and deadline to the last slot. Windows are inclusive and need not end at supplied slots; require release no later than deadline.</p>
+<p><code>volumes</code> is a required nonnegative slot-by-asset grid in physical units. Required <code>maximum_rate</code> is a grid with entries in <code>[0,1]</code>. Their product caps combined absolute fills across all venues for each asset/slot. It is not a separate allowance per venue.</p>
+<p>Venue <code>maximum</code> is a required nonnegative slot-by-venue grid of currency limits. It caps gross absolute execution quantity times each opportunity's reference <code>price</code>, excluding charges. This method requires at least one supplied venue.</p>
+<h2 id="cash-and-position-limits">Cash and position limits</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">set_cash_flows</span><span class="p">(</span><span class="n">flows</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">set_credit_limits</span><span class="p">(</span><span class="n">maximum</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_cash</span><span class="p">(</span><span class="n">minimum</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">set_borrow_limits</span><span class="p">(</span><span class="n">maximum</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_positions</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_gross_notional</span><span class="p">(</span><span class="n">maximum</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_turnover</span><span class="p">(</span><span class="n">maximum</span><span class="p">)</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Type, default, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>flows</code></td>
+<td>Required signed scalar or complete slot vector of incremental external currency flows arriving before trading. Default model flows are zero.</td>
+</tr>
+<tr>
+<td>Credit <code>maximum</code></td>
+<td>Required nonnegative scalar or complete slot vector of approved cash overdraft capacities, effective before trading. Replaces the slot schedule; opening capacity remains the constructor input.</td>
+</tr>
+<tr>
+<td>Cash <code>minimum</code></td>
+<td>Required finite signed scalar or complete slot vector of currency buffers. Applies before and after trading, and before sale proceeds under prefunding. Effective floor is <code>max(minimum, -credit_limit)</code>. Initially no additional buffer.</td>
+</tr>
+<tr>
+<td>Borrow <code>maximum</code></td>
+<td>Required nonnegative slot-by-asset grid of approved short quantities. Replaces post-trade short limits; no borrowing fee is inferred. Opening approval remains separately checked.</td>
+</tr>
+<tr>
+<td>Position <code>lower</code>, <code>upper</code></td>
+<td>Optional finite signed slot-by-asset grids of post-trade quantities. <code>None</code> resets that side to unbounded; both <code>None</code> removes this constraint. Require lower no greater than upper.</td>
+</tr>
+<tr>
+<td>Gross <code>maximum</code></td>
+<td>Required nonnegative scalar or complete slot vector of currency limits on <code>sum(arrival_prices * abs(post_trade_holdings))</code>.</td>
+</tr>
+<tr>
+<td>Turnover <code>maximum</code></td>
+<td>Required nonnegative currency scalar bounding total absolute execution notional at arrival prices over the entire horizon. No factor of one-half.</td>
+</tr>
+</tbody>
+</table>
+<p>Cash debits include executed bid/ask values, fees, and supplied impact. Underfill penalties and price-risk charges are objective terms rather than execution cash debits. Incremental external flows are applied once per slot. Both cash-settlement modes require the pre-trade balance to respect its floor; incoming trades cannot cure a pre-trade breach.</p>
+<h2 id="exposures-and-outstanding-order-risk">Exposures and outstanding-order risk</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">limit_exposures</span><span class="p">(</span>
+    <span class="n">coefficients</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">,</span> <span class="n">risk_units</span><span class="p">,</span> <span class="n">exposure_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">set_price_risk</span><span class="p">(</span><span class="n">covariance_rate</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">risk_aversion</span><span class="p">)</span>
+</code></pre></div>
+<p><code>coefficients</code> is a required finite signed exposure-by-asset matrix of supplied exposure per asset unit. <code>exposure_ids</code> optionally supplies unique string/integer row IDs, otherwise inferred from DataFrame rows or positional integers. IDs must remain unique across calls; each call adds a block. Required finite signed <code>lower</code> and <code>upper</code> are slot-by-exposure grids with ordered bounds. <code>risk_units</code> is a nonblank string broadcast to all rows, or a complete sequence, Series, or mapping of one nonblank unit label per exposure. Bounds constrain linear exposures of post-trade holdings at every slot. They do not perform repricing or infer regulatory policy.</p>
+<p><code>covariance_rate</code> is a required finite symmetric positive-semidefinite asset matrix or equivalent <code>FactorRisk</code>, with matching asset labels. Its units are currency² divided by <code>(asset_unit_i * asset_unit_j * second)</code>. Required nonnegative scalar <code>risk_aversion</code> has inverse-currency units. This setter replaces the price-risk model. For signed remaining orders <code>r_k</code> after slot <code>k</code>, risk cost is</p>
+<div class="arithmatex">\[
+\lambda\sum_k \Delta t_k\,r_k^\mathsf{T}\Sigma_{\rm second}r_k.
+\]</div>
+<p>The final slot has no subsequent interval and contributes zero risk. This assumes independent Brownian price increments over each interval. It prices the target gap rather than strategic book risk. The method neither estimates covariance nor converts return/annualized covariance into price covariance per second.</p>
+<h2 id="objective-exports-and-execution">Objective, exports, and execution</h2>
+<p>For signed execution <code>q_j</code>, predicted executed shortfall is <code>(side_price_j - arrival_price_asset)*q_j + fees_j + impact_j</code>. The minimized objective adds underfill penalties and outstanding-order risk cost. Favourable supplied prices can produce negative shortfall.</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">to_model</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">return_variables</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">to_cvxpy</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">executions</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">)</span>
+</code></pre></div>
+<p><code>to_matrix()</code> returns detached sparse Opt LP/MILP data only for a linear model, including quoted piecewise costs. The dictionary contains <code>name="trade_execution"</code>, <code>format="matrix"</code>, <code>sense="min"</code>, <code>problem_type</code>, <code>variable_names</code>, <code>objective</code>, <code>objective_offset=0.0</code>, CSR <code>constraint_matrix</code>, <code>row_lower</code>, <code>row_upper</code>, <code>constraint_names</code>, <code>lower_bounds</code>, <code>upper_bounds</code>, and <code>integrality</code>. Vectors are NumPy arrays; infinite bound endpoints mean no bound. Nonlinear impact or active price risk rejects this export.</p>
+<p><code>to_model()</code> exports detached Opt LP/MILP or continuous QP; boolean <code>return_variables=True</code> returns <code>(model, expressions)</code>. Nonzero quadratic or power impact requires conic execution and rejects this export. Active quadratic price risk with integer decisions also requires an external solver. <code>to_cvxpy()</code> returns <code>(cvxpy.Problem, expressions)</code> for all supported classes. Financial expressions are opportunity-indexed signed <code>executions</code> Series, slot-by-asset <code>remaining_orders</code> and <code>holdings</code> DataFrames, and slot-indexed <code>cash_balances</code> Series. They use physical quantities and currency, including with integer lots.</p>
+<p>With nonlinear impact the class is SOCP or MISOCP. Otherwise active price risk gives QP or MIQP; remaining models are LP or MILP. Lots, fixed fees, or minimum executions introduce integer decisions. Default routing selects Clarabel for continuous conic models, SCIP for integer conic/quadratic models, and Opt for supported LP/MILP/QP. Every Finance solve requires Opt authentication. <a href="solving.html">Solving</a> defines options and execution modes; <a href="custom-models.html">custom models</a> explains further compilation of eligible Opt exports.</p>
+<p><code>evaluate</code> requires a complete finite signed opportunity vector, Series, or mapping, without scalar broadcasting. With no opportunities, supply an empty vector/Series/mapping. It returns <code>objective</code>, <code>feasible</code>, <code>constraints</code>, <code>decision</code>, <code>metrics</code>, <code>tables</code>, and <code>costs</code>, without solving or authenticating. <code>tolerance</code> is a finite nonnegative absolute scalar, default <code>1e-7</code>; boolean checks are exact. Evaluation retains wrong directions, overfill, fractional lots, capacity breaches, and other violations rather than repairing the input.</p>
+<h2 id="result-fields">Result fields</h2>
+<p>Decisions are <code>executions</code> (opportunity Series named <code>quantity</code>), <code>trades</code>, <code>holdings</code>, and signed <code>remaining_orders</code> (slot-by-asset DataFrames), <code>unfilled</code> (nonnegative final residual asset Series named <code>quantity</code>), and <code>cash_balances</code> (slot Series named <code>cash</code>). All are accessible through their <code>FinanceResult</code> properties. Objective units are currency.</p>
+<table>
+<thead>
+<tr>
+<th>Location</th>
+<th>Fields</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>metrics</code></td>
+<td><code>predicted_executed_shortfall</code>, <code>price_change_cost</code>, <code>spread_cost</code>, <code>execution_fees</code>, <code>temporary_impact</code>, <code>underfill_cost</code>, <code>price_risk_variance</code> (currency²), <code>price_risk_cost</code>, <code>final_cash</code>, <code>cash_after</code> (same final cash), <code>final_credit_used</code>, <code>peak_credit_used</code>, integer <code>incomplete_orders</code>, <code>turnover_notional</code>.</td>
+</tr>
+<tr>
+<td><code>costs</code></td>
+<td><code>currency</code>, <code>price_change</code>, <code>spread</code>, <code>fees</code>, <code>impact</code>, <code>underfill</code>, <code>risk</code>.</td>
+</tr>
+<tr>
+<td><code>execution_schedule</code> table</td>
+<td>Opportunity input columns, <code>time</code>, signed <code>quantity</code>, boolean <code>eligible</code>, <code>order_side</code> (<code>buy</code>, <code>sell</code>, <code>none</code>), <code>side_price</code>, <code>spread_cost</code>, <code>fees</code>, <code>temporary_impact</code>, <code>piecewise_impact</code>, <code>predicted_shortfall</code>.</td>
+</tr>
+<tr>
+<td><code>execution_orders</code> table</td>
+<td>Asset-indexed <code>target_quantity</code>, <code>opening_holdings</code>, <code>executed_quantity</code>, <code>final_holdings</code>, <code>signed_residual</code>, <code>unfilled_quantity</code>, <code>required</code>, <code>underfill_cost</code>, <code>release</code>, <code>deadline</code>, <code>completion_status</code>. Status is <code>complete</code>, <code>partial</code>, <code>unfilled</code>, or <code>overfilled</code>, using evaluation tolerance. Check constraints as well as status.</td>
+</tr>
+<tr>
+<td><code>execution_cash</code> table</td>
+<td>Slot-indexed <code>time</code>, <code>external_flow</code>, <code>opening_cash</code>, <code>cash_before</code>, <code>cash_before_sale_proceeds</code> (NaN under netting), <code>purchase_value</code>, <code>sale_value</code>, <code>charges</code>, <code>cash_after</code>, <code>credit_limit</code>, <code>cash_floor</code>, <code>credit_used</code>, <code>peak_credit_used</code>. The last field is peak use within that slot including opening cash.</td>
+</tr>
+<tr>
+<td><code>execution_holdings</code> table</td>
+<td>Slot-by-asset post-trade quantities.</td>
+</tr>
+<tr>
+<td><code>execution_risk</code> table</td>
+<td>Slot-indexed <code>seconds_to_next_slot</code>, <code>remaining_price_variance</code>, <code>risk_cost</code>.</td>
+</tr>
+<tr>
+<td><code>execution_numerical_diagnostics</code> table</td>
+<td>Added during solver recovery, indexed by <code>variable</code>: <code>solver_value</code>, <code>reconstructed_value</code>, signed <code>difference</code>, <code>unit</code>, <code>relation</code>. Relations <code>equal</code>, <code>at_least</code>, or <code>at_most</code> describe the auxiliary relative to the reconstructed value.</td>
+</tr>
+</tbody>
+</table>
+<p>Recovery reconstructs physical executions from nonnegative or integer quantities and ticket decisions, records reconstruction residuals as constraints, and rechecks the financial schedule. It recomputes actual costs and cash from primary trades. Conservative cost epigraph slack can therefore differ from reconstructed costs; numerical diagnostics retain that difference. See <a href="results.html">results</a> for acceptance and retained solver evidence, and <a href="plotting.html">plotting</a> for execution, completion, cash, and risk figures.</p>
+<p>Numeric decisions, costs, and non-count metrics are floats. <code>execution_schedule</code> retains opportunity IDs; the orders table retains asset IDs, and cash/risk tables retain slot IDs. <code>temporary_impact</code> includes the separately reported <code>piecewise_impact</code>. <code>execution_risk.remaining_price_variance</code> already includes the seconds to the next slot, in currency squared; its sum is <code>price_risk_variance</code>, and multiplication by risk aversion gives the risk cost. Variance can be reported with zero risk aversion even though it contributes no objective charge.</p>
+<p>Recovery adds a transformation with <code>type="execution_reconstruction"</code>, <code>source_quantities_rechecked=True</code>, float <code>cash_origin</code>, and <code>primary_reconstruction</code>: a list of dictionaries with string <code>constraint</code>, float <code>residual</code>, and string <code>unit</code>. It also records <code>cost_epigraphs="conservative_cash_recomputed_from_actual_costs"</code> and <code>impact="supplied_temporary_costs"</code>. The cash origin is the reference subtracted from internal cash coordinates. Direct evaluation does not add this recovery record. Quantity constraints use <code>asset_units</code>, lot residuals use <code>lots</code>, ticket reconstruction uses <code>binary</code>, eligibility/zero-order/positive-lot checks use exact <code>boolean</code>, and financial constraints use currency or the declared exposure unit.</p>
+<p>Invalid shapes, labels, windows, capacity/rate domains, missing curve coverage, or unsupported exports raise <code>TypeError</code> or <code>ValueError</code>; unrepresentable numerical values raise <code>ValueError</code>. Valid but incompatible completion, cash, capacity, or position requirements can yield an infeasible result.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="trading.html"><span>Previous</span><strong>Multi-period investment planning</strong></a><a class="pager-card next" href="hedging.html"><span>Next</span><strong>Hedging</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#constructor">Constructor</a><a class="toc-level-3" href="#execution-opportunities">Execution opportunities</a><a class="toc-level-2" href="#properties-and-input-forms">Properties and input forms</a><a class="toc-level-2" href="#fees-lots-and-temporary-impact">Fees, lots, and temporary impact</a><a class="toc-level-2" href="#completion-timing-and-capacity">Completion, timing, and capacity</a><a class="toc-level-2" href="#cash-and-position-limits">Cash and position limits</a><a class="toc-level-2" href="#exposures-and-outstanding-order-risk">Exposures and outstanding-order risk</a><a class="toc-level-2" href="#objective-exports-and-execution">Objective, exports, and execution</a><a class="toc-level-2" href="#result-fields">Result fields</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

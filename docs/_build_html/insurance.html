@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Insurance and reinsurance">
+<title>Insurance and reinsurance | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/insurance.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="insurance">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="active" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Financial models</span><span aria-hidden="true">&gt;</span><span>Insurance and reinsurance</span></div><article class="doc-content"><h1 id="insurance-and-reinsurance-decisions">Insurance and reinsurance decisions</h1>
+<p><code>ReinsuranceModel</code> selects quoted contracts or prevalued programs against supplied joint claim scenarios. It balances premium and retained risk while enforcing the specified coverage, counterparty, cost, and surplus limits. Finance does not price a treaty or infer how overlapping contract terms interact.</p>
+<p>Import <code>ReinsuranceModel</code>, <code>excess_of_loss</code>, and <code>quota_share</code> from <code>qpiai_finance.insurance</code>. Liability-driven investment and cash planning use the shared <a href="portfolio.html">portfolio</a>, <a href="liability-matching.html">liability matching</a>, and <a href="funding.html">funding</a> models.</p>
+<h2 id="constructor">Constructor</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">ReinsuranceModel</span><span class="p">(</span>
+    <span class="n">gross_losses</span><span class="p">,</span> <span class="n">recoveries</span><span class="p">,</span> <span class="n">premiums</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">recovery_composition</span><span class="p">,</span>
+    <span class="n">currency</span><span class="p">,</span> <span class="n">horizon</span><span class="p">,</span> <span class="n">as_of</span><span class="p">,</span> <span class="n">probabilities</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">scenario_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">contract_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>gross_losses</code></td>
+<td>Nonempty finite nonnegative scenario vector, Series, or mapping in model currency.</td>
+</tr>
+<tr>
+<td><code>recoveries</code></td>
+<td>Scenario × quoted-contract matrix: DataFrame, supported column mapping, dense array, or sparse matrix. Every standalone recovery must lie between zero and that scenario's gross loss.</td>
+</tr>
+<tr>
+<td><code>premiums</code></td>
+<td>Complete finite nonnegative contract vector, Series, or mapping of fixed quoted premiums.</td>
+</tr>
+<tr>
+<td><code>recovery_composition</code></td>
+<td>Required <code>"exclusive"</code> or <code>"additive"</code>, with the meanings below.</td>
+</tr>
+<tr>
+<td><code>currency</code></td>
+<td>Uppercase three-letter currency code for every monetary input.</td>
+</tr>
+<tr>
+<td><code>horizon</code></td>
+<td>Nonblank common insurance horizon description.</td>
+</tr>
+<tr>
+<td><code>as_of</code></td>
+<td>Calendar valuation/decision date.</td>
+</tr>
+<tr>
+<td><code>probabilities</code></td>
+<td>Optional complete finite nonnegative scenario vector, Series, or mapping, summing to one within absolute <code>1e-12</code>. Required for expected/tail objectives or limits.</td>
+</tr>
+<tr>
+<td><code>scenario_ids</code></td>
+<td>Optional unique string/integer case identifiers, inferred from labeled gross losses or positional order.</td>
+</tr>
+<tr>
+<td><code>contract_ids</code></td>
+<td>Optional unique string/integer quote identifiers, inferred from recovery columns or positional order. An empty quote set is allowed with an empty matching premium vector and a scenario × zero-column recovery matrix.</td>
+</tr>
+</tbody>
+</table>
+<p>Inputs share one currency and consistent horizon/valuation basis; no discounting, price calibration, or FX conversion is inferred. Labeled inputs align by identifier. Read-only <code>contract_ids</code> and <code>scenario_ids</code> return detached Indices; <code>currency</code> returns the declared code.</p>
+<p>Initially, recoverability is one and contingent costs are zero. Each quote is optional, the contract-count range is zero through the number of quotes, and there is no premium cap, counterparty limit, surplus floor, or expected-shortfall cap. The declared composition and gross-loss recovery cap still apply.</p>
+<h3 id="contract-composition">Contract composition</h3>
+<p><code>"exclusive"</code> permits at most one quoted alternative. One column may represent a complete jointly valued program, allowing comparison of several valid programs.</p>
+<p><code>"additive"</code> declares that supplied contract recoveries and contingent costs can be added for every permitted selection. The caller must establish this contractual compatibility, including inuring order, triggers, exhaustion, and other interactions. The gross-loss cap is a feasibility constraint on summed contractual recovery; it does not validate an overlapping payout model. Use jointly valued program alternatives when standalone recoveries cannot be added correctly.</p>
+<h2 id="financial-equations-and-objectives">Financial equations and objectives</h2>
+<p>For binary selections <span class="arithmatex">\(z_k\)</span>, quoted premiums <span class="arithmatex">\(P_k\)</span>, contractual recoveries <span class="arithmatex">\(R_{sk}\)</span>, collectible fractions <span class="arithmatex">\(a_{sk}\)</span>, and contingent charges <span class="arithmatex">\(C_{sk}\)</span>:</p>
+<div class="arithmatex">\[
+\operatorname{premium}=\sum_kP_kz_k,\qquad N_s=X_s-\sum_ka_{sk}R_{sk}z_k,\qquad T_s=N_s+\operatorname{premium}+\sum_kC_{sk}z_k.
+\]</div>
+<p><span class="arithmatex">\(N_s\)</span> is retained claims and <span class="arithmatex">\(T_s\)</span> total scenario cost. The default objective minimizes expected total cost and therefore requires probabilities. Configuration methods modify the model and return <code>self</code>.</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">minimize_expected_cost</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">tail_weight</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">minimize_expected_shortfall</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">minimize_premium</span><span class="p">()</span>
+</code></pre></div>
+<p><code>tail_weight</code> is a finite real in <code>[0,1]</code>; <code>confidence</code> lies strictly in <code>(0,1)</code>. Expected-cost optimization minimizes <code>(1-tail_weight) * E[T] + tail_weight * ES(T)</code>. <code>minimize_expected_shortfall</code> sets the tail weight to one. Both concern total cost, including fixed premium exactly once, and require probabilities. Tail risk uses the financial upper loss tail with fractional boundary mass.</p>
+<p><code>minimize_premium</code> minimizes fixed quoted premium only. It needs no probabilities when no probabilistic hard limits remain. Contingent costs still enter total-cost and surplus constraints. Without coverage/risk mandates, an empty selection may be cheapest. Hard constraints remain active when changing objectives.</p>
+<h2 id="recovery-and-contingent-cost-assumptions">Recovery and contingent-cost assumptions</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">set_recoverability</span><span class="p">(</span><span class="n">factors</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">set_contingent_costs</span><span class="p">(</span><span class="n">costs</span><span class="p">)</span>
+</code></pre></div>
+<p><code>factors</code> is a scalar or a complete scenario × contract matrix of finite collectible fractions in <code>[0,1]</code>; the default is one. Matrix input supports aligned DataFrames, column mappings, dense arrays, or sparse matrices. Do not apply collectibility twice to already-net recoveries. Supplied factors can represent joint counterparty/default/basis scenarios; Finance does not estimate them.</p>
+<p><code>costs</code> is a complete finite nonnegative scenario × contract matrix in model currency, using the same matrix formats. These are charges in addition to quoted fixed premium, such as supplied reinstatement charges. No formula or contract interaction is inferred. Repeated setters replace the corresponding matrix/assumption.</p>
+<h2 id="selection-and-premium-limits">Selection and premium limits</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">limit_selections</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_contract_count</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">minimum</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">maximum</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">add_exclusive_group</span><span class="p">(</span><span class="n">contract_ids</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_premium</span><span class="p">(</span><span class="n">maximum</span><span class="p">)</span>
+</code></pre></div>
+<p>Selection bounds are numeric <code>0/1</code> scalars or complete contract vectors, Series, or mappings, with <code>lower &lt;= upper</code>. They fix required or forbidden alternatives. Numeric boolean arrays are not the general finite-real configuration input; use numeric zero/one bounds.</p>
+<p>Contract-count limits are whole-valued finite real numbers from zero to the number of quotes, excluding booleans, with <code>minimum &lt;= maximum</code>. <code>maximum=None</code> means the total number of quotes. Global exclusive composition still limits the count to one.</p>
+<p><code>add_exclusive_group</code> takes a nonempty unique sequence/Index of quoted contract identifiers, not one string. Each call adds an at-most-one rule. Groups may overlap. This is additional selection logic, not a declaration that all other recoveries compose correctly.</p>
+<p><code>limit_premium</code> takes a finite nonnegative currency amount and caps fixed premium only, excluding contingent charges.</p>
+<h2 id="loss-tail-and-counterparty-limits">Loss, tail, and counterparty limits</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">limit_retained_loss</span><span class="p">(</span><span class="n">maximum</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_total_cost</span><span class="p">(</span><span class="n">maximum</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_expected_shortfall</span><span class="p">(</span>
+    <span class="n">maximum</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">confidence</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span> <span class="n">measure</span><span class="o">=</span><span class="s2">"total_cost"</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_counterparty_exposure</span><span class="p">(</span>
+    <span class="n">coefficients</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">maximum</span><span class="p">,</span> <span class="n">exposure_ids</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>The first two <code>maximum</code> arguments are finite nonnegative scalars or complete scenario vectors, Series, or mappings in model currency. They bound retained claims or total scenario costs separately. Defaults have no additional upper limits beyond gross-loss and nonnegative-loss requirements.</p>
+<p>Expected-shortfall limits require probabilities. <code>maximum</code> is a finite nonnegative currency amount; <code>confidence</code> is in <code>(0,1)</code>; <code>measure</code> is exactly <code>"total_cost"</code> or <code>"retained_loss"</code>. Each <code>(measure, confidence)</code> pair has its own cap; another call with that pair replaces it while preserving other caps.</p>
+<p>Counterparty <code>coefficients</code> form a nonnegative exposure × contract matrix of additive currency exposure per selected quote. Supported formats are DataFrame, column mapping, dense array, and sparse matrix. <code>exposure_ids</code> optionally supplies unique row identifiers; otherwise labels or positional integers define them. <code>maximum</code> is a finite nonnegative scalar or complete exposure vector. Every call adds its rows; overlapping classifications are allowed. The caller supplies the exposure basis, such as covered limits. These values are not inferred default risk or regulatory capital.</p>
+<h2 id="surplus-requirements">Surplus requirements</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">set_surplus_before_claims</span><span class="p">(</span><span class="n">surplus</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">require_surplus</span><span class="p">(</span><span class="n">minimum</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+</code></pre></div>
+<p><code>surplus</code> and <code>minimum</code> are finite scalars or complete scenario vectors, Series, or mappings in model currency; signed values are allowed. Supply surplus before requiring a floor.</p>
+<p>The starting state is assets minus other liabilities before the modeled claims and reinsurance plan. It must exclude these gross claims, recoveries, premiums, and contingent costs. Finance applies them once as <code>surplus_after = surplus_before_claims - total_cost</code>. Investment outcomes and unrelated liabilities may already be included in the supplied state. No asset repricing or regulatory capital formula is inferred.</p>
+<h2 id="export-execution-and-evaluation">Export, execution, and evaluation</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">to_model</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">return_variables</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">to_cvxpy</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">selections</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">)</span>
+</code></pre></div>
+<p>Quoted selections form a MILP; an empty quote set gives an LP. Default Finance solving uses the Opt route. Follow <a href="solving.html">solving</a> for authentication, modes, and supported external selection. With stress cases, select <code>minimize_premium</code> and use hard scenario mandates rather than inventing probabilities.</p>
+<p><code>to_matrix</code> returns equivalent detached sparse Opt matrix data. Selection columns are binary choices; retained/total costs and tail auxiliaries use model currency. <code>to_model</code> returns an independent Opt model, or <code>(model, expressions)</code> when the Python boolean <code>return_variables=True</code>. <code>to_cvxpy</code> returns <code>(problem, expressions)</code>. Both expose contract-indexed <code>selections</code>, scalar <code>premium</code>, and scenario-indexed <code>retained_losses</code>/<code>total_costs</code>. See <a href="custom-models.html">custom models</a> for explicit compilation and verification scope.</p>
+<p><code>evaluate</code> accepts one finite numeric or boolean selection per quote, as an array, Series, or mapping. It checks bounds and integrality rather than silently rounding fractions. <code>tolerance</code> is a finite nonnegative absolute scalar. Returns <code>objective</code>, <code>feasible</code>, <code>constraints</code>, <code>decision</code>, <code>metrics</code>, <code>tables</code>, and <code>costs</code> after recomputing contractual and collectible recovery, retained/total loss, surplus, and all mandates. No solver or credential is used.</p>
+<h2 id="result-fields">Result fields</h2>
+<p><code>decision["selections"]</code> is a contract-indexed Series named <code>selection</code>, also exposed by <code>result.selections</code>. The objective unit is model currency. The following fields are conditional on supplied probabilities and settings:</p>
+<table>
+<thead>
+<tr>
+<th>Location</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>metrics</code></td>
+<td><code>premium</code>, <code>selected_contracts</code>; with probabilities, <code>expected_gross_loss</code>, <code>expected_contractual_recovery</code>, <code>expected_collectible_recovery</code>, <code>expected_retained_loss</code>, <code>expected_contingent_cost</code>, <code>expected_total_cost</code>. Active tail-weighted objectives additionally report <code>objective_expected_shortfall</code>.</td>
+</tr>
+<tr>
+<td><code>costs</code></td>
+<td><code>premium</code>, <code>currency</code>, and <code>expected_contingent_cost</code> when available.</td>
+</tr>
+<tr>
+<td><code>reinsurance_scenarios</code> table</td>
+<td><code>gross_loss</code>, <code>contractual_recovery</code>, <code>collectible_recovery</code>, <code>recovery_shortfall</code>, <code>retained_loss</code>, <code>premium</code>, <code>contingent_cost</code>, <code>total_cost</code>, <code>currency</code>; optional <code>probability</code>, <code>surplus_before_claims</code>, <code>surplus_after</code>, <code>minimum_surplus</code>.</td>
+</tr>
+<tr>
+<td><code>reinsurance_contracts</code> table</td>
+<td><code>selection</code>, <code>quoted_premium</code>, <code>premium_paid</code>, <code>minimum_selection</code>, <code>maximum_selection</code>, <code>currency</code>.</td>
+</tr>
+<tr>
+<td><code>expected_shortfall_limits</code> table</td>
+<td>Configured <code>measure</code>, <code>confidence</code>, <code>actual</code>, <code>maximum</code>, <code>currency</code>.</td>
+</tr>
+<tr>
+<td><code>counterparty_exposures</code> table</td>
+<td><code>classification</code>, <code>exposure</code>, <code>amount</code>, <code>maximum</code>, <code>currency</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Tables are under <code>result.tables</code>. Constraint rows include their units. Solving additionally checks selection reconstruction and reconciles solver premium, retained-loss, and total-cost columns with recalculated amounts. See <a href="results.html">results</a> for feasibility and proof acceptance. Plot with <code>plot.reinsurance_losses</code> and <code>plot.reinsurance_surplus</code>.</p>
+<p>Monetary metrics and table columns are floats in model currency. <code>selected_contracts</code> is an integer counting strictly positive selection entries, including when an invalid fractional proposal is being evaluated. Selection values, bounds, and probabilities are dimensionless floats. Scenario and contract tables retain their identifier indices; tail-limit and counterparty tables use positional indices. <code>classification</code> numbers identify counterparty-limit calls in zero-based order. Selection checks use <code>binary</code> units, count/exclusivity checks use <code>contracts</code>, and other constraints use currency. <code>recovery_shortfall</code> is contractual minus collectible recovery.</p>
+<h2 id="recovery-calculation-api">Recovery calculation API</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">excess_of_loss</span><span class="p">(</span><span class="n">losses</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">attachment</span><span class="p">,</span> <span class="n">limit</span><span class="p">)</span>
+<span class="n">quota_share</span><span class="p">(</span><span class="n">losses</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">share</span><span class="p">)</span>
+</code></pre></div>
+<p><code>losses</code> is a finite nonnegative numeric scalar, array-like input, Series, or DataFrame in one loss unit. <code>attachment</code> and <code>limit</code> are finite nonnegative scalars in that unit. The layer recovery is <code>min(max(loss-attachment, 0), limit)</code>. <code>share</code> is a finite scalar in <code>[0,1]</code>; quota-share recovery is <code>share*loss</code>.</p>
+<p>Return type follows the input: float for a scalar, ndarray for other array-like inputs, Series named <code>recovery</code>, or DataFrame retaining axes. These functions evaluate the stated basic payout before deductibles, aggregates, reinstatements, exclusions, commission, co-insurance, counterparty collectibility, or inuring-order adjustments. Apply them to the correct covered loss basis. They neither price a contract nor establish that its standalone recovery can be added to another contract.</p>
+<p>Invalid loss domains, composition, probabilities, labels, bounds, risk measures, or unrepresentable outputs raise <code>TypeError</code> or <code>ValueError</code>. Structurally valid but incompatible hard mandates can produce an infeasible optimization result.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="liability-matching.html"><span>Previous</span><strong>Liability matching</strong></a><a class="pager-card next" href="collateral.html"><span>Next</span><strong>Collateral allocation</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#constructor">Constructor</a><a class="toc-level-3" href="#contract-composition">Contract composition</a><a class="toc-level-2" href="#financial-equations-and-objectives">Financial equations and objectives</a><a class="toc-level-2" href="#recovery-and-contingent-cost-assumptions">Recovery and contingent-cost assumptions</a><a class="toc-level-2" href="#selection-and-premium-limits">Selection and premium limits</a><a class="toc-level-2" href="#loss-tail-and-counterparty-limits">Loss, tail, and counterparty limits</a><a class="toc-level-2" href="#surplus-requirements">Surplus requirements</a><a class="toc-level-2" href="#export-execution-and-evaluation">Export, execution, and evaluation</a><a class="toc-level-2" href="#result-fields">Result fields</a><a class="toc-level-2" href="#recovery-calculation-api">Recovery calculation API</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

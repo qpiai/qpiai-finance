@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Quantum-inspired and gate-based optimization">
+<title>Quantum-inspired and gate-based optimization | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/quantum.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="quantum">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="active" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Optimization</span><span aria-hidden="true">&gt;</span><span>Quantum-inspired and gate-based optimization</span></div><article class="doc-content"><h1 id="quantum-inspired-and-gate-based-optimization">Quantum-inspired and gate-based optimization</h1>
+<p>Start with a financial objective and a defined decision. Finance translates supported portfolio selections into polynomial models and restores solver samples to asset weights. Researchers can inspect the polynomial, penalties, variable mapping, conversion, and execution details while practitioners continue to evaluate the result in financial coordinates.</p>
+<p>Two workflows share this principle. The direct portfolio compiler below provides a validated equal-weight selection encoding. Supported financial models also expose detached Opt formulations that can be compiled explicitly using Opt's representation controls. <a href="custom-models.html">Custom models and compilation</a> describes that broader workflow and its recovery requirements.</p>
+<h2 id="financial-selection-and-polynomial-representations">Financial selection and polynomial representations</h2>
+<p>For exactly <span class="arithmatex">\(k\)</span> selected assets, let <span class="arithmatex">\(x_i\in\{0,1\}\)</span> denote selection and set <span class="arithmatex">\(w_i=(W/k)x_i\)</span>, where <span class="arithmatex">\(W\)</span> is <code>net_weight</code>. Cardinality is <span class="arithmatex">\(\sum_ix_i=k\)</span>. This is a fixed allocation per selected asset, not a discretization of unrestricted continuous weights.</p>
+<p>Variance and tracking-error objectives are quadratic in selection bits. Higher-moment utility can contain third- and fourth-order interactions. QpiAI Opt's native higher-order HUBO solver solves such polynomials in their natural higher-order form, preserving the original energy landscape without reductions or reduction-induced approximations. Pairwise QUBO or Ising compilation instead uses Opt's recorded quadratization when required; that conversion introduces product auxiliaries with an explicit inverse mapping.</p>
+<h2 id="compile_portfolio"><code>compile_portfolio</code></h2>
+<p>Import from <code>qpiai_finance.quantum</code>:</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">compile_portfolio</span><span class="p">(</span>
+    <span class="n">model</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">representation</span><span class="o">=</span><span class="s2">"hubo"</span><span class="p">,</span> <span class="n">penalty</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">quadratization_strength</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Returns a <code>PortfolioEncoding</code> containing a detached financial snapshot, authoritative Opt problem, and inverse mapping.</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>model</code></td>
+<td><code>PortfolioModel</code> configured with <code>select_assets(count=..., equal_weight=True)</code>.</td>
+</tr>
+<tr>
+<td><code>representation</code></td>
+<td>Exactly <code>"hubo"</code>, <code>"qubo"</code>, or <code>"ising"</code>; default <code>"hubo"</code>.</td>
+</tr>
+<tr>
+<td><code>penalty</code></td>
+<td>Optional strictly positive finite real selection/weight-validity penalty. <code>None</code> selects a value exceeding the compiler's objective-range bound.</td>
+</tr>
+<tr>
+<td><code>quadratization_strength</code></td>
+<td>Optional finite non-Boolean real strength for pairwise product penalties. <code>None</code> selects the sufficient value defined below; smaller explicit values are rejected. Rejected for <code>representation="hubo"</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Supported objectives are minimum variance, tracking-error variance, mean-variance utility, and higher-moment utility. The compiler represents cardinality, individual weight bounds, and the implication of the configured gross-exposure limit for a nonnegative equal-weight portfolio. A leverage limit below <code>net_weight</code> is infeasible and remains reflected in the penalty; compilation does not make it feasible.</p>
+<p>Cash accounts, return floors, exposure groups, turnover, volatility limits, robust-return uncertainty, and fixed selections are rejected by this direct compiler. Other portfolio objectives have no direct compilation here. The error lists unsupported configured restrictions; do not remove a required restriction merely to make compilation succeed. Use another supported financial formulation and explicit Opt compilation where appropriate.</p>
+<h2 id="objective-and-penalty-meaning">Objective and penalty meaning</h2>
+<p>The encoded representation minimizes an objective. For a source maximization, Finance negates the financial objective. Let <span class="arithmatex">\(f(x)\)</span> be this minimization polynomial before penalties. The compiler bounds its range by the sum of absolute nonconstant coefficients:</p>
+<div class="arithmatex">\[
+B=\sum_{S\ne\varnothing}|a_S|,\qquad f(x)=a_{\varnothing}+\sum_{S\ne\varnothing}a_S\prod_{i\in S}x_i.
+\]</div>
+<p>The cardinality penalty is <span class="arithmatex">\((\sum_ix_i-k)^2\)</span>. Additional terms count forbidden zero/selected choices under individual bounds and any unavoidable leverage conflict. Each positive violation is at least one. If a feasible selection exists, a penalty strictly greater than <span class="arithmatex">\(B\)</span> is sufficient for a global minimizer to prefer feasibility. This is a property of the encoded global problem, not a certificate for a heuristic sample.</p>
+<p>For <code>B &gt; 0</code>, the default is <code>max(1.01*B, numpy.nextafter(B, numpy.inf))</code>; for <code>B=0</code>, it is <code>1.0</code>. An explicit penalty at or below <span class="arithmatex">\(B\)</span> is recorded as <code>penalty_guarantee="heuristic"</code>; a larger value is <code>"sufficient_if_feasible"</code>. All recovered samples still undergo financial checks. Quadratic product penalties have their separate Opt conversion settings and records.</p>
+<p>For pairwise compilation, Opt first substitutes shared products in the complete penalized polynomial. Let <code>R</code> be the sum of absolute nonconstant coefficients after those substitutions, before product penalties. Its default and minimum accepted <code>quadratization_strength</code> is <code>max(1.0, R + max(1.0, R*1e-6))</code>. A finite explicit value must be at least that threshold, including when the polynomial already has degree at most two. Each auxiliary <code>y=x_i*x_j</code> receives the Rosenberg penalty <code>strength*(x_i*x_j - 2*x_i*y - 2*x_j*y + 3*y)</code>. Source and product penalties have different purposes and remain separately recorded.</p>
+<p>For a valid auxiliary assignment, financial objective recovery removes the selection penalty and restores the source sense. Encoded energy includes penalties and offsets. It must not substitute for the financial objective.</p>
+<h2 id="portfolioencoding-properties"><code>PortfolioEncoding</code> properties</h2>
+<p>Create an encoding with <code>compile_portfolio</code>; its constructor is the compiler's assembly interface rather than an alternative financial input API:</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">PortfolioEncoding</span><span class="p">(</span>
+    <span class="n">portfolio</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="n">names</span><span class="p">,</span> <span class="n">objective</span><span class="p">,</span> <span class="n">violations</span><span class="p">,</span> <span class="n">details</span><span class="p">,</span>
+    <span class="n">conversion</span><span class="p">,</span> <span class="n">build_time</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>All constructor arguments are required; the following types describe the records assembled by <code>compile_portfolio</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>portfolio</code></td>
+<td>Detached <code>PortfolioModel</code> snapshot with a supported exact equal-weight selection.</td>
+</tr>
+<tr>
+<td><code>problem</code></td>
+<td>Matching Opt <code>HUBOProblem</code>, <code>QUBOProblem</code>, or <code>IsingProblem</code>, including encoded penalties, names, and offset.</td>
+</tr>
+<tr>
+<td><code>names</code></td>
+<td>Ordered tuple of original selection-variable strings, one per source asset. Excludes product auxiliaries.</td>
+</tr>
+<tr>
+<td><code>objective</code></td>
+<td><code>dict[tuple[str, ...], float]</code> of the binary minimization objective before penalties. Empty-tuple keys denote constants.</td>
+</tr>
+<tr>
+<td><code>violations</code></td>
+<td>The same polynomial-dictionary type, describing cardinality, invalid weight choices, and any unavoidable leverage conflict before multiplying by selection penalty.</td>
+</tr>
+<tr>
+<td><code>details</code></td>
+<td>Compilation dictionary with the transformation fields described below; contains financial selection count/weight, representation, penalties, and conversion records.</td>
+</tr>
+<tr>
+<td><code>conversion</code></td>
+<td>Opt <code>HUBOToQUBOConvert</code> for QUBO/Ising, or <code>None</code> for HUBO. Provides the exact product-auxiliary mapping.</td>
+</tr>
+<tr>
+<td><code>build_time</code></td>
+<td>Float build duration in seconds.</td>
+</tr>
+</tbody>
+</table>
+<p>These objects must describe the same compiled model. Direct construction stores the supplied objects without financial validation or copying; it does not build an encoding from arbitrary inputs. <code>compile_portfolio</code> performs the validation and creates the detached snapshot used by the documented workflow.</p>
+<p>Use these read-only views to inspect an encoding:</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Type and contract</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>problem</code></td>
+<td>Detached <code>HUBOProblem</code>, <code>QUBOProblem</code>, or <code>IsingProblem</code> from Opt. Mutating it does not change the encoding.</td>
+</tr>
+<tr>
+<td><code>variable_names</code></td>
+<td>Tuple of complete encoded variable names, including product auxiliaries. Defines sample order.</td>
+</tr>
+<tr>
+<td><code>variable_mapping</code></td>
+<td>DataFrame with <code>variable</code>, <code>asset_id</code>, <code>selected_weight</code>, covering original financial selection variables.</td>
+</tr>
+<tr>
+<td><code>objective_polynomial</code></td>
+<td>Copy of the binary minimization coefficient dictionary before penalties; tuple-of-name keys, including <code>()</code> for the constant where present. Uses binary coordinates even for an Ising encoding.</td>
+</tr>
+<tr>
+<td><code>transformations</code></td>
+<td>Detached list containing the financial compilation record.</td>
+</tr>
+<tr>
+<td><code>compilation_settings</code></td>
+<td>Detached dictionary of <code>representation</code>, effective <code>penalty</code>, and requested <code>quadratization_strength</code> for rebuilding from the retained financial model.</td>
+</tr>
+</tbody>
+</table>
+<p>The transformation record has the following fields. Retain the source inputs and package versions alongside these settings for later recovery.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td>String <code>"binary_portfolio"</code>.</td>
+</tr>
+<tr>
+<td><code>representation</code></td>
+<td><code>"hubo"</code>, <code>"qubo"</code>, or <code>"ising"</code>.</td>
+</tr>
+<tr>
+<td><code>source_sense</code></td>
+<td><code>"MAX"</code> for utility objectives, otherwise <code>"MIN"</code>.</td>
+</tr>
+<tr>
+<td><code>weight_per_selected_asset</code></td>
+<td>Float <code>net_weight / selection_count</code>.</td>
+</tr>
+<tr>
+<td><code>selection_count</code></td>
+<td>Integer required asset count.</td>
+</tr>
+<tr>
+<td><code>objective_range_bound</code></td>
+<td>Float <span class="arithmatex">\(B\)</span> for the minimization polynomial before penalties.</td>
+</tr>
+<tr>
+<td><code>minimum_positive_violation_penalty</code></td>
+<td>Float <code>1.0</code>, the lower bound on a positive violation-polynomial value before multiplying by <code>penalty</code>.</td>
+</tr>
+<tr>
+<td><code>penalty</code></td>
+<td>Effective positive float selection/weight-validity penalty.</td>
+</tr>
+<tr>
+<td><code>penalty_guarantee</code></td>
+<td><code>"sufficient_if_feasible"</code> or <code>"heuristic"</code>, according to the bound above.</td>
+</tr>
+<tr>
+<td><code>source_degree</code></td>
+<td>Integer maximum degree of the objective before penalties; zero for a constant polynomial.</td>
+</tr>
+<tr>
+<td><code>encoded_degree</code></td>
+<td>Integer degree of the penalized binary polynomial <strong>before</strong> pairwise quadratization. This can exceed two even when the requested output is QUBO or Ising.</td>
+</tr>
+<tr>
+<td><code>auxiliary_variables</code></td>
+<td>Integer product-auxiliary count; zero for HUBO.</td>
+</tr>
+<tr>
+<td><code>spin_convention</code></td>
+<td>String <code>"s = 2*x - 1"</code>.</td>
+</tr>
+<tr>
+<td><code>discretization</code></td>
+<td><code>None</code>; selected-asset weights are fixed by the financial model.</td>
+</tr>
+<tr>
+<td><code>quadratization_strength</code></td>
+<td>Requested float strength or <code>None</code> for Opt's automatic rule. The effective strength is in the quadratization record.</td>
+</tr>
+<tr>
+<td><code>quadratization</code></td>
+<td>Empty list for HUBO; otherwise Opt's list of conversion dictionaries described below.</td>
+</tr>
+</tbody>
+</table>
+<p>The pairwise conversion dictionary contains <code>transformation="hubo_quadratization"</code>, <code>method="shared Rosenberg products"</code>, <code>auxiliary_products</code> mapping each auxiliary name to its pair of factor names, and the effective float <code>penalty_strength</code>. Its <code>original_sense</code> is <code>"MIN"</code>, since Finance has already converted the financial objective to minimization; <code>decode="discard auxiliary product variables"</code> describes restoration of the original selection coordinates. These conversion fields are separate from the financial <code>source_sense</code> and selection penalty.</p>
+<h2 id="inspect-encode-decode-and-evaluate">Inspect, encode, decode, and evaluate</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">encoding</span><span class="o">.</span><span class="n">inspect</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">encoding</span><span class="o">.</span><span class="n">encode_selection</span><span class="p">(</span><span class="n">selected</span><span class="p">)</span>
+<span class="n">encoding</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">sample</span><span class="p">)</span>
+<span class="n">encoding</span><span class="o">.</span><span class="n">energy</span><span class="p">(</span><span class="n">sample</span><span class="p">)</span>
+<span class="n">encoding</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">sample</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">)</span>
+<span class="n">encoding</span><span class="o">.</span><span class="n">evaluate_samples</span><span class="p">(</span><span class="n">samples</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">)</span>
+</code></pre></div>
+<p><code>inspect</code> has the same encoded report as root <code>inspect</code>: financial specification, Opt optimization information, transformations, and <code>variable_mapping</code>. Optional <code>algorithm</code> adds compatibility and logical circuit/resource inspection without execution or authentication. The <a href="algorithm-controls.html#inspection-report">inspection report fields</a> define counts, parameterization, and algorithm-specific structure.</p>
+<p><code>selected</code> is a complete vector, Series, or mapping of exact <code>0/1</code> asset selections. Labeled inputs align by source asset identifier. <code>encode_selection</code> returns a Python list in complete encoded variable order, filling product auxiliaries using the recorded conversion. Ising output contains spins. An infeasible financial selection may still be encoded; evaluate it separately.</p>
+<p><code>sample</code> is a complete finite vector, Series, or mapping keyed by <code>variable_names</code>. Arrays follow that order. HUBO/QUBO values must be exactly <code>0</code> or <code>1</code>; Ising values must be exactly <code>-1</code> or <code>1</code>. <code>decode</code> returns an asset-indexed Series named <code>weight</code>. It retains the fixed weight per selected name even if cardinality is wrong; it does not normalize or repair the sample. <code>energy</code> returns a float including all encoded penalties and offsets.</p>
+<p><code>evaluate</code> returns the source portfolio evaluation plus <code>decision={"weights": ...}</code>, <code>energy</code>, <code>selection_penalty</code>, and <code>auxiliaries_valid</code>. It adds a <code>product_auxiliaries</code> constraint row. Financial feasibility requires both original financial constraints and consistent product auxiliaries. <code>tolerance</code> is a finite nonnegative scalar, default <code>1e-7</code>; bit/spin domain validation remains exact.</p>
+<p><code>samples</code> is a two-dimensional numeric array or DataFrame. DataFrame columns must exactly cover all encoded variable names, and row identifiers must be unique. Arrays follow <code>variable_names</code> and receive positional row identifiers. <code>evaluate_samples</code> returns a DataFrame indexed by <code>sample</code> with <code>objective</code>, <code>feasible</code>, <code>energy</code>, <code>selection_penalty</code>, and <code>auxiliaries_valid</code>.</p>
+<h2 id="native-execution">Native execution</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">encoding</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
+    <span class="o">*</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"local"</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">execution</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">allow_platform</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">,</span> <span class="o">**</span><span class="n">options</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Root <code>solve(encoding, ...)</code> delegates to this method; its optional solver must be <code>None</code> or <code>"qpiai"</code>. Without an algorithm, execution calls Opt's native polynomial route, accepting <code>local</code>, <code>auto</code>, or <code>platform</code> and the applicable Opt options. Every solve requires an Opt client. <code>auto</code> permits paid fallback only with <code>allow_platform=True</code>. An <code>execution</code> object without an algorithm is rejected.</p>
+<p>Results are <code>FinanceResult</code> records with original weights, objective, constraints, financial metrics, <code>binary_variables</code> table, and compilation transformations. Source optimality requires a genuine backend proof, consistent auxiliaries, objective reconciliation, and financial feasibility. Paid work and local limits follow <a href="solving.html">solving</a>.</p>
+<h2 id="gate-based-quantum-algorithms-and-research-controls">Gate-based quantum algorithms and research controls</h2>
+<p>Finance uses the quantum algorithms from <code>qpiai_opt.quantum</code>. It does not implement a parallel algorithm hierarchy or re-export them from its own <code>quantum</code> namespace. Available accepted algorithm types are <code>QAOA</code>, <code>VQE</code>, <code>SamplingVQE</code>, <code>RecursiveQAOA</code>, and <code>ADAPTQAOA</code>.</p>
+<p>Compile to <code>representation="qubo"</code> or <code>"ising"</code> before gate-based execution; direct HUBO gate execution is rejected. Register width includes any product auxiliaries. Inspect the actual encoding and algorithm rather than assuming one qubit per asset after quadratization.</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">qpiai_opt.quantum</span><span class="w"> </span><span class="kn">import</span> <span class="n">QAOA</span><span class="p">,</span> <span class="n">QuantumRun</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qpiai_finance</span><span class="w"> </span><span class="kn">import</span> <span class="n">inspect</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qpiai_finance.quantum</span><span class="w"> </span><span class="kn">import</span> <span class="n">compile_portfolio</span>
+
+<span class="n">encoding</span> <span class="o">=</span> <span class="n">compile_portfolio</span><span class="p">(</span><span class="n">portfolio</span><span class="p">,</span> <span class="n">representation</span><span class="o">=</span><span class="s2">"ising"</span><span class="p">)</span>
+<span class="n">algorithm</span> <span class="o">=</span> <span class="n">QAOA</span><span class="p">(</span><span class="n">reps</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">max_iterations</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">execution</span> <span class="o">=</span> <span class="n">QuantumRun</span><span class="p">(</span><span class="n">shots</span><span class="o">=</span><span class="mi">2048</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+<span class="n">report</span> <span class="o">=</span> <span class="n">inspect</span><span class="p">(</span><span class="n">encoding</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="n">algorithm</span><span class="p">)</span>
+</code></pre></div>
+<p>This code constructs and inspects the problem without running circuits. The <code>portfolio</code> must meet the compiler contract above. Research controls are organized by their actual role:</p>
+<table>
+<thead>
+<tr>
+<th>Purpose</th>
+<th>Controls</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>QAOA depth and parameterization</td>
+<td><code>reps</code>, standard/multi-angle parameterization, initial parameter vector.</td>
+</tr>
+<tr>
+<td>Variational search</td>
+<td>Supported optimizer, iteration controls, and custom optimizer callbacks where the algorithm accepts them.</td>
+</tr>
+<tr>
+<td>Initial states and constrained mixing</td>
+<td>QAOA initial state, <code>WarmStart</code>, <code>XYMixer</code>, or compatible custom mixer.</td>
+</tr>
+<tr>
+<td>VQE family circuit choice</td>
+<td>Built-in or supported custom ansatz and initial parameters.</td>
+</tr>
+<tr>
+<td>Recursive/adaptive search</td>
+<td>Recursive reduction controls or ADAPT operator pool, layer, and gradient controls.</td>
+</tr>
+<tr>
+<td>Sample aggregation</td>
+<td><code>CVaR</code> where supported, with its lower-energy-tail semantics.</td>
+</tr>
+<tr>
+<td>Circuit execution</td>
+<td><code>QuantumRun</code> shots, local seed, explicit platform device/experiment, and per-circuit timeout where supported.</td>
+</tr>
+</tbody>
+</table>
+<p>The <a href="algorithm-controls.html">algorithm control reference</a> defines every accepted constructor, field, allowed value, default, parameter order, and callback contract for Finance's gate workflow. It also covers offline circuit construction and the difference between dependency-level execution and financial result recovery. Algorithm objects are not serialized as financial model inputs.</p>
+<h3 id="xy-mixing">XY mixing</h3>
+<p>Finance requires an explicit initial bit sequence for QAOA with <code>XYMixer</code>. Its original asset-selection bits must contain exactly the requested selection count. An XY group cannot mix original selections with product auxiliaries. Opt also checks register width and mixer validity. XY mixing preserves its group Hamming weights; it does not establish arbitrary financial feasibility or auxiliary consistency.</p>
+<h3 id="authentication-and-execution-budget">Authentication and execution budget</h3>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">qpiai_opt.quantum</span><span class="w"> </span><span class="kn">import</span> <span class="n">QpiAIQuantumAuth</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">qpiai_finance</span><span class="w"> </span><span class="kn">import</span> <span class="n">solve</span>
+
+<span class="n">QpiAIQuantumAuth</span><span class="o">.</span><span class="n">login</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">"QCLOUD_API_KEY"</span><span class="p">])</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">solve</span><span class="p">(</span>
+    <span class="n">encoding</span><span class="p">,</span> <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="n">algorithm</span><span class="p">,</span>
+    <span class="n">execution</span><span class="o">=</span><span class="n">execution</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"local"</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p><code>client</code> is the Opt client described in <a href="getting-started.html">getting started</a>. Gate-based quantum computation requires both Opt and QCloud authentication. <code>mode</code> must be <code>"local"</code> or <code>"platform"</code>; <code>auto</code>, paid fallback, and arbitrary <code>**options</code> are rejected. Selecting platform execution can consume credits.</p>
+<p><code>QuantumRun.shots</code> counts shots per circuit execution, not the whole variational run. An optimizer can evaluate many circuits. Its platform timeout is a per-circuit timeout, not an overall algorithm deadline. Local seeds are not platform options. Select and budget the complete algorithm using Opt's execution contract.</p>
+<h2 id="bit-order-and-source-verification">Bit order and source verification</h2>
+<p>The Opt spin convention is <span class="arithmatex">\(s_i=2x_i-1\)</span>. Computational-basis Pauli values use <span class="arithmatex">\(Z_i=1-2x_i=-s_i\)</span>. <code>variable_names</code> and <code>sample</code> use increasing variable order. Printed measurement bitstrings are most-significant-bit first: their rightmost character is variable/qubit zero.</p>
+<p>Finance checks that reported samples, names, bitstrings, energies, and internal energies agree with the retained encoding. It recalculates all reported candidate financial objectives and constraints, including product auxiliaries. Among feasible reported candidates it chooses the best original financial objective, with bitstring order as a deterministic tie-break. It does not simply accept the provider's minimum-energy primary sample.</p>
+<p>Reported measurement candidates and an explicitly declared recursive residual candidate retain distinct meanings. A residual candidate is not assigned fabricated measurement counts or probabilities. Gate-based results carry no new global financial optimality proof.</p>
+<h2 id="gate-based-quantum-result-data">Gate-based quantum result data</h2>
+<p>In addition to common financial fields, results provide:</p>
+<table>
+<thead>
+<tr>
+<th>Location</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tables["binary_variables"]</code></td>
+<td>Original selection-to-asset mapping.</td>
+</tr>
+<tr>
+<td><code>tables["quantum_samples"]</code></td>
+<td>Candidate table indexed by MSB-first bitstring; columns are defined below.</td>
+</tr>
+<tr>
+<td>Quantum sample table <code>attrs["probability_scope"]</code></td>
+<td>Provider-declared candidate distribution scope. Counts from several stages need not describe only the final circuit.</td>
+</tr>
+<tr>
+<td><code>tables["quantum_history"]</code></td>
+<td><code>training_objective</code> by optimizer evaluation; it is not a sequence of final financial objectives.</td>
+</tr>
+<tr>
+<td><code>solver_info["quantum"]</code></td>
+<td>Recorded Opt quantum diagnostics, including available counts, candidate distribution, parameters, jobs, logical circuit, and backend metadata.</td>
+</tr>
+<tr>
+<td><code>solver_info["candidate_observations"]</code></td>
+<td>Total observations across the reported measured candidates.</td>
+</tr>
+<tr>
+<td><code>solver_info["selected_bitstring"]</code></td>
+<td>Selected feasible candidate when one exists.</td>
+</tr>
+<tr>
+<td><code>solver_info["encoded_objective"]</code></td>
+<td>Recomputed encoded energy of the selected candidate when one exists.</td>
+</tr>
+<tr>
+<td>Live execution <code>solver_info["algorithm_configuration"]</code>, <code>execution_settings</code>, <code>quantum_structure</code></td>
+<td>Recorded algorithm controls, QuantumRun settings, and inspected circuit/resource structure.</td>
+</tr>
+</tbody>
+</table>
+<p>If no reported candidate is financially feasible, the result has no fabricated decision and reports <code>no_feasible_sample</code>. <a href="results.html">Results</a> defines the common verification fields. <a href="plotting.html">Plotting</a> describes sample and convergence figures.</p>
+<p>The <a href="algorithm-controls.html#recorded-algorithm-diagnostics">recorded algorithm diagnostics</a> define every quantum diagnostic field, algorithm metadata record, and live configuration record.</p>
+<h3 id="candidate-table">Candidate table</h3>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>count</code></td>
+<td>Positive integer observations in the provider's candidate record; missing for an unmeasured residual-only candidate.</td>
+</tr>
+<tr>
+<td><code>probability</code></td>
+<td>Float <code>count / candidate_observations</code>; missing for an unmeasured residual-only candidate.</td>
+</tr>
+<tr>
+<td><code>reported_count</code></td>
+<td>Integer count in the provider's separate reported-count dictionary, or zero when absent there. It need not equal the candidate's <code>count</code>.</td>
+</tr>
+<tr>
+<td><code>energy</code></td>
+<td>Float recomputed encoded energy, including offsets and penalties.</td>
+</tr>
+<tr>
+<td><code>objective</code></td>
+<td>Float recomputed original financial objective.</td>
+</tr>
+<tr>
+<td><code>feasible</code></td>
+<td>Boolean result of the original financial and product-auxiliary checks.</td>
+</tr>
+<tr>
+<td><code>auxiliaries_valid</code></td>
+<td>Boolean consistency of every product auxiliary.</td>
+</tr>
+<tr>
+<td><code>selection_penalty</code></td>
+<td>Float selection/weight-validity penalty contribution; excludes product-auxiliary penalties.</td>
+</tr>
+<tr>
+<td><code>maximum_violation</code></td>
+<td>Float maximum residual in the candidate's constraint table.</td>
+</tr>
+<tr>
+<td><code>classical_residual</code></td>
+<td>Boolean marking an explicitly declared recursive residual candidate, which may also have been observed.</td>
+</tr>
+</tbody>
+</table>
+<p>Missing counts/probabilities appear as pandas missing values; a missing count can promote the count column to floating dtype. The typed provider record in <code>solver_info["quantum"]</code> retains its integer counts. With no measured or declared residual candidates, the sample table is empty and has no candidate columns. No observations are invented for a residual-only candidate.</p>
+<h2 id="recover-a-recorded-opt-result">Recover a recorded Opt result</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">encoding</span><span class="o">.</span><span class="n">decode_result</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">)</span>
+</code></pre></div>
+<p><code>result</code> is a typed Opt QUBO/HUBO/Ising SolveResult matching the encoding, or an Opt <code>QuantumResult</code> for its pairwise gate representation. Native records must match sample order, variable assignment, class, and encoded energy. Gate records additionally require valid solve information, consistent measurement counts and probabilities, and matching declared candidates.</p>
+<p>Returns a freshly evaluated <code>FinanceResult</code> without authentication or execution. Native recorded recovery does not establish a new global financial optimum. Gate records always remain best-found candidates. Keep the original model, compilation settings, versions, and typed Opt record; numeric report JSON is not a substitute for that representation.</p>
+<p><code>results.from_opt(record, model=encoding, ...)</code> delegates to this recovery. Supplying a separate Opt model or LP/MILP objective scaling with a <code>PortfolioEncoding</code> is rejected because the encoding already owns its mapping. For other explicitly compiled financial models, use the separate recovery contract in <a href="results.html">results</a>.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="settlement.html"><span>Previous</span><strong>Payment settlement</strong></a><a class="pager-card next" href="solving.html"><span>Next</span><strong>Solvers and execution</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#financial-selection-and-polynomial-representations">Financial selection and polynomial representations</a><a class="toc-level-2" href="#compile_portfolio">compile_portfolio</a><a class="toc-level-2" href="#objective-and-penalty-meaning">Objective and penalty meaning</a><a class="toc-level-2" href="#portfolioencoding-properties">PortfolioEncoding properties</a><a class="toc-level-2" href="#inspect-encode-decode-and-evaluate">Inspect, encode, decode, and evaluate</a><a class="toc-level-2" href="#native-execution">Native execution</a><a class="toc-level-2" href="#gate-based-quantum-algorithms-and-research-controls">Gate-based quantum algorithms and research controls</a><a class="toc-level-3" href="#xy-mixing">XY mixing</a><a class="toc-level-3" href="#authentication-and-execution-budget">Authentication and execution budget</a><a class="toc-level-2" href="#bit-order-and-source-verification">Bit order and source verification</a><a class="toc-level-2" href="#gate-based-quantum-result-data">Gate-based quantum result data</a><a class="toc-level-3" href="#candidate-table">Candidate table</a><a class="toc-level-2" href="#recover-a-recorded-opt-result">Recover a recorded Opt result</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

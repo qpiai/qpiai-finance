@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Collateral allocation">
+<title>Collateral allocation | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/collateral.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="collateral">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="active" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Financial models</span><span aria-hidden="true">&gt;</span><span>Collateral allocation</span></div><article class="doc-content"><h1 id="collateral-allocation">Collateral allocation</h1>
+<p><code>CollateralAllocationModel</code> assigns owned inventory to explicitly permitted dated pledges. It minimizes supplied full-term opportunity and movement costs while preserving inventory, delivery timing, adjusted coverage, and concentration rules. Import it and <code>haircut_adjusted_value</code> from <code>qpiai_finance.collateral</code>.</p>
+<p>The model is deterministic planning on a calendar-date grid. Permitted pledge rows encode the institution's legal-entity, location, eligibility, and settlement restrictions. It does not infer those rules or book collateral movements.</p>
+<h2 id="constructor">Constructor</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">CollateralAllocationModel</span><span class="p">(</span>
+    <span class="n">inventory</span><span class="p">,</span> <span class="n">requirements</span><span class="p">,</span> <span class="n">pledges</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">as_of</span><span class="p">,</span> <span class="n">dates</span><span class="p">,</span> <span class="n">reporting_currency</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>The first three arguments are pandas DataFrames with unique string/integer row identifiers and exactly the columns below. Unknown or duplicate columns are rejected. <code>as_of</code> is a calendar date; <code>dates</code> is a nonempty unique increasing calendar-date sequence beginning at <code>as_of</code>. Every requirement and pledge date must belong to this grid. <code>reporting_currency</code> is an uppercase three-letter code for the supplied cost objective.</p>
+<h3 id="inventory-table">Inventory table</h3>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type, default, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>quantity</code></td>
+<td>Required finite nonnegative owned quantity in physical asset units.</td>
+</tr>
+<tr>
+<td><code>price</code></td>
+<td>Required strictly positive finite native-currency price per unit.</td>
+</tr>
+<tr>
+<td><code>currency</code></td>
+<td>Required uppercase three-letter price currency.</td>
+</tr>
+<tr>
+<td><code>encumbered</code></td>
+<td>Optional finite quantity in <code>[0, quantity]</code>; default zero. Unavailable throughout the planning horizon.</td>
+</tr>
+</tbody>
+</table>
+<p>Each row represents distinct owned inventory; repeating the same physical quantity in several rows would duplicate availability. Inventory must be nonempty. Free inventory is owned quantity less persistent encumbrances.</p>
+<h3 id="requirement-table">Requirement table</h3>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>obligation</code></td>
+<td>Required string/integer obligation identifier.</td>
+</tr>
+<tr>
+<td><code>date</code></td>
+<td>Required planning date.</td>
+</tr>
+<tr>
+<td><code>amount</code></td>
+<td>Required finite nonnegative coverage amount.</td>
+</tr>
+<tr>
+<td><code>currency</code></td>
+<td>Required uppercase three-letter obligation currency.</td>
+</tr>
+</tbody>
+</table>
+<p>The table must be nonempty. Each obligation/date pair is unique and each obligation uses one currency. Row identifiers distinguish requirements; no netting is inferred.</p>
+<h3 id="permitted-pledge-table">Permitted pledge table</h3>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type, default, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>asset</code></td>
+<td>Required inventory-row identifier.</td>
+</tr>
+<tr>
+<td><code>obligation</code></td>
+<td>Required supplied obligation identifier.</td>
+</tr>
+<tr>
+<td><code>pledge_date</code></td>
+<td>Required date when inventory becomes committed.</td>
+</tr>
+<tr>
+<td><code>delivery_date</code></td>
+<td>Required date when coverage begins.</td>
+</tr>
+<tr>
+<td><code>release_date</code></td>
+<td>Required date when coverage ends.</td>
+</tr>
+<tr>
+<td><code>return_date</code></td>
+<td>Required date when inventory becomes available again.</td>
+</tr>
+<tr>
+<td><code>haircut</code></td>
+<td>Required finite fraction in <code>[0,1]</code>. A haircut of one gives zero adjusted coverage.</td>
+</tr>
+<tr>
+<td><code>unit_cost</code></td>
+<td>Required finite nonnegative full-term cost per physical asset unit in <code>reporting_currency</code>.</td>
+</tr>
+<tr>
+<td><code>fx_rate</code></td>
+<td>Optional strictly positive valuation rate in obligation-currency units per inventory-currency unit. Required for cross-currency pledges; same-currency values must equal one.</td>
+</tr>
+</tbody>
+</table>
+<p>Dates must satisfy <code>pledge_date &lt;= delivery_date &lt; release_date &lt;= return_date</code>. Each pledge must cover at least one supplied obligation/date. Empty pledge tables are allowed when they retain the required columns. There is one fixed assignment quantity per pledge alternative.</p>
+<p>Inventory is locked on <code>[pledge_date, return_date)</code>; coverage applies on <code>[delivery_date, release_date)</code>. Returned inventory is available before new commitments on the same date. Quantities awaiting return do not cover margin and are not free inventory. This is distinct from intraday sequencing or received-collateral reuse.</p>
+<p>Read-only properties return detached <code>asset_ids</code>, <code>pledge_ids</code>, and <code>dates</code> Indices, plus the string <code>reporting_currency</code>.</p>
+<h2 id="coverage-and-objective">Coverage and objective</h2>
+<p>For pledge quantity <span class="arithmatex">\(q_j\)</span>, its delivered adjusted value at a covered requirement date is <span class="arithmatex">\(q_jp_{t,a(j)}(1-h_{tj})f_{tj}\)</span>. Coverage for an obligation/date is the sum over its delivered permitted pledges. Prices are native currency, haircuts are fractions, and <span class="arithmatex">\(f\)</span> converts valuation to the obligation currency. This FX rate values collateral; it does not execute a currency trade.</p>
+<p>The objective is <span class="arithmatex">\(\sum_j\texttt{unit\_cost}_j q_j\)</span> in reporting currency. Unit costs already cover the full term. Finance does not annualize them or convert them from inventory/obligation currencies.</p>
+<h2 id="dated-assumptions">Dated assumptions</h2>
+<p>Configuration methods modify the model and return <code>self</code>.</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">set_availability</span><span class="p">(</span><span class="n">quantities</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">set_prices</span><span class="p">(</span><span class="n">prices</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">set_haircuts</span><span class="p">(</span><span class="n">haircuts</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">set_fx_rates</span><span class="p">(</span><span class="n">fx_rates</span><span class="p">)</span>
+</code></pre></div>
+<p>All arguments accept a finite scalar broadcast over the relevant grid, a complete two-dimensional array, or an aligned DataFrame. Rows cover every planning date. Columns are inventory identifiers for availability/prices and pledge identifiers for haircuts/FX. DataFrames align both axes; arrays follow <code>dates</code> and the corresponding identifier order.</p>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Domain, default, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>quantities</code></td>
+<td>Nonnegative available free inventory per date/asset, never above owned quantity less persistent encumbrances. Default is that free inventory at every date. Can reserve external uses or delay availability, not create inventory.</td>
+</tr>
+<tr>
+<td><code>prices</code></td>
+<td>Strictly positive per-unit price path in each asset's native currency. Default is the flat inventory price. The entire supplied path, including <code>as_of</code>, replaces it.</td>
+</tr>
+<tr>
+<td><code>haircuts</code></td>
+<td>Fractions in <code>[0,1]</code> by date/pledge. Default is the pledge's flat haircut.</td>
+</tr>
+<tr>
+<td><code>fx_rates</code></td>
+<td>Strictly positive obligation/native valuation rates by date/pledge. Default is the pledge's flat rate. Same-currency rates must be exactly one at every date.</td>
+</tr>
+</tbody>
+</table>
+<p>No interpolation, forecast model, or scenario probability is inferred. Repeating a setter replaces the corresponding path.</p>
+<h2 id="assignment-coverage-and-movement-limits">Assignment, coverage, and movement limits</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">limit_assignments</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">lower</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">upper</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">pledge_in_lots</span><span class="p">(</span><span class="n">lot_sizes</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_coverage</span><span class="p">(</span><span class="n">maximum</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_movements</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">pledged</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">returned</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">limit_concentration</span><span class="p">(</span><span class="n">groups</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">maximum_share</span><span class="p">)</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type, default, and meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Assignment <code>lower</code>, <code>upper</code></td>
+<td>Finite scalars or complete pledge vectors/Series/mappings in physical quantity units, with <code>0 &lt;= lower &lt;= upper</code>. Default lower zero; <code>upper=None</code> retains the previously configured upper bounds. Initial uppers are available free quantities for each asset. Bounding an empty pledge set raises.</td>
+</tr>
+<tr>
+<td><code>lot_sizes</code></td>
+<td>Positive finite scalar or complete inventory-asset vector/Series/mapping. Each pledge quantity is an integer multiple of its asset's lot size.</td>
+</tr>
+<tr>
+<td>Coverage <code>maximum</code></td>
+<td>Finite scalar or complete requirement-indexed vector/Series/mapping in each requirement's currency. Must be at least the required amount. Default coverage upper bounds are unbounded.</td>
+</tr>
+<tr>
+<td><code>pledged</code>, <code>returned</code></td>
+<td>Optional nonnegative finite scalar or date × asset array/DataFrame limiting outgoing and incoming quantities separately. Supply at least one side. An omitted side retains its previous limits; both initially have no upper limit.</td>
+</tr>
+<tr>
+<td><code>groups</code></td>
+<td>Complete asset classification sequence/Series/mapping with nonblank string/integer group labels.</td>
+</tr>
+<tr>
+<td><code>maximum_share</code></td>
+<td>Finite scalar or complete group-indexed vector/Series/mapping in <code>[0,1]</code>; groups follow first occurrence.</td>
+</tr>
+</tbody>
+</table>
+<p>Concentration caps each group's delivered, haircut/FX-adjusted share of actual total coverage at each obligation/date. The denominator is delivered adjusted value, not required margin or unadjusted inventory value. Every concentration call adds a classification. Cash quantities or unlike asset units are not combined in movement limits.</p>
+<h2 id="execution-export-and-evaluation">Execution, export, and evaluation</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">model</span><span class="o">.</span><span class="n">to_matrix</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">to_model</span><span class="p">(</span><span class="o">*</span><span class="p">,</span> <span class="n">return_variables</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">to_cvxpy</span><span class="p">()</span>
+<span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">assignments</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-7</span><span class="p">)</span>
+</code></pre></div>
+<p>The formulation is LP for divisible assignments and MILP when lots are configured and pledge alternatives exist. It uses the Opt route by default; <a href="solving.html">solving</a> defines authentication, local/platform modes, and compatible external selection.</p>
+<p><code>to_matrix</code> returns a detached sparse Opt matrix dictionary. Assignment columns are physical quantities or configured lot counts; coverage columns are each requirement's native-currency adjusted amount. <code>to_model</code> returns a detached Opt model; <code>return_variables=True</code> (Python boolean) returns <code>(model, expressions)</code>. <code>to_cvxpy</code> returns <code>(problem, expressions)</code>. Both mappings contain pledge-indexed <code>assignments</code> in physical units and requirement-indexed <code>coverage</code> in native currency. <a href="custom-models.html">Custom models</a> describes explicit compilation and recovery.</p>
+<p><code>evaluate</code> accepts a complete finite assignment vector, Series, or mapping in pledge order. When no pledges exist, supply an empty mapping, Series, list, tuple, or ndarray. <code>tolerance</code> is a finite nonnegative absolute scalar. It returns <code>objective</code>, <code>feasible</code>, <code>constraints</code>, <code>decision</code>, <code>metrics</code>, <code>tables</code>, and <code>costs</code> after rebuilding inventory locks, movements, valuations, coverage, concentration, and costs. It requires no authentication and does not optimize or repair the supplied quantities.</p>
+<h2 id="result-fields">Result fields</h2>
+<p><code>result.assignments</code> is a pledge-indexed Series named <code>quantity</code>. Objective and cost units are <code>reporting_currency</code>. Metrics are <code>total_cost</code> and <code>active_pledges</code>; costs contain <code>collateral_cost</code> and <code>currency</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Table under <code>result.tables</code></th>
+<th>Columns and axes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>collateral_coverage</code></td>
+<td>Requirement-indexed original <code>obligation</code>, <code>date</code>, <code>currency</code>, plus <code>required</code>, <code>adjusted_value</code>, <code>surplus</code>, <code>maximum</code>.</td>
+</tr>
+<tr>
+<td><code>collateral_inventory</code></td>
+<td>Index <code>(date, asset)</code>; <code>available_before_plan</code>, <code>externally_encumbered</code>, <code>committed</code>, <code>outbound</code>, <code>delivered</code>, <code>awaiting_return</code>, <code>unallocated</code>, <code>pledged</code>, <code>returned</code>, <code>unit</code>.</td>
+</tr>
+<tr>
+<td><code>collateral_assignments</code></td>
+<td>Pledge input fields plus chosen <code>quantity</code>, <code>total_cost</code>, and <code>reporting_currency</code>.</td>
+</tr>
+<tr>
+<td><code>collateral_coverage_components</code></td>
+<td><code>requirement</code>, <code>pledge</code>, <code>date</code>, <code>asset</code>, <code>price</code>, <code>haircut</code>, <code>fx_rate</code>, <code>quantity</code>, <code>adjusted_value_per_unit</code>, <code>adjusted_value</code>, <code>currency</code>.</td>
+</tr>
+<tr>
+<td><code>collateral_concentrations</code></td>
+<td>Configured groups with covered pledge routes: <code>classification</code>, <code>requirement</code>, <code>group</code>, <code>adjusted_value</code>, <code>total_coverage</code>, <code>share</code>, <code>maximum_share</code>, <code>currency</code>. Zero-coverage shares are NaN; the table is absent when there are no group rows.</td>
+</tr>
+</tbody>
+</table>
+<p>Constraint rows identify physical units, lot units, or the relevant currency. Solving also checks integer reconstruction and reconciles solver coverage with recomputed values. See <a href="results.html">results</a> for feasibility and proof scope. Plot with <code>plot.collateral_coverage</code> and <code>plot.collateral_inventory</code>.</p>
+<p>Quantities and monetary values are floats. <code>active_pledges</code> is an integer counting strictly positive assignment quantities, independently of tolerance. <code>collateral_assignments</code> retains the pledge index; coverage-component and concentration tables use positional indices. <code>classification</code> identifies concentration calls in zero-based order. Concentration shares and haircuts are dimensionless fractions; <code>adjusted_value_per_unit</code> uses obligation currency per physical asset unit.</p>
+<p>In the inventory table, <code>committed = outbound + delivered + awaiting_return</code>. <code>pledged</code> and <code>returned</code> are movements on that date, while the other three columns are quantities in each state. <code>unallocated = available_before_plan - committed</code>. <code>externally_encumbered</code> retains the inventory table's persistent encumbrance; additional reservations supplied through <code>set_availability</code> reduce <code>available_before_plan</code>.</p>
+<h2 id="haircut_adjusted_value"><code>haircut_adjusted_value</code></h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">haircut_adjusted_value</span><span class="p">(</span><span class="n">market_values</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">haircuts</span><span class="p">,</span> <span class="n">fx_rates</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+</code></pre></div>
+<p><code>market_values</code> is a finite nonnegative numeric scalar, array-like input, Series, DataFrame, or mapping. <code>haircuts</code> is a required finite coefficient in <code>[0,1]</code>; <code>fx_rates</code> is a strictly positive finite coefficient, default one, in target-currency units per native unit. Each coefficient accepts a scalar, broadcastable array, or compatible labeled input.</p>
+<p>Returns <code>market_values * (1-haircuts) * fx_rates</code> per entry: float for a scalar, ndarray for an array-like input, Series named <code>collateral_value</code> for a Series/mapping, or DataFrame preserving axes. A coefficient Series/mapping aligns to a value Series' index or DataFrame columns; a coefficient DataFrame aligns both axes. Labeled coefficients require labeled values. Axes must be unique.</p>
+<p>Use per-unit prices instead of total market values to prepare valuation coefficients for custom models. Sum explicitly only after establishing compatible currency units. This calculation does not establish eligibility, inventory availability, settlement rights, or a regulatory treatment.</p>
+<p>Invalid tables, dates, identifiers, domains, label alignment, or unrepresentable values raise <code>TypeError</code> or <code>ValueError</code>. Structurally valid but insufficient inventory or incompatible hard limits can produce an infeasible optimization result.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="insurance.html"><span>Previous</span><strong>Insurance and reinsurance</strong></a><a class="pager-card next" href="settlement.html"><span>Next</span><strong>Payment settlement</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#constructor">Constructor</a><a class="toc-level-3" href="#inventory-table">Inventory table</a><a class="toc-level-3" href="#requirement-table">Requirement table</a><a class="toc-level-3" href="#permitted-pledge-table">Permitted pledge table</a><a class="toc-level-2" href="#coverage-and-objective">Coverage and objective</a><a class="toc-level-2" href="#dated-assumptions">Dated assumptions</a><a class="toc-level-2" href="#assignment-coverage-and-movement-limits">Assignment, coverage, and movement limits</a><a class="toc-level-2" href="#execution-export-and-evaluation">Execution, export, and evaluation</a><a class="toc-level-2" href="#result-fields">Result fields</a><a class="toc-level-2" href="#haircut_adjusted_value">haircut_adjusted_value</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>

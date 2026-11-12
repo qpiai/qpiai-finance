@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Interchange">
+<title>Interchange | QpiAI Finance</title>
+<link rel="icon" href="assets/icon1.ico" sizes="any">
+<link rel="stylesheet" href="assets/site.css">
+<link rel="alternate" type="text/markdown" href="markdown/docs/interchange.md">
+<link rel="describedby" href="llms.txt" type="text/plain">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('qpiai-docs-theme')||'light'}catch(e){}</script>
+<script>window.MathJax={tex:{inlineMath:[['\\(','\\)']],displayMath:[['\\[','\\]']]},options:{ignoreHtmlClass:'tex2jax_ignore',processHtmlClass:'arithmatex'}};</script>
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-chtml.js"></script>
+</head>
+<body data-page="interchange">
+<a class="skip-link" href="#content">Skip to content</a>
+<header class="topbar">
+<button class="icon-button mobile-only" id="nav-toggle" aria-expanded="false" aria-label="Open navigation">☰</button>
+<a class="brand" href="index.html" aria-label="QpiAI Finance documentation home"><img class="brand-logo" src="assets/logo.png" alt="QpiAI"><span>Finance</span></a>
+<nav class="top-links" aria-label="Primary"><a href="getting-started.html">Getting started</a><a href="public-api.html">API</a><a href="contributing.html">Contributing</a></nav>
+<div class="top-actions"><button class="search-trigger" id="search-trigger" type="button" aria-haspopup="dialog"><span>Search docs</span><kbd>Ctrl K</kbd></button><button class="icon-button" id="theme-toggle" type="button" aria-label="Toggle color theme">◐</button><a class="icon-button" href="https://github.com/qpiai/qpiai-finance" aria-label="QpiAI Finance source repository" rel="noreferrer">↗</a></div>
+</header>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="Documentation navigation"><div class="sidebar-inner"><section class="nav-group"><h2>Overview</h2><a class="" href="index.html">QpiAI Finance</a><a class="" href="manual.html">User manual</a><a class="" href="getting-started.html">Getting started</a></section><section class="nav-group"><h2>Foundations</h2><a class="" href="data.html">Financial data and conventions</a><a class="" href="risk.html">Risk analytics</a><a class="" href="scenarios.html">Scenarios and information trees</a><a class="" href="cashflows.html">Cash-flow calculations</a><a class="" href="trading-costs.html">Trading cost functions</a></section><section class="nav-group"><h2>Financial models</h2><a class="" href="portfolio.html">Portfolios and rebalancing</a><a class="" href="trading.html">Multi-period investment planning</a><a class="" href="execution.html">Execution scheduling</a><a class="" href="hedging.html">Hedging</a><a class="" href="credit.html">Credit allocation</a><a class="" href="funding.html">Funding and liquidity</a><a class="" href="liability-matching.html">Liability matching</a><a class="" href="insurance.html">Insurance and reinsurance</a><a class="" href="collateral.html">Collateral allocation</a><a class="" href="settlement.html">Payment settlement</a></section><section class="nav-group"><h2>Optimization</h2><a class="" href="quantum.html">Quantum-inspired and gate-based optimization</a><a class="" href="solving.html">Solvers and execution</a><a class="" href="custom-models.html">Custom models and compilation</a></section><section class="nav-group"><h2>Analysis and integration</h2><a class="" href="results.html">Results and verification</a><a class="" href="plotting.html">Plotting</a><a class="active" href="interchange.html">Interchange</a></section><section class="nav-group"><h2>Reference</h2><a class="" href="algorithm-controls.html">Gate-based algorithm controls</a><a class="" href="solver-options.html">Solver option reference</a><a class="" href="scip-parameters.html">SCIP parameter catalogue</a><a class="" href="public-api.html">Public Python API</a><a class="" href="automation.html">Automation and agent workflows</a></section><section class="nav-group"><h2>Project</h2><a class="" href="contributing.html">Contributing</a><a class="" href="reporting-bugs.html">Reporting bugs and security issues</a><a class="" href="feature-requests.html">Feature requests</a><a class="" href="citation.html">Citation</a><a class="" href="license.html">Apache License 2.0</a></section></div></aside>
+<main class="main" id="content"><div class="breadcrumbs"><a href="index.html">Docs</a><span aria-hidden="true">&gt;</span><span>Analysis and integration</span><span aria-hidden="true">&gt;</span><span>Interchange</span></div><article class="doc-content"><h1 id="model-scenario-and-result-interchange">Model, scenario, and result interchange</h1>
+<p>Use <code>qpiai_finance.io</code> to preserve supported financial models, scenarios, and result records as versioned JSON. Interchange reads and writes data. It does not authenticate, run a solver, submit a job, or restore an executable session.</p>
+<h2 id="python-api">Python API</h2>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="n">to_dict</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+<span class="n">from_dict</span><span class="p">(</span><span class="n">document</span><span class="p">)</span>
+<span class="n">dumps</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+<span class="n">loads</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+<span class="n">dump</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">fp</span><span class="p">)</span>
+<span class="n">load</span><span class="p">(</span><span class="n">fp</span><span class="p">)</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Inputs</th>
+<th>Return</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>to_dict</code></td>
+<td>Supported exact Finance model/result/scenario instance.</td>
+<td>Detached JSON-compatible dictionary with format and schema version.</td>
+</tr>
+<tr>
+<td><code>from_dict</code></td>
+<td>Dictionary in a supported interchange format.</td>
+<td>Restored model, scenario object, <code>FinanceResult</code>, or <code>FrontierResult</code>.</td>
+</tr>
+<tr>
+<td><code>dumps</code></td>
+<td>Same objects as <code>to_dict</code>.</td>
+<td>Strict JSON string with compact separators.</td>
+</tr>
+<tr>
+<td><code>loads</code></td>
+<td>JSON <code>str</code>, <code>bytes</code>, or <code>bytearray</code> accepted by Python's JSON parser.</td>
+<td>Restored supported object.</td>
+</tr>
+<tr>
+<td><code>dump</code></td>
+<td>Supported object and writable text stream <code>fp</code>.</td>
+<td><code>None</code>; writes the JSON string to the stream.</td>
+</tr>
+<tr>
+<td><code>load</code></td>
+<td>Readable text stream <code>fp</code> whose <code>.read()</code> returns JSON text.</td>
+<td>Restored supported object.</td>
+</tr>
+</tbody>
+</table>
+<p>Open files with UTF-8 encoding. <code>dump</code> finishes serialization before calling the stream's <code>write</code>, so an invalid source object does not write a partial serialized document. Stream and filesystem failures still follow the supplied stream's behavior.</p>
+<div class="code-shell"><div class="code-toolbar"><span>python</span><button class="copy-code" type="button">Copy</button></div><pre class="highlight"><code class="language-python"><span class="kn">from</span><span class="w"> </span><span class="nn">qpiai_finance</span><span class="w"> </span><span class="kn">import</span> <span class="n">io</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"portfolio.json"</span><span class="p">,</span> <span class="s2">"w"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">stream</span><span class="p">:</span>
+    <span class="n">io</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">portfolio</span><span class="p">,</span> <span class="n">stream</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">"portfolio.json"</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">"utf-8"</span><span class="p">)</span> <span class="k">as</span> <span class="n">stream</span><span class="p">:</span>
+    <span class="n">restored_portfolio</span> <span class="o">=</span> <span class="n">io</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">stream</span><span class="p">)</span>
+</code></pre></div>
+<p>Here <code>portfolio</code> is a configured supported model. The restored object has the recorded financial settings; it is not a solved or approved financial decision.</p>
+<h2 id="supported-objects-and-formats">Supported objects and formats</h2>
+<p>All formats below require <code>schema_version</code> to be the Python/JSON integer <code>1</code>, excluding booleans. Unknown versions are rejected.</p>
+<table>
+<thead>
+<tr>
+<th>Format</th>
+<th>Supported value</th>
+<th>Top-level fields</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>qpiai-finance-model</code></td>
+<td><code>PortfolioModel</code>, <code>TradingModel</code>, <code>ExecutionModel</code>, <code>FundingModel</code>, <code>LiabilityMatchingModel</code>, <code>HedgeModel</code>, <code>CreditAllocationModel</code>, <code>CollateralAllocationModel</code>, <code>ReinsuranceModel</code>, <code>SettlementModel</code></td>
+<td><code>format</code>, <code>schema_version</code>, <code>model</code>, <code>inputs</code>, <code>configuration</code>.</td>
+</tr>
+<tr>
+<td><code>qpiai-finance-scenarios</code></td>
+<td><code>Scenarios</code>, <code>ScenarioPaths</code>, <code>ScenarioTree</code></td>
+<td><code>format</code>, <code>schema_version</code>, <code>data</code>.</td>
+</tr>
+<tr>
+<td><code>qpiai-finance-result</code></td>
+<td><code>FinanceResult</code></td>
+<td><code>format</code>, <code>schema_version</code>, and every dataclass field listed in <a href="results.html">results</a>.</td>
+</tr>
+<tr>
+<td><code>qpiai-finance-frontier</code></td>
+<td><code>FrontierResult</code></td>
+<td><code>format</code>, <code>schema_version</code>, <code>targets</code>, <code>horizon</code>, <code>results</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Subclasses and custom extensions are rejected. <code>FactorRisk</code> can appear as an embedded model input; it is not a standalone top-level <code>io.to_dict</code> value. <code>PortfolioEncoding</code>, Opt/CVXPY/SCIP models, gate algorithms, clients, callbacks, circuits, credentials, and executable job objects are not supported top-level interchange objects.</p>
+<h2 id="financial-model-records">Financial model records</h2>
+<p><code>model</code> identifies the supported Finance class. <code>inputs</code> maps constructor argument names to encoded values. <code>configuration</code> is a list of objects with exactly <code>method</code> and <code>arguments</code>, describing the allowed public modeling operations required to reconstruct the financial settings.</p>
+<p>Loading decodes the inputs, constructs the model through its validated public constructor, then applies the supported configuration methods. Unknown class names, methods, fields, and malformed arguments fail explicitly; no partially restored model is returned. The record preserves the active objective, supplied financial assumptions, hard limits, labels, and supported sparse/factor representations. It does not record arbitrary Python mutations or added constraints on detached Opt/CVXPY exports.</p>
+<p>Configuration steps are the financial setters, objective selectors, and activation/completion methods in the corresponding <a href="public-api.html">model API reference</a>. Evaluation, exports, and execution are excluded. The sequence reconstructs the current specification and can differ from the application's original call history.</p>
+<p>The output is a financial specification, not a solver checkpoint. Reinspect or validate the restored model before selecting a route. Package versions and execution settings needed for reproducibility should be retained with the application's records; loading does not guess an older implementation's semantics.</p>
+<h2 id="encoded-financial-values">Encoded financial values</h2>
+<p>JSON scalars and lists are supplemented with explicit typed records. Use <code>to_dict</code> to produce them rather than manually converting pandas objects to untyped lists.</p>
+<table>
+<thead>
+<tr>
+<th>Typed record</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>integer</code></td>
+<td>Canonical decimal text preserves integer identifiers beyond JSON consumers' exact binary64 integer range.</td>
+</tr>
+<tr>
+<td><code>timestamp</code></td>
+<td>Canonical ISO timestamp representing a validated date/time value.</td>
+</tr>
+<tr>
+<td><code>index</code></td>
+<td>Ordered labels and index name.</td>
+</tr>
+<tr>
+<td><code>table</code></td>
+<td>Encoded row/column indices and values stored by column.</td>
+</tr>
+<tr>
+<td><code>array</code></td>
+<td>Numeric values with declared shape.</td>
+</tr>
+<tr>
+<td><code>sparse</code></td>
+<td>Two-dimensional shape, row/column coordinates, and numeric values.</td>
+</tr>
+<tr>
+<td><code>mapping</code></td>
+<td>Explicit key/value pairs, preserving integer versus string keys.</td>
+</tr>
+<tr>
+<td><code>tuple</code></td>
+<td>Ordered tuple items, distinct from an ordinary JSON list.</td>
+</tr>
+<tr>
+<td><code>factor_risk</code></td>
+<td>Validated factor exposures, factor covariance, specific variances, and identifiers.</td>
+</tr>
+<tr>
+<td><code>scenarios</code>, <code>scenario_paths</code>, <code>scenario_tree</code></td>
+<td>Constructor arguments preserving their values, identifiers, probability/information semantics, origin, and declared metadata.</td>
+</tr>
+</tbody>
+</table>
+<p>Model input arrays remain real and finite. Mapping keys in ordinary financial input records are strings or integers. Sparse storage remains sparse; the loaded object's normal constructor applies its supported representation checks. Sampling metadata is restored as data, without resampling.</p>
+<h2 id="result-and-frontier-records">Result and frontier records</h2>
+<p>Result interchange preserves labeled Series/DataFrames, supported index structures, names, attributes, and diagnostic values. Additional typed records preserve datetime indices, MultiIndex levels/codes/names, date/datetime values, missing <code>NA</code>/<code>NaT</code>, and tagged <code>nan</code>, <code>+inf</code>, or <code>-inf</code> diagnostics. Nonfinite values do not appear as invalid bare JSON numbers.</p>
+<p>Supported result storage describes boolean, signed/unsigned integer, floating, object, and datetime columns. Numeric widths are restored to the supported canonical representation rather than promising every original NumPy or extension dtype. Arbitrary custom objects, unsupported result column dtypes, NumPy timedelta scalars, cyclic data, and executable values are not interchange data. A diagnostic tuple or date key can be retained where supported; ordinary model identifier rules remain stricter.</p>
+<table>
+<thead>
+<tr>
+<th>Recorded storage kind</th>
+<th>Restored dtype and allowed values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>boolean</code></td>
+<td>NumPy/pandas <code>bool</code>; Boolean values only.</td>
+</tr>
+<tr>
+<td><code>integer</code></td>
+<td><code>int64</code>; integers in <code>[-2**63, 2**63-1]</code>, excluding booleans.</td>
+</tr>
+<tr>
+<td><code>unsigned_integer</code></td>
+<td><code>uint64</code>; integers in <code>[0, 2**64-1]</code>, excluding booleans.</td>
+</tr>
+<tr>
+<td><code>float</code></td>
+<td><code>float64</code>; real numbers and tagged nonfinite diagnostics.</td>
+</tr>
+<tr>
+<td><code>object</code></td>
+<td>pandas <code>object</code>; supported encoded diagnostic values. Nullable Boolean/integer/float extension columns are stored this way, preserving missing markers without restoring the extension dtype.</td>
+</tr>
+<tr>
+<td><code>datetime</code></td>
+<td>pandas datetime column with the recorded timezone, or naive when its <code>timezone</code> is <code>None</code>; timestamp values and <code>NaT</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Diagnostic array and sparse-value storage uses the first four numeric kinds. Ordinary model arrays restore as finite <code>float64</code>; sparse inputs restore as COO matrices before the receiving model's constructor chooses its supported representation.</p>
+<p>Result restoration checks field structure and consistency. Decisions must be labeled Series/DataFrames with unique axes. Constraints require <code>value</code>, <code>lower</code>, <code>upper</code>, <code>violation</code>, and boolean <code>satisfied</code> columns. A recorded feasible flag requires a decision and satisfied constraints. A recorded proof additionally requires feasibility, a financial objective, <code>solver_info["objective_reconciled"] is True</code>, <code>solver_info["optimality_proven"] is True</code>, and no explicit <code>solver_reconciled=False</code>. Missing solver-reconciliation evidence is permitted by this structural check. A record without a decision must have <code>objective=None</code>. These checks validate the record's internal structure; they do not repeat the financial calculation or authenticate the solver's claims.</p>
+<p>A frontier requires a target Series with valid identifiers, a matching tuple of result records, a nonblank horizon, and consistent portfolio horizons. Each effective return target must retain the requested minimum.</p>
+<p>After restoration, use <code>result.evaluate(trusted_model)</code> for fresh primary-decision checks. Use <code>results.from_opt</code> when the input is a retained typed Opt result rather than a Finance interchange document. Neither loading nor replay establishes a new optimum. See <a href="results.html">results and recovery</a>.</p>
+<h2 id="numeric-reports-versus-interchange">Numeric reports versus interchange</h2>
+<p><code>FinanceResult.to_dict()</code>/<code>.to_json()</code> and <code>FrontierResult.to_dict()</code>/<code>.to_json()</code> produce numeric reports. They are intended for reporting and do not use the reversible <code>format</code> records above. Reports convert undefined/unbounded diagnostics to null and do not preserve all pandas structure or mapping key types.</p>
+<p>Use <code>io.to_dict(result)</code> or <code>io.dumps(result)</code> when the record must round-trip. Passing a numeric report to <code>io.from_dict</code> or <code>io.loads</code> does not convert it into typed result interchange.</p>
+<h2 id="errors-and-data-handling">Errors and data handling</h2>
+<p><code>loads</code> rejects duplicate JSON fields and bare nonfinite JSON numbers. Loading rejects unknown types, extra or missing fields, invalid dimensions, out-of-range sparse/index coordinates, duplicate mapping keys, and incompatible storage declarations. Python JSON parsing and stream errors propagate; structural and financial validation errors use <code>ValueError</code> or <code>TypeError</code>.</p>
+<p>Interchange contains financial data and recorded job identifiers. Keep it within the application's access and retention controls. Clients and secrets are not serialized by the supported model API; do not insert credentials into otherwise permitted metadata dictionaries.</p></article><footer class="page-footer"><p><a href="automation.html">Automation guide</a> · QpiAI Finance 1.0.3</p><div class="pager"><a class="pager-card previous" href="plotting.html"><span>Previous</span><strong>Plotting</strong></a><a class="pager-card next" href="algorithm-controls.html"><span>Next</span><strong>Gate-based algorithm controls</strong></a></div></footer></main>
+<aside class="toc" aria-label="On this page"><div class="toc-inner"><h2>On this page</h2><a class="toc-level-2" href="#python-api">Python API</a><a class="toc-level-2" href="#supported-objects-and-formats">Supported objects and formats</a><a class="toc-level-2" href="#financial-model-records">Financial model records</a><a class="toc-level-2" href="#encoded-financial-values">Encoded financial values</a><a class="toc-level-2" href="#result-and-frontier-records">Result and frontier records</a><a class="toc-level-2" href="#numeric-reports-versus-interchange">Numeric reports versus interchange</a><a class="toc-level-2" href="#errors-and-data-handling">Errors and data handling</a></div></aside>
+</div>
+<div class="search-backdrop" id="search-backdrop" hidden><div class="search-dialog" role="dialog" aria-modal="true" aria-label="Documentation search"><div class="search-box"><input id="search-input" type="search" autocomplete="off" placeholder="Search APIs, models, fields, limits, and errors"><button id="search-close" type="button">Esc</button></div><div class="search-results" id="search-results"></div></div></div>
+<script src="assets/search-index.js"></script>
+<script src="assets/site.js"></script>
+</body>
+</html>
