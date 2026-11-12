@@ -1,4 +1,4 @@
-name: Publish to PyPI
+name: Publish to PyPI and GitHub
 
 on:
   push:
@@ -21,6 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       publish: ${{ steps.version.outputs.publish }}
+      version: ${{ steps.version.outputs.version }}
+      package: ${{ steps.version.outputs.package }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -54,6 +56,8 @@ jobs:
           print(f"{project['name']} {project['version']}: publish={publish}")
           with open(os.environ["GITHUB_OUTPUT"], "a") as output:
               output.write(f"publish={str(publish).lower()}\n")
+              output.write(f"version={project['version']}\n")
+              output.write(f"package={project['name']}\n")
       - name: Install build tools
         if: steps.version.outputs.publish == 'true'
         run: python -m pip install build twine
@@ -84,3 +88,120 @@ jobs:
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
           attestations: false
+
+  github-release:
+    needs: [build, publish]
+    if: >-
+      always() && needs.build.result == 'success' &&
+      (needs.publish.result == 'success' || needs.publish.result == 'skipped')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install version parser
+        run: python -m pip install packaging
+      - name: Create or complete the GitHub release from published PyPI artifacts
+        shell: python
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE: ${{ needs.build.outputs.package }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          import hashlib
+          import json
+          import os
+          import subprocess
+          import tempfile
+          import time
+          from pathlib import Path
+          from urllib.error import HTTPError
+          from urllib.parse import quote
+          from urllib.request import Request, urlopen
+
+          from packaging.version import Version
+
+          package = os.environ["PACKAGE"]
+          version = os.environ["VERSION"]
+          tag = f"v{version}"
+          repository = os.environ["GITHUB_REPOSITORY"]
+          api = f"https://api.github.com/repos/{repository}"
+
+          def github(path):
+              request = Request(api + path, headers={
+                  "Authorization": f"Bearer {os.environ['GH_TOKEN']}",
+                  "Accept": "application/vnd.github+json",
+              })
+              with urlopen(request, timeout=30) as response:
+                  return json.load(response)
+
+          def gh(*args):
+              subprocess.run(["gh", *args, "--repo", repository], check=True)
+
+          pypi = f"https://pypi.org/pypi/{quote(package, safe='')}/{quote(version, safe='')}/json"
+          for attempt in range(6):
+              try:
+                  with urlopen(pypi, timeout=30) as response:
+                      metadata = json.load(response)
+                  break
+              except HTTPError as error:
+                  if error.code != 404 or attempt == 5:
+                      raise
+                  time.sleep(3)
+          files = metadata["urls"]
+          if {item["packagetype"] for item in files} != {"bdist_wheel", "sdist"}:
+              raise RuntimeError("PyPI release must contain both wheel and source distribution")
+          try:
+              release = github(f"/releases/tags/{quote(tag, safe='')}")
+          except HTTPError as error:
+              if error.code != 404:
+                  raise
+              release = None
+
+          with tempfile.TemporaryDirectory() as directory:
+              directory = Path(directory)
+              expected = {}
+              paths = {}
+              for item in files:
+                  filename = item["filename"]
+                  if Path(filename).name != filename:
+                      raise ValueError("Invalid PyPI artifact filename")
+                  with urlopen(item["url"], timeout=60) as response:
+                      content = response.read()
+                  digest = hashlib.sha256(content).hexdigest()
+                  if digest != item["digests"]["sha256"]:
+                      raise RuntimeError(f"PyPI digest mismatch: {filename}")
+                  expected[filename] = f"sha256:{digest}"
+                  paths[filename] = directory / filename
+                  paths[filename].write_bytes(content)
+              if release is None:
+                  notes = directory / "release-notes.md"
+                  notes.write_text(
+                      f"Install from [PyPI](https://pypi.org/project/{package}/{version}/):\n\n"
+                      f"```bash\npip install {package}=={version}\n```\n\n"
+                      "The attached wheel and source archive are the exact published PyPI artifacts.\n\n"
+                      "SHA-256:\n\n" + "\n".join(
+                          f"- `{name}`: `{digest.removeprefix('sha256:')}`"
+                          for name, digest in expected.items()
+                      ), encoding="utf-8",
+                  )
+                  options = ["--prerelease"] if Version(version).is_prerelease else []
+                  gh("release", "create", tag, "--draft", "--target", os.environ["GITHUB_SHA"],
+                     "--title", f"QpiAI Finance {version}", "--notes-file", str(notes), *options)
+                  release = github(f"/releases/tags/{quote(tag, safe='')}")
+              assets = {asset["name"]: asset for asset in release["assets"]}
+              for name, path in paths.items():
+                  if name in assets:
+                      if assets[name].get("digest") != expected[name]:
+                          raise RuntimeError(f"Existing GitHub asset differs from PyPI: {name}")
+                  else:
+                      gh("release", "upload", tag, str(path))
+              verified = github(f"/releases/tags/{quote(tag, safe='')}")
+              assets = {asset["name"]: asset for asset in verified["assets"]}
+              if any(assets.get(name, {}).get("digest") != digest for name, digest in expected.items()):
+                  raise RuntimeError("GitHub release assets failed digest verification")
+              if verified["draft"]:
+                  gh("release", "edit", tag, "--draft=false")
+              print(f"Verified GitHub release: https://github.com/{repository}/releases/tag/{tag}")
