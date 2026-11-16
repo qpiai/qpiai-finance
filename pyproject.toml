@@ -44,8 +44,8 @@ dependencies = [
 dev = ["pytest>=8", "ruff>=0.12", "build>=1.2"]
 
 [project.urls]
-Homepage = "https://github.com/qpiai/qpiai-finance"
-Documentation = "https://github.com/qpiai/qpiai-finance/blob/main/docs/index.md"
+Homepage = "https://opt.qpiai.tech/finance"
+Documentation = "https://opt-finance-docs.qpiai.tech/"
 Repository = "https://github.com/qpiai/qpiai-finance"
 Issues = "https://github.com/qpiai/qpiai-finance/issues"
 
