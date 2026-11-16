@@ -8,6 +8,8 @@ QpiAI Opt's native higher-order HUBO solver solves the polynomial in its natural
 
 Read the [user manual](docs/index.md), [getting started guide](docs/getting-started.md), or [API index](docs/public-api.md). Agents and workflow authors start with [automation.md](automation.md).
 
+Documentation: [opt-finance-docs.qpiai.tech](https://opt-finance-docs.qpiai.tech/)
+
 ## Install
 
 ```bash
